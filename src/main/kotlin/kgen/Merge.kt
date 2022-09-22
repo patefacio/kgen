@@ -70,11 +70,43 @@ enum class MergeFileStatus {
     NoChange,
     Created;
 
-    fun announce(filePath: String) = when(this) {
-        Updated ->  "UPDATED: file `$filePath`"
+    fun announce(filePath: String) = when (this) {
+        Updated -> "UPDATED: file `$filePath`"
         NoChange -> "NO CHANGE: file `$filePath`"
-        Created ->  "CREATED: file `$filePath`"
+        Created -> "CREATED: file `$filePath`"
     }
+}
+
+fun checkWriteFile(
+    filePath: String,
+    content: String,
+    previousContent: String? = null,
+    announceUpdates: Boolean = true
+): MergeFileStatus {
+    val file = File(filePath)
+    val mergeFileStatus = when {
+        file.exists() -> {
+            val previous = previousContent ?: file.readText()
+            when {
+                previous == content -> MergeFileStatus.NoChange
+                else -> {
+                    file.writeText(content)
+                    MergeFileStatus.Updated
+                }
+            }
+        }
+
+        else -> {
+            file.writeText(content)
+            MergeFileStatus.Created
+        }
+    }
+
+    if(announceUpdates) {
+        println(mergeFileStatus.announce(filePath))
+    }
+
+    return mergeFileStatus
 }
 
 fun mergeGeneratedWithFile(
@@ -84,23 +116,12 @@ fun mergeGeneratedWithFile(
     announceUpdates: Boolean = true
 ): Pair<MergeFileStatus, String> {
     val file = File(filePath)
-    val (mergeFileStatus, finalContent) = if(file.exists()) {
+
+    return if (file.exists()) {
         val fileContent = file.readText()
         val mergedContent = mergeBlocks(generated, fileContent, blockDelimiter)
-        if(fileContent == mergedContent) {
-            Pair(MergeFileStatus.NoChange, fileContent)
-        } else {
-            file.writeText(mergedContent)
-            Pair(MergeFileStatus.Updated, mergedContent)
-        }
+        Pair(checkWriteFile(filePath, mergedContent, fileContent, announceUpdates), mergedContent)
     } else {
-        file.writeText(generated)
-        Pair(MergeFileStatus.Created, generated)
+        Pair(checkWriteFile(filePath, generated, announceUpdates = announceUpdates), generated)
     }
-
-    if(announceUpdates) {
-        println(mergeFileStatus.announce(filePath))
-    }
-
-    return Pair(mergeFileStatus, finalContent)
 }
