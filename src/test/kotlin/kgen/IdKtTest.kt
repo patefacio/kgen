@@ -1,38 +1,32 @@
 package kgen
 
+import kgen.rust.UnmodeledType
+import kgen.rust.asType
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
+import kotlin.test.assertFailsWith
 
 internal class IdKtTest {
 
     @Test
-    fun words() {
-        assertEquals(listOf("this", "is", "cool"), words("this_is_cool"))
-        assertEquals(listOf("this", "is", "cool"), words("thisIsCool"))
-        assertEquals(listOf("this", "is", "cool"), words("ThisIsCool"))
-        assertEquals(listOf("this", "is", "cool"), words("THIS_IS_COOL"))
-    }
+    fun id() {
+        assertEquals(
+            "ValidSnakeName",
+            id("valid_snake_name").capCamel
+        )
 
-    @Test
-    fun capCamel() {
-        assertEquals("ThisIsCool", capCamel("this_is_cool"))
-        assertEquals("ThisIsCool", capCamel("thisIsCool"))
-        assertEquals("ThisIsCool", capCamel("ThisIsCool"))
-        assertEquals("ThisIsCool", capCamel("This_Is_Cool"))
-    }
+        assertFailsWith<IllegalArgumentException> {
+            id("ThisIsBadSinceNotSnake")
+        }
 
-    @Test
-    fun camel() {
-        assertEquals("thisIsCool", camel("this_is_cool"))
-        assertEquals("thisIsCool", camel("thisIsCool"))
-        assertEquals("thisIsCool", camel("ThisIsCool"))
-        assertEquals("thisIsCool", camel("This_Is_Cool"))
-    }
+        assertFailsWith<IllegalArgumentException> {
+            id("this is also bad")
+        }
 
-    @Test
-    fun is_snake() {
-        assertTrue(is_snake("this_is_snake_case"))
-        assertFalse(is_snake("this_is_NOT_snake_case"))
+        assertEquals(
+            UnmodeledType("FooBar"),
+            "FooBar".asType
+        )
     }
 }

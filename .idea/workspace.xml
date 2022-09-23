@@ -5,8 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34a6f5bd-04e9-4a96-9c50-97bd3f77bb6e" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Casing.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Comment.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Access.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/AsRust.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Attr.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericDecl.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Lifetime.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Ref.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Visibility.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/CasingKtTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/CommentKtTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/AccessTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/AttrTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FieldTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/RefTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/Merge.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Merge.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/Id.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Id.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/IdKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/IdKtTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -18,10 +39,22 @@
       <ProjectState />
     </projectState>
   </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$">
+          <activation />
+        </task>
+        <projects_view />
+      </state>
+    </system>
+  </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
+        <option value="Kotlin Enum" />
         <option value="Kotlin File" />
+        <option value="Kotlin Interface" />
         <option value="Kotlin Class" />
         <option value="JUnit5 Test Class" />
       </list>
@@ -59,12 +92,16 @@
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
     </key>
+    <key name="MoveKotlinTopLevelDeclarationsDialog.RECENTS_KEY">
+      <recent name="kgen.rust" />
+    </key>
     <key name="CreateTestDialog.RecentsKey">
+      <recent name="kgen.rust" />
       <recent name="kgen" />
     </key>
   </component>
   <component name="RunManager" selected="Gradle.Tests in 'kgen.test'">
-    <configuration name="MergeKtTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="AttrTest.attrBasics" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -77,7 +114,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.MergeKtTest&quot;" />
+            <option value="&quot;kgen.rust.AttrTest.attrBasics&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -87,7 +124,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="MergeKtTest.mergeGeneratedWithFile" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="FieldTest.toCode" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -100,7 +137,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.MergeKtTest.mergeGeneratedWithFile&quot;" />
+            <option value="&quot;kgen.rust.FieldTest.toCode&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -110,7 +147,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="MergeKtTest.pullBlocks" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="IdKtTest.id" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -123,7 +160,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.MergeKtTest.pullBlocks&quot;" />
+            <option value="&quot;kgen.IdKtTest.id&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -133,7 +170,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="MergeKtTest.split" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="RefTest.getType" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -146,7 +183,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.MergeKtTest.split&quot;" />
+            <option value="&quot;kgen.rust.RefTest.getType&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -180,10 +217,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Tests in 'kgen.test'" />
-        <item itemvalue="Gradle.MergeKtTest.mergeGeneratedWithFile" />
-        <item itemvalue="Gradle.MergeKtTest" />
-        <item itemvalue="Gradle.MergeKtTest.pullBlocks" />
-        <item itemvalue="Gradle.MergeKtTest.split" />
+        <item itemvalue="Gradle.AttrTest.attrBasics" />
+        <item itemvalue="Gradle.IdKtTest.id" />
+        <item itemvalue="Gradle.RefTest.getType" />
+        <item itemvalue="Gradle.FieldTest.toCode" />
       </list>
     </recent_temporary>
   </component>
@@ -197,7 +234,7 @@
       <updated>1663770952093</updated>
       <workItem from="1663770954501" duration="11154000" />
       <workItem from="1663852599322" duration="7436000" />
-      <workItem from="1663861148226" duration="1428000" />
+      <workItem from="1663861148226" duration="25825000" />
     </task>
     <servers />
   </component>
