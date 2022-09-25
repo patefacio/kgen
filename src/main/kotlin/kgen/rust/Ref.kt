@@ -9,11 +9,8 @@ open class Ref(
 ) : Type {
 
     private val mut
-        get() = if (isMutable) {
-            "mut"
-        } else {
-            ""
-        }
+        get() = mutable(isMutable)
+
     private val rustLifetime get() = lifetime?.asRust ?: ""
 
     override val type
@@ -24,7 +21,3 @@ open class Ref(
         get() = true
 }
 
-class StrRef(
-    lifetime: Lifetime? = null,
-    isMutable: Boolean = false
-) : Ref(Str, lifetime, isMutable)

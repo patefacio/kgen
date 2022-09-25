@@ -3,34 +3,28 @@ package kgen.rust
 import kgen.Id
 import kgen.id
 
-sealed class Attr(val id: Id) : AsRust {
-    class Word(id: Id) : Attr(id) {
-        constructor(id: String) : this(id(id))
+sealed class Attr(id: Id) : Identifiable(id), AsRust {
+    class Word(nameId: String) : Attr(id(nameId)) {
 
         override val asRust: String
             get() = "#[${id.snakeCaseName}]"
     }
 
-    class Value(id: Id, val value: String) : Attr(id) {
-        constructor(id: String, value: String) : this(id(id), value)
-
+    class Value(nameId: String, val value: String) : Attr(id(nameId)) {
         override val asRust: String
             get() = "#[${id.snakeCaseName} = \"$value\"]"
-
     }
 
-    class Words(id: Id, val words: List<Id>) : Attr(id) {
-        constructor(id: String, words: List<String>) : this(id(id), words.map { id(it) })
-        constructor(id: String, vararg words: String) : this(id(id), words.map { id(it) })
+    class Words(nameId: String, val words: List<Id>) : Attr(id(nameId)) {
+        constructor(nameId: String, vararg words: String) : this(nameId, words.map { id(it) })
 
         override val asRust: String
             get() = "#[${id.snakeCaseName}(${words.map { it.snakeCaseName }.joinToString(", ")})]"
     }
 
-    class Dict(id: Id, val dict: Map<Id, String>) : Attr(id) {
-        constructor(id: String, words: Map<String, String>) : this(id(id), words.map { (k, v) -> id(k) to v }.toMap())
-        constructor(id: String, vararg words: Pair<String, String>) : this(
-            id(id),
+    class Dict(nameId: String, val dict: Map<Id, String>) : Attr(id(nameId)) {
+        constructor(nameId: String, vararg words: Pair<String, String>) : this(
+            nameId,
             words.map { (k, v) -> id(k) to v }.toMap()
         )
 
@@ -51,8 +45,3 @@ val List<Attr>.asRust
         this.joinToString("\n") { it.asRust }
     }
 
-interface AttrList : AsRust {
-    val attrs: List<Attr>
-    override val asRust: String
-        get() = attrs.asRust
-}

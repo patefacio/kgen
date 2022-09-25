@@ -14,7 +14,7 @@ internal class FieldTest {
             /// TODO: DOCUMENT Field(foo)
             pub foo: String
         """.trimIndent(),
-            Field(id("foo")).asRust
+            Field("foo").asRust
         )
 
         assertEquals(
@@ -22,7 +22,7 @@ internal class FieldTest {
             /// The critical foo field
             pub foo: String
         """.trimIndent(),
-            Field(id("foo"), "The critical foo field").asRust
+            Field("foo", "The critical foo field").asRust
         )
 
         assertEquals(

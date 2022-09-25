@@ -7,8 +7,15 @@ internal class UseTest {
     @Test
     fun basics() {
         assertEquals(
-            "use money",
-            Use("money").asRust
+            """
+                #[foo(goo, moo)]
+                pub(crate) use money
+            """.trimIndent(),
+            Use(
+                "money",
+                visibility = Visibility.PubCrate,
+                attrs = listOf(Attr.Words("foo", "goo", "moo"))
+            ).asRust
         )
     }
 }

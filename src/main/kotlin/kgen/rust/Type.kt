@@ -1,7 +1,5 @@
 package kgen.rust
 
-import kgen.Id
-
 interface Type : AsRust {
     val type: String
     override val asRust get() = type
@@ -48,10 +46,5 @@ object RustString : Type {
 object Str : Type {
     override val type get() = "str"
 }
-
-data class UnmodeledType(override val type: String) : Type
-
-val String.asType get() = UnmodeledType(this)
-val Id.asType get() = UnmodeledType(this.capCamel)
 
 
