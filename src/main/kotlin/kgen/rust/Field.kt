@@ -14,8 +14,8 @@ data class Field(
     val doc: String = "TODO: DOCUMENT Field($nameId)",
     val type: Type = RustString,
     val access: Access = Access.Pub,
-    override val attrs: List<Attr> = emptyList()
-) : Identifiable(id(nameId)), AsRust, AttrList {
+    val attrs: AttrList = AttrList()
+) : Identifiable(nameId), AsRust {
 
     val decl get() = "${trailingSpace(access.asRust)}$nameId: ${type.type}"
 

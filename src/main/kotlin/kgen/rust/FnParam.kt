@@ -9,7 +9,7 @@ data class FnParam(
     val type: Type = RustString,
     val doc: String = "TODO Document Param($nameId)",
     val isMutable: Boolean = false
-) : Identifiable(id(nameId)), AsRust {
+) : Identifiable(nameId), AsRust {
 
     override val asRust: String
         get() = "${trailingSpace(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"

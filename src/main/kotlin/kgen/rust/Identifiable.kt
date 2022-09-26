@@ -1,5 +1,8 @@
 package kgen.rust
 
 import kgen.Id
+import kgen.id
 
-open class Identifiable(val id: Id)
+open class Identifiable(val id: Id) {
+    constructor(nameId: String) : this(id(nameId))
+}

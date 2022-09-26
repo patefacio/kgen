@@ -14,7 +14,7 @@ internal class UseTest {
             Use(
                 "money",
                 visibility = Visibility.PubCrate,
-                attrs = listOf(Attr.Words("foo", "goo", "moo"))
+                attrs = AttrList(Attr.Words("foo", "goo", "moo"))
             ).asRust
         )
     }

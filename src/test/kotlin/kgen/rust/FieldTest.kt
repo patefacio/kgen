@@ -36,7 +36,7 @@ internal class FieldTest {
         """.trimIndent(),
             Field(
                 "foo", "The critical foo field",
-                attrs = listOf(
+                attrs = AttrList(
                     Attr.Word("foo"),
                     Attr.Words("goo", "a", "b", "c"),
                     Attr.Dict("foo", "a" to "A", "b" to "B"),

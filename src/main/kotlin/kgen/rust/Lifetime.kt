@@ -9,4 +9,18 @@ data class Lifetime(
 
 val String.asLifetime get() = Lifetime(this)
 
+val String.asLifetimes get() = this.split(",").map { Lifetime(it.trim()) }
+
+fun lifetimes(vararg lifetime: String) = lifetime.map {
+    Lifetime(
+        if (it.startsWith("'")) {
+            it.substring(1)
+        } else {
+            it
+        }
+    )
+}
+
+val List<Lifetime>.asRust get() = this.map { it.asRust }.joinToString(", ")
+
 val static = Lifetime("static")

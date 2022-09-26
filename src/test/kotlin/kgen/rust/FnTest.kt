@@ -1,0 +1,59 @@
+package kgen.rust
+
+import org.junit.jupiter.api.Test
+
+import org.junit.jupiter.api.Assertions.*
+
+internal class FnTest {
+
+    @Test
+    fun getAsRust() {
+
+        assertEquals(
+            """
+            /// Does foo and bar
+            /// 
+            ///   * a - The a value
+            ///   * b - The b value
+            #[foo]
+            #[inline = "always"]
+            fn foo_bar(
+              a: i32,
+              b: i32
+            ) {
+              a = a + 1;
+            }
+        """.trimIndent(),
+            Fn(
+                "foo_bar",
+                "Does foo and bar",
+                listOf(
+                    FnParam("a", I32, "The a value"),
+                    FnParam("b", I32, "The b value")
+                ),
+
+                body = FnBody(
+                    "a = a + 1;"
+                ),
+                inlineDecl = InlineDecl.InlineAlways,
+                attrs = AttrList(Attr.Word("foo"))
+            ).asRust
+        )
+
+        assertEquals(
+            """
+            /// Does foo and bar
+            fn foo_bar() {
+              // α <foo_bar>
+              // ω <foo_bar>
+            }
+        """.trimIndent(),
+            Fn(
+                "foo_bar",
+                "Does foo and bar"
+            ).asRust
+
+        )
+
+    }
+}
