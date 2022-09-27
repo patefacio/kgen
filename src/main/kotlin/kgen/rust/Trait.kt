@@ -1,8 +1,6 @@
 package kgen.rust
 
-import kgen.commentTriple
-import kgen.indent
-import kgen.trailingSpace
+import kgen.*
 
 data class Trait(
     val nameId: String,
@@ -19,13 +17,15 @@ data class Trait(
         it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}")
     }
 
+    private val traitContent = indent(traitScopedFunctions.joinToString("\n\n") { it.asRust }) ?: ""
+
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
-            trailingSpace("trait ${id.capCamel}${genericParamSet.asRust} {", "\n"),
-            indent(traitScopedFunctions.joinToString("\n\n") { it.asRust }),
+            "trait ${id.capCamel}${genericParamSet.asRust} {",
+            emptyIfOnlyWhitespace(traitContent),
             "}"
-        ).joinToString("\n")
+        ).joinNonEmpty()
 
 }
 

@@ -22,3 +22,7 @@ fun bracketText(text: String, open: String = "{", close: String = "}") =
     } else {
         listOf(open, text, close).joinToString("\n")
     }
+
+val whiteSpaceRe = """^\s+$""".toRegex()
+fun emptyIfOnlyWhitespace(text: String) =
+    text.replace(whiteSpaceRe, "")

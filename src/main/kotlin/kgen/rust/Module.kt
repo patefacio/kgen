@@ -1,8 +1,6 @@
 package kgen.rust
 
-import kgen.commentTriple
-import kgen.joinNonEmpty
-import kgen.trailingSpace
+import kgen.*
 
 data class Module(
     val nameId: String,
@@ -21,28 +19,55 @@ data class Module(
     val testMacroUses: List<String> = emptyList()
 ) : Identifiable(nameId), AsRust {
 
-    override val asRust: String
-        get() = listOf(
+    private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
+        listOf(
             commentTriple(doc),
-            announceSection("macro-use imports",
-                macroUses.map { "#[macro_use]\nextern crate $it;" }
-            ),
-            announceSection("test-macro-use imports",
-                testMacroUses.map { "#[cfg(test)]\n#[macro_use]\nextern crate $it;" }
-            ),
-            announceSection("module uses",
-                uses.joinToString("\n") { it.asRust }),
-            announceSection(
-                "mod decls",
-                modules.map {
-                    it.asModDecl
-                }),
-            announceSection("structs",
-                structs.map { it.asRust })
+            "$asModDecl {",
+            indent(content),
+            "}"
+        ).joinToString("\n")
 
+    } else {
+        content
+    }
 
-        ).joinNonEmpty()
+    override val asRust: String
+        get() = wrapIfInline(
+            listOf(
+                if (moduleType != ModuleType.Inline) {
+                    innerDoc(doc) ?: ""
+                } else {
+                    ""
+                },
+                announceSection("macro-use imports",
+                    macroUses.map { "#[macro_use]\nextern crate $it;" }
+                ),
+                announceSection("test-macro-use imports",
+                    testMacroUses.map { "#[cfg(test)]\n#[macro_use]\nextern crate $it;" }
+                ),
+                announceSection("module uses",
+                    uses.joinToString("\n") { it.asRust }),
+                announceSection("mod decls",
+                    modules.filter { it.moduleType != ModuleType.Inline }.joinToString("\n") { it.asModDecl }),
+                announceSection("type aliases",
+                    typeAliases.joinToString("\n") { it.asRust }),
+                announceSection("enums",
+                    enums.joinToString("\n") { it.asRust }),
+                announceSection("traits",
+                    traits.joinToString("\n") { it.asRust }),
+                announceSection("structs",
+                    structs.joinToString("\n") { it.asRust }),
+                announceSection("functions",
+                    functions.joinToString("\n") { it.asRust }),
+                modules.joinToString("\n\n") { it.asRust }
+            ).joinNonEmpty("\n\n")
+        )
 
     val asModDecl: String get() = "${trailingSpace(visibility.asRust)}mod $nameId;"
 }
 
+fun visitModules(rootModule: Module, function: (module: Module) -> Unit) {
+    kgenLogger.warn { "Visiting ${rootModule.nameId}" }
+    function(rootModule)
+    rootModule.modules.forEach { visitModules(it, function) }
+}

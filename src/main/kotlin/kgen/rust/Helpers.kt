@@ -8,7 +8,7 @@ fun mutable(isMutable: Boolean) = if (isMutable) {
     ""
 }
 
-fun announceSection(label: String, content: String, separator: String = "\n\n") = when (content) {
+fun announceSection(label: String, content: String) = when (content) {
     "" -> ""
     else -> """
 ////////////////////////////////////////////////////////////////////////////////////
@@ -17,5 +17,9 @@ fun announceSection(label: String, content: String, separator: String = "\n\n") 
 $content""".trimIndent()
 }
 
-fun announceSection(label: String, content: List<String>, separator: String = "\n\n"): String =
-    announceSection(label, content.joinNonEmpty(), separator)
+fun announceSection(label: String, content: List<String>): String =
+    announceSection(label, content.joinNonEmpty())
+
+fun innerDoc(text: String?) = text
+    ?.split("\n")
+    ?.joinToString("\n") { "//! $it" }

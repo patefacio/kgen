@@ -13,7 +13,6 @@ internal class TraitTest {
             """
                 /// Supports performing foo and bar operations
                 trait FooBar {
-
                   /// foo operation
                   fn foo() {
                     // α <trait fn FooBar::foo>
