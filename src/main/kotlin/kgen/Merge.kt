@@ -5,6 +5,7 @@ import java.io.File
 data class BlockDelimiter(val open: String, val close: String)
 
 val alphaOmegaDelimiter = BlockDelimiter(open = "// α", close = "// ω")
+val scriptDelimiter = BlockDelimiter(open = "# α", close = "# ω")
 
 enum class BlockNameDelimiter {
     AngleBracket,
@@ -27,8 +28,7 @@ fun emptyBlock(
     blockName: String,
     blockDelimiter: BlockDelimiter = alphaOmegaDelimiter,
     blockNameDelimiter: BlockNameDelimiter = BlockNameDelimiter.AngleBracket
-) = """
-${blockDelimiter.open} ${blockNameDelimiter.open}$blockName${blockNameDelimiter.close}
+) = """${blockDelimiter.open} ${blockNameDelimiter.open}$blockName${blockNameDelimiter.close}
 ${blockDelimiter.close} ${blockNameDelimiter.open}$blockName${blockNameDelimiter.close}
 """.trimIndent()
 

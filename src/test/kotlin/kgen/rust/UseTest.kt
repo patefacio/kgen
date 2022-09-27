@@ -9,7 +9,7 @@ internal class UseTest {
         assertEquals(
             """
                 #[foo(goo, moo)]
-                pub(crate) use money
+                pub(crate) use money;
             """.trimIndent(),
             Use(
                 "money",

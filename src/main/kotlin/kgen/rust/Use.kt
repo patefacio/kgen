@@ -11,6 +11,6 @@ data class Use(
     override val asRust: String
         get() = listOf(
             attrs.asRust,
-            "${trailingSpace(visibility.asRust)}use $pathName"
+            "${trailingSpace(visibility.asRust)}use $pathName;"
         ).joinNonEmpty()
 }
