@@ -12,3 +12,7 @@ data class FnParam(
     override val asRust: String
         get() = "${trailingText(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
 }
+
+val self = FnParam("self", Self)
+val refSelf = FnParam("self", RefSelf)
+val refMutSelf = FnParam("self", RefMutSelf)

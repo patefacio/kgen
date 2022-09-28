@@ -47,4 +47,16 @@ object Str : Type {
     override val type get() = "str"
 }
 
+object Self : Type {
+    override val type: String get() = "Self"
+}
+
+object RefSelf : Type {
+    override val type: String get() = "& Self"
+}
+
+object RefMutSelf : Type {
+    override val type: String get() = "& mut Self"
+}
+
 

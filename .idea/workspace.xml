@@ -5,22 +5,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34a6f5bd-04e9-4a96-9c50-97bd3f77bb6e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Const.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/EnumValue.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/ConstTest.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/EnumTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/Id.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Id.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Enum.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Enum.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/FnParam.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/FnParam.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Ref.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Ref.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/ModuleTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/ModuleTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,7 +28,17 @@
         <task path="$PROJECT_DIR$">
           <activation />
         </task>
-        <projects_view />
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="kgen" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
       </state>
     </system>
   </component>
@@ -67,21 +67,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
-    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
-    "last_opened_file_path": "/Users/dbdavidson/dev/open_source/kgen",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "project.propCompiler"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/dbdavidson/dev/open_source/kgen&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propCompiler&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
@@ -230,7 +230,8 @@
       <workItem from="1663770954501" duration="11154000" />
       <workItem from="1663852599322" duration="7436000" />
       <workItem from="1663861148226" duration="73355000" />
-      <workItem from="1664371251136" duration="5611000" />
+      <workItem from="1664371251136" duration="9659000" />
+      <workItem from="1664396821882" duration="1040000" />
     </task>
     <servers />
   </component>

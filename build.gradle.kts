@@ -1,8 +1,12 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+java {
+    sourceCompatibility = org.gradle.api.JavaVersion.VERSION_17
+    targetCompatibility = org.gradle.api.JavaVersion.VERSION_17
+}
+
 plugins {
     kotlin("jvm") version "1.7.10"
-    application
 }
 
 group = "org.example"
@@ -21,12 +25,6 @@ dependencies {
     )
 
     testImplementation(kotlin("test"))
-//    testImplementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
-//    testImplementation(
-//        group = "ch.qos.logback",
-//        name = "logback-classic",
-//        version = "1.2.6"
-//    )
 }
 
 tasks.test {
@@ -36,8 +34,4 @@ tasks.test {
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
-}
-
-application {
-    mainClass.set("MainKt")
 }
