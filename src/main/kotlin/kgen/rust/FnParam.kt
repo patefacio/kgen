@@ -1,8 +1,6 @@
 package kgen.rust
 
-import kgen.Id
-import kgen.id
-import kgen.trailingSpace
+import kgen.trailingText
 
 data class FnParam(
     val nameId: String,
@@ -12,5 +10,5 @@ data class FnParam(
 ) : Identifiable(nameId), AsRust {
 
     override val asRust: String
-        get() = "${trailingSpace(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
+        get() = "${trailingText(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
 }

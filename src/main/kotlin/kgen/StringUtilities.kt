@@ -1,9 +1,15 @@
 package kgen
 
-fun trailingSpace(text: String, trailing: String = " ") = if (text.isEmpty()) {
+fun trailingText(text: String, trailing: String = " ") = if (text.isEmpty()) {
     ""
 } else {
     "$text$trailing"
+}
+
+fun leadingText(text: String, leading: String = " ") = if(text.isEmpty()) {
+    ""
+} else {
+    "$leading$text"
 }
 
 fun tripleQuote(text: String) = "\"\"\"$text\"\"\""

@@ -14,6 +14,7 @@ data class Module(
     val modules: List<Module> = emptyList(),
     val uses: List<Use> = emptyList(),
     val typeAliases: List<TypeAlias> = emptyList(),
+    val consts: List<Const> = emptyList(),
     val attrs: AttrList = AttrList(),
     val macroUses: List<String> = emptyList(),
     val testMacroUses: List<String> = emptyList()
@@ -48,9 +49,11 @@ data class Module(
                 announceSection("module uses",
                     uses.joinToString("\n") { it.asRust }),
                 announceSection("mod decls",
-                    modules.filter { it.moduleType != ModuleType.Inline }.joinToString("\n") { it.asModDecl }),
+                    modules.filter { it.moduleType != ModuleType.Inline }.joinToString("\n") { "${it.asModDecl};" }),
                 announceSection("type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
+                announceSection("constants",
+                    consts.joinToString("\n") { it.asRust }),
                 announceSection("enums",
                     enums.joinToString("\n") { it.asRust }),
                 announceSection("traits",
@@ -59,11 +62,14 @@ data class Module(
                     structs.joinToString("\n") { it.asRust }),
                 announceSection("functions",
                     functions.joinToString("\n") { it.asRust }),
-                modules.joinToString("\n\n") { it.asRust }
+                leadingText(
+                    modules.filter { it.moduleType == ModuleType.Inline }.joinToString("\n\n") { it.asRust },
+                    "\n"
+                )
             ).joinNonEmpty("\n\n")
         )
 
-    val asModDecl: String get() = "${trailingSpace(visibility.asRust)}mod $nameId;"
+    val asModDecl: String get() = "${trailingText(visibility.asRust)}mod $nameId"
 }
 
 fun visitModules(rootModule: Module, function: (module: Module) -> Unit) {

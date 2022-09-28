@@ -32,6 +32,12 @@ extern crate tester;
 use crate::time_revalue::{Revalue, RevalueOn};
 
 ////////////////////////////////////////////////////////////////////////////////////
+// --- constants ---
+////////////////////////////////////////////////////////////////////////////////////
+/// This is a foo
+const FOO: i32 = 234;
+
+////////////////////////////////////////////////////////////////////////////////////
 // --- traits ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// TODO: Document Trait(t1)
@@ -55,6 +61,9 @@ struct S {
                 visibility = Visibility.PubCrate,
                 macroUses = listOf("serde_derive"),
                 testMacroUses = listOf("tester"),
+                consts = listOf(
+                    Const("foo", "This is a foo", I32, 234)
+                ),
                 structs = listOf(
                     Struct("s", "S struct")
                 ),
@@ -83,6 +92,9 @@ struct S {
                     modules = listOf(
                         Module("l2c2", moduleType = ModuleType.Inline)
                     )
+                ),
+                Module(
+                    "file"
                 )
             )
         )
@@ -90,19 +102,27 @@ struct S {
         assertEquals(
             """
 /// TODO: Document Module(root)
-mod root; {
+mod root {
+  ////////////////////////////////////////////////////////////////////////////////////
+  // --- mod decls ---
+  ////////////////////////////////////////////////////////////////////////////////////
+  mod file;
+  
+  
   /// TODO: Document Module(l1)
-  mod l1; {
+  mod l1 {
+    
     /// TODO: Document Module(l1c1)
-    mod l1c1; {
+    mod l1c1 {
       
     }
   }
   
   /// TODO: Document Module(l2)
-  mod l2; {
+  mod l2 {
+    
     /// TODO: Document Module(l2c2)
-    mod l2c2; {
+    mod l2c2 {
       
     }
   }

@@ -1,7 +1,7 @@
 package kgen.rust
 
 import kgen.joinNonEmpty
-import kgen.trailingSpace
+import kgen.trailingText
 
 data class Use(
     val pathName: String,
@@ -11,6 +11,6 @@ data class Use(
     override val asRust: String
         get() = listOf(
             attrs.asRust,
-            "${trailingSpace(visibility.asRust)}use $pathName;"
+            "${trailingText(visibility.asRust)}use $pathName;"
         ).joinNonEmpty()
 }

@@ -17,7 +17,7 @@ data class Field(
     val attrs: AttrList = AttrList()
 ) : Identifiable(nameId), AsRust {
 
-    val decl get() = "${trailingSpace(access.asRust)}$nameId: ${type.type}"
+    val decl get() = "${trailingText(access.asRust)}$nameId: ${type.type}"
 
     override val asRust: String
         get() = listOf(

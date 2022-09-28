@@ -13,7 +13,7 @@ data class Struct(
 
     val structName = id.capCamel
 
-    private val header get() = "${trailingSpace(visibility.asRust)}struct ${structName}${genericParamSet.asRust} {"
+    private val header get() = "${trailingText(visibility.asRust)}struct ${structName}${genericParamSet.asRust} {"
 
     override val type: String
         get() = structName

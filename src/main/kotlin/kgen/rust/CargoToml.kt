@@ -35,7 +35,7 @@ class CargoToml(
                 if (dependencies.isEmpty()) {
                     null
                 } else {
-                    trailingSpace(dependencies.joinToString("\n"))
+                    trailingText(dependencies.joinToString("\n"))
                 },
                 emptyBlock("dependencies", scriptDelimiter)
             ).joinToString("\n")

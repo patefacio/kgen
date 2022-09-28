@@ -1,6 +1,6 @@
 package kgen.rust
 
-import kgen.trailingSpace
+import kgen.trailingText
 
 open class Ref(
     val referent: Type,
@@ -14,8 +14,8 @@ open class Ref(
     private val rustLifetime get() = lifetime?.asRust ?: ""
 
     override val type
-        get() = "&${trailingSpace(rustLifetime)}${
-            trailingSpace(mut)
+        get() = "&${trailingText(rustLifetime)}${
+            trailingText(mut)
         }${referent.asRust}"
     override val isRef: Boolean
         get() = true
