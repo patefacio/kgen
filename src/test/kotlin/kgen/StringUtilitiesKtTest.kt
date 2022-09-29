@@ -30,4 +30,15 @@ of the emergency broadcast system"""
             )
         )
     }
+
+    @Test
+    fun removeme() {
+
+        fun foo(a: String, b: Int, vararg c: String, d: Int = 0, e: Int = 4) {
+
+        }
+
+        foo("a", 32, "a", "b", d = 3)
+
+    }
 }

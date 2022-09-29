@@ -17,9 +17,13 @@ data class Trait(
         it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}")
     }
 
-    private val traitContent = indent(traitScopedFunctions.joinToString("\n\n") { it.asRust }) ?: ""
+    private val traitContent = indent(
+        (associatedTypes.map { it.asRust } +
+                traitScopedFunctions.map { it.asRust }).joinNonEmpty("\n\n")
+    )!!
 
-    override val asRust: String
+    override
+    val asRust: String
         get() = listOf(
             commentTriple(doc),
             "trait ${id.capCamel}${genericParamSet.asRust} {",

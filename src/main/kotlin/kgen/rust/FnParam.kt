@@ -9,6 +9,9 @@ data class FnParam(
     val isMutable: Boolean = false
 ) : Identifiable(nameId), AsRust {
 
+
+    constructor(nameId: String, type: String, doc: String) : this(nameId, UnmodeledType(type), doc)
+
     override val asRust: String
         get() = "${trailingText(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
 }

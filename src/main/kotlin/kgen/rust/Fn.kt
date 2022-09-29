@@ -32,6 +32,27 @@ data class Fn(
     val blockName: String = nameId
 ) : Identifiable(nameId), AsRust {
 
+
+    constructor(
+        nameId: String,
+        doc: String = missingDoc(nameId),
+        vararg params: FnParam,
+        returnType: Type? = null,
+        returnDoc: String? = null,
+        inlineDecl: InlineDecl = InlineDecl.None,
+        genericParamSet: GenericParamSet? = null,
+        visibility: Visibility = Visibility.None,
+        body: FnBody? = null,
+        isTest: Boolean = false,
+        hasUnitTest: Boolean = false,
+        attrs: AttrList = AttrList(),
+        blockName: String = nameId
+    ) : this(
+        nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
+        genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
+        blockName
+    )
+
     private fun returnDoc() = if (returnType == null) {
         null
     } else {
@@ -57,12 +78,27 @@ data class Fn(
             ")"
         ).joinToString("\n")
     }
+
+    private val sigReturnType
+        get() = if (returnType != null) {
+            " -> ${returnType.asRust}"
+        } else {
+            ""
+        }
+
     private val signature
-        get() = "fn $nameId$paramText"
+        get() = "fn $nameId$paramText$sigReturnType"
 
     private val fnDoc = listOf(
         doc,
-        params.joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
+        params
+            .filter { it != self && it != refSelf && it != refMutSelf }
+            .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
+        if (returnDoc != null) {
+            "  returns - ${returnDoc}"
+        } else {
+            ""
+        }
     )
         .joinNonEmpty("\n\n")
 

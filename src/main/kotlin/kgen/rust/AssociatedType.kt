@@ -5,13 +5,20 @@ import kgen.*
 data class AssociatedType(
     val nameId: String,
     val doc: String = "TODO: DOCUMENT AssociatedType($nameId)",
+    val bounds: Bounds = Bounds()
 ) : AsRust {
 
     val id = id(nameId)
 
+    private val boundsDecl = if (bounds.isEmpty()) {
+        ""
+    } else {
+        ": ${bounds.asRust}"
+    }
+
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
-            "type ${id.capCamel};"
+            "type ${id.capCamel}$boundsDecl;"
         ).joinNonEmpty()
 }
