@@ -18,10 +18,10 @@ enum class InlineDecl {
 
 data class Fn(
     val nameId: String,
-    val doc: String = missingDoc(nameId),
+    val doc: String = missingDoc(nameId, "Fn"),
     val params: List<FnParam> = emptyList(),
     val returnType: Type? = null,
-    val returnDoc: String? = null,
+    val returnDoc: String? = missingDoc(nameId, "FnReturn"),
     val inlineDecl: InlineDecl = InlineDecl.None,
     val genericParamSet: GenericParamSet? = null,
     val visibility: Visibility = Visibility.None,
@@ -35,10 +35,10 @@ data class Fn(
 
     constructor(
         nameId: String,
-        doc: String = missingDoc(nameId),
+        doc: String = missingDoc(nameId, "Fn"),
         vararg params: FnParam,
         returnType: Type? = null,
-        returnDoc: String? = null,
+        returnDoc: String? = missingDoc(nameId, "FnReturn"),
         inlineDecl: InlineDecl = InlineDecl.None,
         genericParamSet: GenericParamSet? = null,
         visibility: Visibility = Visibility.None,
@@ -52,16 +52,6 @@ data class Fn(
         genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
         blockName
     )
-
-    private fun returnDoc() = if (returnType == null) {
-        null
-    } else {
-        returnDoc ?: "TODO: Document Return Type $returnType"
-    }
-
-    companion object {
-        fun missingDoc(id: String) = "TODO: Document $id"
-    }
 
     private val allAttrs = if (inlineDecl == InlineDecl.None) {
         attrs
@@ -86,19 +76,42 @@ data class Fn(
             ""
         }
 
-    private val signature
-        get() = "fn $nameId$paramText$sigReturnType"
+    fun withBoundsDecl(text: String): String {
+        val whereClause = genericParamSet?.whereClause
+        return if (whereClause == null) {
+            text
+        } else {
+            "$text\nwhere\n${indent(whereClause)} "
+        }
+    }
+
+    val signature
+        get() = withBoundsDecl("fn $nameId${trailingText(genericParamSet?.asRust).emptyIfNull}$paramText$sigReturnType")
+
+    val asTraitFn
+        get() = listOfNotNull(
+            commentTriple(fnDoc),
+            allAttrs.asRust,
+            signature +
+                    if (body != null) {
+                        bracketText(indent(body.asRust)!!)
+                    } else {
+                        ";"
+                    }
+        ).joinNonEmpty()
 
     private val fnDoc = listOf(
         doc,
-        params
-            .filter { it != self && it != refSelf && it != refMutSelf }
-            .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
-        if (returnDoc != null) {
-            "  returns - ${returnDoc}"
-        } else {
-            ""
-        }
+        joinNonEmpty(
+            params
+                .filter { it != self && it != refSelf && it != refMutSelf }
+                .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
+            if (returnType != null) {
+                "  returns - $returnDoc"
+            } else {
+                ""
+            }
+        )
     )
         .joinNonEmpty("\n\n")
 

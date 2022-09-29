@@ -18,9 +18,9 @@ enum Message {
   ChangeColor(i32, i32, i32),
   /// Request to move object
   Move {
-    /// TODO: DOCUMENT Field(x)
+    /// TODO: Document Field(x)
     pub x: i32,
-    /// TODO: DOCUMENT Field(y)
+    /// TODO: Document Field(y)
     pub y: i32
   },
   /// Request to write object
@@ -53,9 +53,9 @@ enum Message {
   ChangeColor(i32, i32, i32),
   /// Request to move object
   Move {
-    /// TODO: DOCUMENT Field(x)
+    /// TODO: Document Field(x)
     pub x: i32,
-    /// TODO: DOCUMENT Field(y)
+    /// TODO: Document Field(y)
     pub y: i32
   },
   /// Request to write object

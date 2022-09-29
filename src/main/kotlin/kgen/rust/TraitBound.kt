@@ -1,13 +1,19 @@
 package kgen.rust
 
-sealed class TraitBound : AsRust {
-    class Trait(val trait: Trait) : TraitBound() {
+sealed class TraitBound(val default: String? = null) : AsRust {
+    class Trait(val trait: Trait, default: String? = null) : TraitBound(default) {
         override val asRust: String
-            get() = trait.asRust
+            get() = withDefault(trait.asRust, default)
     }
 
-    class Unmodeled(val traitName: String) : TraitBound() {
+    class Unmodeled(val traitName: String, default: String? = null) : TraitBound(default) {
         override val asRust: String
-            get() = traitName
+            get() = withDefault(traitName, default)
+    }
+
+    fun withDefault(text: String, default: String?) = if (default == null) {
+        text
+    } else {
+        "$text = $default"
     }
 }

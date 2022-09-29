@@ -4,7 +4,7 @@ import kgen.*
 
 data class AssociatedType(
     val nameId: String,
-    val doc: String = "TODO: DOCUMENT AssociatedType($nameId)",
+    val doc: String = missingDoc(nameId, "AssociatedType"),
     val bounds: Bounds = Bounds()
 ) : AsRust {
 

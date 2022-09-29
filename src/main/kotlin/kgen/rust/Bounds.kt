@@ -9,9 +9,11 @@ data class Bounds(
 
     constructor(vararg traitBounds: TraitBound) : this(traitBounds = traitBounds.toList())
 
+    constructor(vararg traitBounds: String) : this(traitBounds = traitBounds.toList().map { TraitBound.Unmodeled(it) })
+
     override val asRust: String
         get() = (lifetimes.map { asRust } + traitBounds.map { it.asRust })
-            .joinToString(", ")
+            .joinToString(" + ")
 
     fun isEmpty() = lifetimes.isEmpty() && traitBounds.isEmpty()
 }

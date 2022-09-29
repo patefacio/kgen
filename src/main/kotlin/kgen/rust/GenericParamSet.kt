@@ -1,5 +1,8 @@
 package kgen.rust
 
+import kgen.joinNonEmpty
+import kgen.nullIfEmpty
+
 data class GenericParamSet(
     val lifetimes: List<Lifetime> = emptyList(),
     val typeParams: List<TypeParam> = emptyList()
@@ -23,4 +26,8 @@ data class GenericParamSet(
                 }).joinToString(", ")
             }>"
         }
+
+    val whereClause
+        get() = typeParams.mapNotNull { it.boundsDecl }.joinNonEmpty().nullIfEmpty
+
 }

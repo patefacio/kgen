@@ -11,6 +11,13 @@ data class TypeParam(
         } else {
             "$name = ${default.asRust}"
         }
+
+    val boundsDecl
+        get() = if (bounds.isEmpty()) {
+            null
+        } else {
+            "$name: ${bounds.asRust}"
+        }
 }
 
 val T = TypeParam("T")

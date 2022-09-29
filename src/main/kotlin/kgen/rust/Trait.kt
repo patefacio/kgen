@@ -4,7 +4,7 @@ import kgen.*
 
 data class Trait(
     val nameId: String,
-    val doc: String = "TODO: Document Trait($nameId)",
+    val doc: String = missingDoc(nameId, "Trait"),
     val functions: List<Fn> = emptyList(),
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val visibility: Visibility = Visibility.None,
@@ -19,7 +19,7 @@ data class Trait(
 
     private val traitContent = indent(
         (associatedTypes.map { it.asRust } +
-                traitScopedFunctions.map { it.asRust }).joinNonEmpty("\n\n")
+                traitScopedFunctions.map { it.asTraitFn }).joinNonEmpty("\n\n")
     )!!
 
     override

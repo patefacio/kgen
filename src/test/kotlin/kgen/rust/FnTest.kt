@@ -11,19 +11,19 @@ internal class FnTest {
 
         assertEquals(
             """
-            /// Does foo and bar
-            /// 
-            ///   * a - The a value
-            ///   * b - The b value
-            #[foo]
-            #[inline = "always"]
-            fn foo_bar(
-              a: i32,
-              b: i32
-            ) {
-              a = a + 1;
-            }
-        """.trimIndent(),
+/// Does foo and bar
+/// 
+///   * a - The a value
+///   * b - The b value
+#[foo]
+#[inline = "always"]
+fn foo_bar(
+  a: i32,
+  b: i32
+) {
+  a = a + 1;
+}
+""".trimIndent(),
             Fn(
                 "foo_bar",
                 "Does foo and bar",
@@ -55,5 +55,23 @@ internal class FnTest {
 
         )
 
+    }
+
+    @Test
+    fun whereClause() {
+        assertEquals(
+            """
+fn foo<T> ()
+where
+  T: Debug + Addable""".trimIndent(),
+            Fn(
+                "foo", genericParamSet = GenericParamSet(
+                    TypeParam(
+                        "T",
+                        bounds = Bounds("Debug", "Addable")
+                    )
+                )
+            ).signature
+        )
     }
 }

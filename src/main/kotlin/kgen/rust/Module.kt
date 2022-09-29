@@ -4,7 +4,7 @@ import kgen.*
 
 data class Module(
     val nameId: String,
-    val doc: String = "TODO: Document Module($nameId)",
+    val doc: String = missingDoc(nameId, "Module"),
     val moduleType: ModuleType = ModuleType.File,
     val visibility: Visibility = Visibility.None,
     val enums: List<Enum> = emptyList(),

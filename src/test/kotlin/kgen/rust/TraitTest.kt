@@ -14,16 +14,10 @@ internal class TraitTest {
                 /// Supports performing foo and bar operations
                 trait FooBar {
                   /// foo operation
-                  fn foo() {
-                    // α <trait fn FooBar::foo>
-                    // ω <trait fn FooBar::foo>
-                  }
+                  fn foo();
                   
                   /// bar operation
-                  fn bar() {
-                    // α <trait fn FooBar::bar>
-                    // ω <trait fn FooBar::bar>
-                  }
+                  fn bar();
                 }
             """.trimIndent(),
             Trait(

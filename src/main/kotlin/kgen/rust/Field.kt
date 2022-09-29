@@ -11,7 +11,7 @@ import kgen.*
  */
 data class Field(
     val nameId: String,
-    val doc: String = "TODO: DOCUMENT Field($nameId)",
+    val doc: String = missingDoc(nameId, "Field"),
     val type: Type = RustString,
     val access: Access = Access.Pub,
     val attrs: AttrList = AttrList()

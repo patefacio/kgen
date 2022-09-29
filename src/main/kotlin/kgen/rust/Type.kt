@@ -5,6 +5,8 @@ interface Type : AsRust {
     override val asRust get() = type
     val hasRef get() = false
     val isRef get() = false
+
+    val doc: String? get() = null
 }
 
 object I8 : Type {
@@ -37,6 +39,10 @@ object U32 : Type {
 
 object U64 : Type {
     override val type get() = "u64"
+}
+
+object F64 : Type {
+    override val type: String get() = "f64"
 }
 
 object RustString : Type {

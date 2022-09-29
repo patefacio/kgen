@@ -23,3 +23,5 @@ fun announceSection(label: String, content: List<String>): String =
 fun innerDoc(text: String?) = text
     ?.split("\n")
     ?.joinToString("\n") { "//! $it" }
+
+fun missingDoc(itemName: String, itemType: String) = "TODO: Document $itemType($itemName)"

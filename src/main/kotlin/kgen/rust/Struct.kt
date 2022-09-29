@@ -4,7 +4,7 @@ import kgen.*
 
 data class Struct(
     val nameId: String,
-    val doc: String = "TODO: DOCUMENT Struct($nameId)",
+    override val doc: String = missingDoc(nameId, "Struct"),
     val fields: List<Field> = emptyList(),
     val visibility: Visibility = Visibility.None,
     val uses: List<Use> = emptyList(),

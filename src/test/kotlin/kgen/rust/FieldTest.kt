@@ -11,7 +11,7 @@ internal class FieldTest {
     fun toCode() {
         assertEquals(
             """
-            /// TODO: DOCUMENT Field(foo)
+            /// TODO: Document Field(foo)
             pub foo: String
         """.trimIndent(),
             Field("foo").asRust
