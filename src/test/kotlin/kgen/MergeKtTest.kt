@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
+import kotlin.math.exp
 import kotlin.test.expect
 
 internal class MergeKtTest {
@@ -100,21 +101,21 @@ generated postfix text *updated4*
         targetFile.delete()
 
         assertEquals(
-            Pair(MergeFileStatus.Created, emptyGenerated),
-            mergeGeneratedWithFile(emptyGenerated, targetFilePath)
+            MergeResult(targetFilePath, emptyGenerated, MergeFileStatus.Created),
+            mergeGeneratedWithFile(emptyGenerated, targetFilePath, announceUpdates = false)
         )
 
         assertEquals(
-            Pair(MergeFileStatus.NoChange, emptyGenerated),
-            mergeGeneratedWithFile(emptyGenerated, targetFilePath)
+            MergeResult(targetFilePath, emptyGenerated, MergeFileStatus.NoChange),
+            mergeGeneratedWithFile(emptyGenerated, targetFilePath, announceUpdates = false)
         )
 
         // Write the sampleText including handwritten text to test merge
         targetFile.writeText(sampleText)
 
         assertEquals(
-            Pair(MergeFileStatus.Updated, expectedAfterMerge),
-            mergeGeneratedWithFile(newGeneratedText, targetFilePath)
+            MergeResult(targetFilePath, expectedAfterMerge, MergeFileStatus.Updated),
+            mergeGeneratedWithFile(newGeneratedText, targetFilePath, announceUpdates = false)
         )
 
         targetFile.delete()

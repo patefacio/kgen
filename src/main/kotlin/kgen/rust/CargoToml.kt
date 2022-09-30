@@ -8,7 +8,7 @@ class CargoToml(
     val version: String = "0.0.1",
     val authors: List<String> = emptyList(),
     val homepage: String? = null,
-    val license: String? = "MIT",
+    val license: String = "MIT",
     val dependencies: List<String> = emptyList(),
     val edition: String = "2021",
     val keywords: List<String> = emptyList()
@@ -18,11 +18,11 @@ class CargoToml(
         get() = listOfNotNull(
             """
             [package]
-            edition = $edition
-            name = $nameId
-            version = $version
+            edition = ${doubleQuote(edition)}
+            name = ${doubleQuote(nameId)}
+            version = ${doubleQuote(version)}
             description = ${tripleQuote(description)}
-            license = "$license"
+            license = ${doubleQuote(license)}
             keywords = ${keywords.map { doubleQuote(it) }}
         """.trimIndent(),
             if (authors.isEmpty()) {

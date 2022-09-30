@@ -12,18 +12,18 @@ internal class CargoTomlTest {
 
         assertEquals(
             """
-            [package]
-            edition = 2021
-            name = foo_bar
-            version = 0.0.1
-            description = ${tripleQuote("Project foo bar")}
-            license = "MIT"
-            keywords = []
+[package]
+edition = "2021"
+name = "foo_bar"
+version = "0.0.1"
+description = ""${'"'}Project foo bar""${'"'}
+license = "MIT"
+keywords = []
 
-            [dependencies]
-            # α <dependencies>
-            # ω <dependencies>
-        """.trimIndent(),
+[dependencies]
+# α <dependencies>
+# ω <dependencies>
+""".trimIndent(),
             CargoToml("foo_bar", "Project foo bar").toml
         )
     }

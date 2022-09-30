@@ -61,7 +61,7 @@ fn foo_bar(
     fun whereClause() {
         assertEquals(
             """
-fn foo<T> ()
+fn foo<T>()
 where
   T: Debug + Addable""".trimIndent(),
             Fn(

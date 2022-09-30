@@ -5,31 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34a6f5bd-04e9-4a96-9c50-97bd3f77bb6e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/TypeParamTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/RunCommand.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/InlineDecl.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/RunCommandKtTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/AssociatedType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/AssociatedType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Binary.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Binary.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Bounds.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Bounds.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/Merge.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Merge.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Crate.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Crate.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Enum.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Enum.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericParamSet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericParamSet.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Helpers.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Helpers.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TraitBound.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TraitBound.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeParam.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeParam.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/UnmodeledType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/UnmodeledType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/StringUtilitiesKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/StringUtilitiesKtTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/EnumTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/EnumTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FieldTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FieldTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/ModuleType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/ModuleType.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/MergeKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/MergeKtTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/CargoTomlTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/CargoTomlTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FnTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FnTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/ModuleTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/ModuleTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/TraitTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/TraitTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/generator/CrateGeneratorTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/generator/CrateGeneratorTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -65,9 +55,9 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Kotlin Enum" />
-        <option value="Kotlin File" />
         <option value="Kotlin Interface" />
         <option value="Kotlin Class" />
+        <option value="Kotlin File" />
         <option value="JUnit5 Test Class" />
       </list>
     </option>
@@ -109,13 +99,13 @@
       <recent name="kgen.rust" />
     </key>
     <key name="CreateTestDialog.RecentsKey">
+      <recent name="kgen" />
       <recent name="kgen.rust" />
       <recent name="kgen.rust.generator" />
-      <recent name="kgen" />
     </key>
   </component>
   <component name="RunManager" selected="Gradle.Tests in 'kgen.test'">
-    <configuration name="ConstTest.getAsRust" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="CargoTomlTest.getToml" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -128,7 +118,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.rust.ConstTest.getAsRust&quot;" />
+            <option value="&quot;kgen.rust.CargoTomlTest.getToml&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -138,7 +128,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="EnumTest.getAsRust" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="CrateGeneratorTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -151,7 +141,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.rust.EnumTest.getAsRust&quot;" />
+            <option value="&quot;kgen.rust.generator.CrateGeneratorTest&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -161,7 +151,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="FnTest.whereClause" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="RunCommandKtTest.runBogusCommand" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -174,7 +164,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.rust.FnTest.whereClause&quot;" />
+            <option value="&quot;kgen.RunCommandKtTest.runBogusCommand&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -184,7 +174,7 @@
       <DebugAllEnabled>false</DebugAllEnabled>
       <method v="2" />
     </configuration>
-    <configuration name="ModuleTest.getAsRust" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+    <configuration name="RunCommandKtTest.runCommand" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -197,7 +187,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;kgen.rust.ModuleTest.getAsRust&quot;" />
+            <option value="&quot;kgen.RunCommandKtTest.runCommand&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -231,10 +221,10 @@
     <recent_temporary>
       <list>
         <item itemvalue="Gradle.Tests in 'kgen.test'" />
-        <item itemvalue="Gradle.FnTest.whereClause" />
-        <item itemvalue="Gradle.EnumTest.getAsRust" />
-        <item itemvalue="Gradle.ModuleTest.getAsRust" />
-        <item itemvalue="Gradle.ConstTest.getAsRust" />
+        <item itemvalue="Gradle.CrateGeneratorTest" />
+        <item itemvalue="Gradle.CargoTomlTest.getToml" />
+        <item itemvalue="Gradle.RunCommandKtTest.runBogusCommand" />
+        <item itemvalue="Gradle.RunCommandKtTest.runCommand" />
       </list>
     </recent_temporary>
   </component>
@@ -251,7 +241,7 @@
       <workItem from="1663861148226" duration="73355000" />
       <workItem from="1664371251136" duration="9659000" />
       <workItem from="1664396821882" duration="3443000" />
-      <workItem from="1664460864948" duration="7507000" />
+      <workItem from="1664460864948" duration="33669000" />
     </task>
     <servers />
   </component>
@@ -274,18 +264,33 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/test/kotlin/kgen/MergeKtTest.kt</url>
-          <line>77</line>
+          <line>78</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/test/kotlin/kgen/MergeKtTest.kt</url>
-          <line>114</line>
+          <line>115</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt</url>
           <line>35</line>
           <option name="timeStamp" value="10" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/test/kotlin/kgen/rust/generator/CrateGeneratorTest.kt</url>
+          <line>83</line>
+          <option name="timeStamp" value="13" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt</url>
+          <line>68</line>
+          <option name="timeStamp" value="14" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/test/kotlin/kgen/rust/generator/CrateGeneratorTest.kt</url>
+          <line>55</line>
+          <option name="timeStamp" value="16" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

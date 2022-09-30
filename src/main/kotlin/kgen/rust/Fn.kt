@@ -2,20 +2,6 @@ package kgen.rust
 
 import kgen.*
 
-enum class InlineDecl {
-    Inline,
-    InlineAlways,
-    InlineNever,
-    None;
-
-    fun asRust() = when (this) {
-        Inline -> Attr.Word("inline")
-        InlineAlways -> Attr.Value("inline", "always")
-        InlineNever -> Attr.Value("inline", "never")
-        None -> throw RuntimeException("No AsRust for Inline.None")
-    }
-}
-
 data class Fn(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Fn"),
@@ -76,17 +62,17 @@ data class Fn(
             ""
         }
 
-    fun withBoundsDecl(text: String): String {
+    private fun withBoundsDecl(text: String): String {
         val whereClause = genericParamSet?.whereClause
         return if (whereClause == null) {
             text
         } else {
-            "$text\nwhere\n${indent(whereClause)} "
+            "$text\nwhere\n${indent(whereClause)}"
         }
     }
 
     val signature
-        get() = withBoundsDecl("fn $nameId${trailingText(genericParamSet?.asRust).emptyIfNull}$paramText$sigReturnType")
+        get() = withBoundsDecl("fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType")
 
     val asTraitFn
         get() = listOfNotNull(

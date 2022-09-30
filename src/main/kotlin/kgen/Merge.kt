@@ -77,18 +77,23 @@ enum class MergeFileStatus {
     }
 }
 
+data class MergeResult(
+    val targetPath: String,
+    val mergedContent: String,
+    val mergeFileStatus: MergeFileStatus
+)
+
 fun checkWriteFile(
     filePath: String,
     content: String,
     previousContent: String? = null,
     announceUpdates: Boolean = true
-): MergeFileStatus {
+): MergeResult {
     val file = File(filePath)
     val mergeFileStatus = when {
         file.exists() -> {
-            val previous = previousContent ?: file.readText()
-            when {
-                previous == content -> MergeFileStatus.NoChange
+            when (previousContent ?: file.readText()) {
+                content -> MergeFileStatus.NoChange
                 else -> {
                     file.writeText(content)
                     MergeFileStatus.Updated
@@ -102,11 +107,11 @@ fun checkWriteFile(
         }
     }
 
-    if(announceUpdates) {
+    if (announceUpdates) {
         println(mergeFileStatus.announce(filePath))
     }
 
-    return mergeFileStatus
+    return MergeResult(filePath, content, mergeFileStatus)
 }
 
 fun mergeGeneratedWithFile(
@@ -114,14 +119,13 @@ fun mergeGeneratedWithFile(
     filePath: String,
     blockDelimiter: BlockDelimiter = alphaOmegaDelimiter,
     announceUpdates: Boolean = true
-): Pair<MergeFileStatus, String> {
+): MergeResult {
     val file = File(filePath)
 
     return if (file.exists()) {
         val fileContent = file.readText()
-        val mergedContent = mergeBlocks(generated, fileContent, blockDelimiter)
-        Pair(checkWriteFile(filePath, mergedContent, fileContent, announceUpdates), mergedContent)
+        checkWriteFile(filePath, mergeBlocks(generated, fileContent, blockDelimiter), fileContent, announceUpdates)
     } else {
-        Pair(checkWriteFile(filePath, generated, announceUpdates = announceUpdates), generated)
+        checkWriteFile(filePath, generated, announceUpdates = announceUpdates)
     }
 }

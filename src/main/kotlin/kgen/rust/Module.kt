@@ -5,7 +5,7 @@ import kgen.*
 data class Module(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Module"),
-    val moduleType: ModuleType = ModuleType.File,
+    val moduleType: ModuleType = ModuleType.FileModule,
     val visibility: Visibility = Visibility.None,
     val enums: List<Enum> = emptyList(),
     val traits: List<Trait> = emptyList(),
@@ -19,6 +19,8 @@ data class Module(
     val macroUses: List<String> = emptyList(),
     val testMacroUses: List<String> = emptyList()
 ) : Identifiable(nameId), AsRust {
+
+    val isInline get() = moduleType == ModuleType.Inline
 
     private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
         listOf(
@@ -35,7 +37,7 @@ data class Module(
     override val asRust: String
         get() = wrapIfInline(
             listOf(
-                if (moduleType != ModuleType.Inline) {
+                if (!isInline) {
                     innerDoc(doc) ?: ""
                 } else {
                     ""
