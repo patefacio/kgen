@@ -14,3 +14,5 @@ data class Use(
             "${trailingText(visibility.asRust)}use $pathName;"
         ).joinNonEmpty()
 }
+
+fun uses(vararg pathNames: String) = pathNames.map { Use(it) }

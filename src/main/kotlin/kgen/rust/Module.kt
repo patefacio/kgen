@@ -17,7 +17,8 @@ data class Module(
     val consts: List<Const> = emptyList(),
     val attrs: AttrList = AttrList(),
     val macroUses: List<String> = emptyList(),
-    val testMacroUses: List<String> = emptyList()
+    val testMacroUses: List<String> = emptyList(),
+    val traitImpls: List<TraitImpl> = emptyList()
 ) : Identifiable(nameId), AsRust {
 
     val isInline get() = moduleType == ModuleType.Inline
@@ -57,16 +58,19 @@ data class Module(
                 announceSection("constants",
                     consts.joinToString("\n") { it.asRust }),
                 announceSection("enums",
-                    enums.joinToString("\n") { it.asRust }),
+                    enums.joinToString("\n\n") { it.asRust }),
                 announceSection("traits",
-                    traits.joinToString("\n") { it.asRust }),
+                    traits.joinToString("\n\n") { it.asRust }),
                 announceSection("structs",
-                    structs.joinToString("\n") { it.asRust }),
+                    structs.joinToString("\n\n") { it.asRust }),
                 announceSection("functions",
-                    functions.joinToString("\n") { it.asRust }),
+                    functions.joinToString("\n\n") { it.asRust }),
                 leadingText(
                     modules.filter { it.moduleType == ModuleType.Inline }.joinToString("\n\n") { it.asRust },
                     "\n"
+                ),
+                announceSection("trait impls",
+                    traitImpls.joinToString("\n\n") { it.asRust }
                 )
             ).joinNonEmpty("\n\n")
         )

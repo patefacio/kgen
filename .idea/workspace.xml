@@ -5,21 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34a6f5bd-04e9-4a96-9c50-97bd3f77bb6e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/RunCommand.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/InlineDecl.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/RunCommandKtTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TraitImpl.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/TraitImplTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/Merge.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Merge.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Crate.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Crate.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericArgSet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericArgSet.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/ModuleType.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/ModuleType.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/MergeKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/MergeKtTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/CargoTomlTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/CargoTomlTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FnTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FnTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/generator/CrateGeneratorTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/generator/CrateGeneratorTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeAlias.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeAlias.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -241,7 +235,9 @@
       <workItem from="1663861148226" duration="73355000" />
       <workItem from="1664371251136" duration="9659000" />
       <workItem from="1664396821882" duration="3443000" />
-      <workItem from="1664460864948" duration="33669000" />
+      <workItem from="1664460864948" duration="34533000" />
+      <workItem from="1664805589969" duration="527000" />
+      <workItem from="1664806339737" duration="1108000" />
     </task>
     <servers />
   </component>

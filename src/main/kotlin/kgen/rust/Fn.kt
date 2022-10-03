@@ -93,7 +93,7 @@ data class Fn(
                 .filter { it != self && it != refSelf && it != refMutSelf }
                 .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
             if (returnType != null) {
-                "  returns - $returnDoc"
+                "  * _return_ - $returnDoc"
             } else {
                 ""
             }
