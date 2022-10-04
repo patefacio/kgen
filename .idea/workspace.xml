@@ -6,15 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="34a6f5bd-04e9-4a96-9c50-97bd3f77bb6e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericParamSet.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/GenericParamSet.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Helpers.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Helpers.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeParam.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeParam.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FnTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/FnTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/GenericParamSetTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/GenericParamSetTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/StructTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/StructTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/TraitImplTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/TraitImplTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Const.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Const.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TraitImpl.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TraitImpl.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

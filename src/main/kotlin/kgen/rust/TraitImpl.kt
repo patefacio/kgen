@@ -16,9 +16,14 @@ data class TraitImpl(
 
     override val asRust: String
         get() = listOf(
-            "impl ${trailingText(genericParamSet.asRust)}${trait.asRustName} for ${type.asRust} {",
+            withWhereClause(
+                "impl ${trailingText(genericParamSet.asRust)}${trait.asRustName} for ${type.asRust}",
+                genericParamSet
+            ) + " {",
             indent(
-                associatedTypeAssignments.map { "type $it;" }.joinNonEmpty(";\n\n")
+                trailingText(
+                    associatedTypeAssignments.map { "type $it;" }.joinNonEmpty("\n\n")
+                )
             ),
             indent(
                 trait.functions.filter { it.body == null }.joinToString("\n\n") {

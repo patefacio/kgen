@@ -16,7 +16,7 @@ data class Const(
     override val asRust: String
         get() {
             val rustValue = when(value) {
-                is String -> doubleQuote(value as String)
+                is String -> doubleQuote(value)
                 else -> value.toString()
             }
             return listOf(

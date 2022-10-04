@@ -20,7 +20,7 @@ fun List<String>.joinNonEmpty(separator: CharSequence = "\n") = this.filter { it
 
 fun joinNonEmpty(vararg text: String, separator: CharSequence = "\n") = text.toList().joinNonEmpty(separator)
 
-fun indent(text: String?, indent: String = "  ") = text
+fun indent(text: CharSequence?, indent: String = "  ") = text
     ?.split("\n")
     ?.joinToString("\n") { "$indent$it" }
 
