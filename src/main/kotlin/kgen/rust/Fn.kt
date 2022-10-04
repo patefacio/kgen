@@ -96,13 +96,15 @@ data class Fn(
         .joinNonEmpty("\n\n")
 
 
-    override val asRust: String
-        get() = listOfNotNull(
-            commentTriple(fnDoc),
-            allAttrs.asRust,
-            "$signature {",
-            indent(body?.asRust ?: emptyBlock(blockName)),
-            "}"
-        )
-            .joinNonEmpty()
+    fun asRust(codeBlockName: String) = listOfNotNull(
+        commentTriple(fnDoc),
+        allAttrs.asRust,
+        "$signature {",
+        indent(body?.asRust ?: emptyBlock(codeBlockName)),
+        "}"
+    )
+        .joinNonEmpty()
+
+    override val asRust: String get() = asRust("fn $blockName")
+
 }

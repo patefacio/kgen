@@ -30,8 +30,8 @@ internal class TraitImplTest {
   
   /// TODO: Document Fn(do_goo)
   fn do_goo() {
-    // α <do_goo>
-    // ω <do_goo>
+    // α <fn Foo::do_goo for i32>
+    // ω <fn Foo::do_goo for i32>
   }
 }""",
             traitImpl.asRust

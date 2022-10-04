@@ -30,7 +30,7 @@ data class TraitImpl(
                     if (bodies.contains(it.nameId)) {
                         it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
                     } else {
-                        it.asRust
+                        it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
                     }
                 }),
             "}"

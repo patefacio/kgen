@@ -44,8 +44,8 @@ fn foo_bar(
             """
             /// Does foo and bar
             fn foo_bar() {
-              // α <foo_bar>
-              // ω <foo_bar>
+              // α <fn foo_bar>
+              // ω <fn foo_bar>
             }
         """.trimIndent(),
             Fn(
