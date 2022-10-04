@@ -37,14 +37,15 @@ fun pullBlocks(text: String, blockDelimiter: BlockDelimiter = alphaOmegaDelimite
     val close = blockDelimiter.close
 
     // The block name is within angle brackets or back ticks and the name is *captured/grouped*
-    val blockName = """[<`]([^\n]*)[>`][ \t]*"""
-    val block = """(?:.|\n)*?"""
+    val blockName = """([<`]([^\n]*)[>`])[ \t]*"""
+    val block = """.*?"""
 
     // The regex ties the named block in open tag to close tag
-    val splitterRe = """$open\s+$blockName$block$close\s+[<`]\1[>`]""".toRegex(option = RegexOption.MULTILINE)
+    val splitterRe = """$open\s+$blockName$block$close\s+\1"""
+        .toRegex(options = setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL))
 
     return splitterRe.findAll(text).associate {
-        Pair(it.groupValues[1], it.value)
+        Pair(it.groupValues[2], it.value)
     }
 }
 
