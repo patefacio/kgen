@@ -17,7 +17,7 @@ data class TraitImpl(
     override val asRust: String
         get() = listOf(
             withWhereClause(
-                "impl ${trailingText(genericParamSet.asRust)}${trait.asRustName} for ${type.asRust}",
+                "impl ${trailingText(genericParamSet.asRust)}${trait.asRustName}${genericArgSet.asRust} for ${type.asRust}",
                 genericParamSet
             ) + " {",
             indent(
