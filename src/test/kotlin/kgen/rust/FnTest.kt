@@ -67,7 +67,7 @@ where
             Fn(
                 "foo", genericParamSet = GenericParamSet(
                     TypeParam(
-                        "T",
+                        "t",
                         bounds = Bounds("Debug", "Addable")
                     )
                 )

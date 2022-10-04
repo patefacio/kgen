@@ -62,17 +62,11 @@ data class Fn(
             ""
         }
 
-    private fun withBoundsDecl(text: String): String {
-        val whereClause = genericParamSet?.whereClause
-        return if (whereClause == null) {
-            text
-        } else {
-            "$text\nwhere\n${indent(whereClause)}"
-        }
-    }
-
     val signature
-        get() = withBoundsDecl("fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType")
+        get() = withWhereClause(
+            "fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
+            genericParamSet
+        )
 
     val asTraitFn
         get() = listOfNotNull(

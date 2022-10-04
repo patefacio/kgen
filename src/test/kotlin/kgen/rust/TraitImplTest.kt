@@ -22,6 +22,7 @@ internal class TraitImplTest {
 
         assertEquals(
             """impl Foo for i32 {
+  
   /// TODO: Document Fn(do_foo)
   fn do_foo() {
     println!("foo")

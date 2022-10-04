@@ -63,7 +63,10 @@ data class Trait(
     val asRust: String
         get() = listOf(
             commentTriple(doc),
-            "trait ${id.capCamel}${genericParamSet.asRust}$superTraitDecl {",
+            withWhereClause(
+                "${trailingText(visibility.asRust)}trait ${id.capCamel}${genericParamSet.asRust}$superTraitDecl",
+                genericParamSet
+            ) + " {",
             emptyIfOnlyWhitespace(traitContent),
             "}"
         ).joinNonEmpty()

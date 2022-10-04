@@ -1,24 +1,24 @@
 package kgen.rust
 
 data class TypeParam(
-    val name: String,
+    val nameId: String,
     val default: Type? = null,
     val bounds: Bounds = Bounds()
-) : AsRust {
+) : Identifiable(nameId), AsRust {
     override val asRust: String
         get() = if (default == null) {
-            name
+            id.capCamel
         } else {
-            "$name = ${default.asRust}"
+            "${id.capCamel} = ${default.asRust}"
         }
 
     val boundsDecl
         get() = if (bounds.isEmpty()) {
             null
         } else {
-            "$name: ${bounds.asRust}"
+            "${id.capCamel}: ${bounds.asRust}"
         }
 }
 
-val T = TypeParam("T")
-val S = TypeParam("S")
+val T = TypeParam("t")
+val S = TypeParam("s")

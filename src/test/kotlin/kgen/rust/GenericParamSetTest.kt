@@ -16,12 +16,12 @@ internal class GenericParamSetTest {
 
 
         assertEquals(
-            "<'a, 'b, t1, t2, t3>",
+            "<'a, 'b, T1, T2, T3>",
             GenericParamSet("t1", "t2", "t3", lifetimes = "a, b".asLifetimes).asRust
         )
 
         assertEquals(
-            "<t1, t2, t3>",
+            "<T1, T2, T3>",
             GenericParamSet("t1", "t2", "t3").asRust
         )
     }

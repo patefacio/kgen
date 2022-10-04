@@ -28,6 +28,6 @@ data class GenericParamSet(
         }
 
     val whereClause
-        get() = typeParams.mapNotNull { it.boundsDecl }.joinNonEmpty().nullIfEmpty
+        get() = typeParams.mapNotNull { it.boundsDecl }.joinNonEmpty(", ").nullIfEmpty
 
 }

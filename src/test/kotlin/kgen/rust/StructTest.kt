@@ -26,7 +26,7 @@ internal class StructTest {
                     Field("t", "A T", UnmodeledType("T"))
                 ),
                 visibility = Visibility.Pub,
-                genericParamSet = GenericParamSet("T")
+                genericParamSet = GenericParamSet("t")
             ).asRust
         )
 

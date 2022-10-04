@@ -1,5 +1,6 @@
 package kgen.rust
 
+import kgen.indent
 import kgen.joinNonEmpty
 
 fun mutable(isMutable: Boolean) = if (isMutable) {
@@ -25,3 +26,12 @@ fun innerDoc(text: String?) = text
     ?.joinToString("\n") { "//! $it" }
 
 fun missingDoc(itemName: String, itemType: String) = "TODO: Document $itemType($itemName)"
+
+fun withWhereClause(text: String, genericParamSet: GenericParamSet?): String {
+    val whereClause = genericParamSet?.whereClause
+    return if (whereClause == null) {
+        text
+    } else {
+        "$text\nwhere\n${indent(whereClause)}"
+    }
+}
