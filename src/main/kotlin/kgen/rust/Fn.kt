@@ -4,7 +4,7 @@ import kgen.*
 
 data class Fn(
     val nameId: String,
-    val doc: String = missingDoc(nameId, "Fn"),
+    val doc: String? = missingDoc(nameId, "Fn"),
     val params: List<FnParam> = emptyList(),
     val returnType: Type? = null,
     val returnDoc: String? = missingDoc(nameId, "FnReturn"),
@@ -81,7 +81,7 @@ data class Fn(
         ).joinNonEmpty()
 
     private val fnDoc = listOf(
-        doc,
+        doc ?: "",
         joinNonEmpty(
             params
                 .filter { it != self && it != refSelf && it != refMutSelf }

@@ -14,7 +14,8 @@ data class Trait(
     val visibility: Visibility = Visibility.None,
     val associatedTypes: List<AssociatedType> = emptyList(),
     val superTraits: List<AsSuperTrait> = emptyList(),
-    val uses: List<Use> = emptyList()
+    val uses: List<Use> = emptyList(),
+    val attrs: AttrList = AttrList()
 ) : Identifiable(nameId), AsRust, AsSuperTrait {
 
 
@@ -26,7 +27,8 @@ data class Trait(
         visibility: Visibility = Visibility.None,
         associatedTypes: List<AssociatedType> = emptyList(),
         superTraits: List<AsSuperTrait> = emptyList(),
-        uses: List<Use> = emptyList()
+        uses: List<Use> = emptyList(),
+        attrs: AttrList = AttrList()
     ) : this(
         nameId,
         doc,
@@ -35,7 +37,8 @@ data class Trait(
         visibility = visibility,
         associatedTypes = associatedTypes,
         superTraits = superTraits,
-        uses = uses
+        uses = uses,
+        attrs
     )
 
     val asRustName get() = id.capCamel

@@ -1,12 +1,24 @@
 package kgen.rust
 
 interface Type : AsRust {
+    companion object {
+        val nonTextRegex = """\W+""".toRegex()
+        val trailingUnderbarsRegex = """_+$""".toRegex()
+    }
+
     val type: String
     override val asRust get() = type
     val hasRef get() = false
     val isRef get() = false
 
     val doc: String? get() = null
+
+    val sanitized
+        get() = type
+            .replace("<", "_lp_")
+            .replace(">", "_rp_")
+            .replace(nonTextRegex, "")
+            .replace(trailingUnderbarsRegex, "")
 }
 
 object I8 : Type {

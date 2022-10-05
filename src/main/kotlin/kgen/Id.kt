@@ -13,3 +13,5 @@ fun id(snakeCaseName: String) = when (isSnake(snakeCaseName)) {
     true -> Id(snakeCaseName)
     else -> throw IllegalArgumentException("`$snakeCaseName`: must be snake case!")
 }
+
+val List<String>.asId get() = id(this.joinToString("_"))

@@ -11,7 +11,7 @@ fun words(text: String): List<String> =
             .replace(text) {
                 "${it.groupValues[1]}_${it.groupValues[2].lowercase()}"
             })
-        else -> listOf(text)
+        else -> listOf(text.lowercase())
     }
 
 

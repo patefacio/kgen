@@ -15,11 +15,11 @@ sealed class Attr(id: Id) : Identifiable(id), AsRust {
             get() = "#[${id.snakeCaseName} = \"$value\"]"
     }
 
-    class Words(nameId: String, val words: List<Id>) : Attr(id(nameId)) {
-        constructor(nameId: String, vararg words: String) : this(nameId, words.map { id(it) })
+    class Words(nameId: String, val words: List<String>) : Attr(id(nameId)) {
+        constructor(nameId: String, vararg words: String) : this(nameId, words.toList())
 
         override val asRust: String
-            get() = "#[${id.snakeCaseName}(${words.map { it.snakeCaseName }.joinToString(", ")})]"
+            get() = "#[${id.snakeCaseName}(${words.joinToString(", ")})]"
     }
 
     class Dict(nameId: String, val dict: Map<Id, String>) : Attr(id(nameId)) {
@@ -44,4 +44,8 @@ val List<Attr>.asRust
     } else {
         this.joinToString("\n") { it.asRust }
     }
+
+val attrCfgTest = Attr.Words("cfg", "test")
+val attrTestFn = Attr.Word("test")
+
 

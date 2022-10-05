@@ -1,8 +1,6 @@
 package kgen.rust
 
-import kgen.indent
-import kgen.joinNonEmpty
-import kgen.trailingText
+import kgen.*
 
 data class TraitImpl(
     val type: Type,
@@ -11,8 +9,38 @@ data class TraitImpl(
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val genericArgSet: GenericArgSet = GenericArgSet(),
     val associatedTypeAssignments: List<String> = emptyList(),
-    val bodies: Map<String, String> = emptyMap()
+    val bodies: Map<String, String> = emptyMap(),
+    val unitTestTraitFunctions: Boolean = false,
+    val unitTests: List<Id> = emptyList()
 ) : AsRust {
+
+    val hasUnitTests get() = unitTestTraitFunctions || unitTests.isNotEmpty()
+    private val unitTestFunctionIds
+        get() = if (unitTestTraitFunctions) {
+            trait.functions.map { it.id }
+        } else {
+            emptyList()
+        } + unitTests
+
+    val testModule
+        get() = if (unitTestFunctionIds.isNotEmpty()) {
+            val testModuleNameId = "test_${trait.nameId}_on_${type.sanitized.lowercase()}"
+            Module(
+                testModuleNameId,
+                "Test trait ${trait.nameId} on ${type.asRust}",
+                functions = unitTestFunctionIds.map {
+                    Fn(
+                        it.snakeCaseName,
+                        blockName = "${testModuleNameId}_${it.snakeCaseName}",
+                        doc = null,
+                        attrs = AttrList(attrTestFn)
+                    )
+                },
+                moduleType = ModuleType.Inline
+            )
+        } else {
+            null
+        }
 
     override val asRust: String
         get() = listOf(

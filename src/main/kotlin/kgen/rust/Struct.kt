@@ -8,12 +8,28 @@ data class Struct(
     val fields: List<Field> = emptyList(),
     val visibility: Visibility = Visibility.None,
     val uses: List<Use> = emptyList(),
-    val genericParamSet: GenericParamSet = GenericParamSet()
+    val genericParamSet: GenericParamSet = GenericParamSet(),
+    val attrs: AttrList = AttrList()
 ) : Identifiable(nameId), Type, AsRust {
 
     val structName = id.capCamel
 
-    private val header get() = "${trailingText(visibility.asRust)}struct ${structName}${genericParamSet.asRust} {"
+    constructor(
+        nameId: String,
+        doc: String,
+        vararg fields: Field,
+        visibility: Visibility = Visibility.None,
+        uses: List<Use> = emptyList(),
+        genericParamSet: GenericParamSet = GenericParamSet(),
+        attrs: AttrList = AttrList()
+    ) : this(nameId, doc, fields.toList(), visibility, uses, genericParamSet, attrs)
+
+    private val header
+        get() =
+            withWhereClause(
+                "${trailingText(visibility.asRust)}struct ${structName}${genericParamSet.asRust}",
+                genericParamSet
+            ) + " {"
 
     override val type: String
         get() = structName
@@ -21,12 +37,13 @@ data class Struct(
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
+            attrs.asRust,
             header,
             if (fields.isEmpty()) {
                 ""
             } else {
                 indent(
-                    fields.joinToString("\n") { it.asRust },
+                    fields.joinToString(",\n") { it.asRust },
                 ) ?: ""
             },
             "}"

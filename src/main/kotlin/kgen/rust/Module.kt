@@ -24,18 +24,33 @@ data class Module(
     val isInline get() = moduleType == ModuleType.Inline
 
     private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
-        listOf(
+        joinNonEmpty(
             commentTriple(doc),
+            attrs.asRust,
             "$asModDecl {",
-            indent(content),
+            indent(content) ?: "",
             "}"
-        ).joinToString("\n")
+        )
 
     } else {
         content
     }
 
-    override val asRust: String
+    val testModule
+        get() = if (traitImpls.any { it.hasUnitTests }) {
+            Module(
+                "unit_tests",
+                "Unit tests for `${nameId}`",
+                moduleType = ModuleType.Inline,
+                modules = traitImpls.mapNotNull { it.testModule },
+                attrs = AttrList(attrCfgTest)
+            )
+        } else {
+            null
+        }
+
+    override
+    val asRust: String
         get() = wrapIfInline(
             listOf(
                 if (!isInline) {
@@ -52,7 +67,9 @@ data class Module(
                 announceSection("module uses",
                     uses.joinToString("\n") { it.asRust }),
                 announceSection("mod decls",
-                    modules.filter { it.moduleType != ModuleType.Inline }.joinToString("\n") { "${it.asModDecl};" }),
+                    modules
+                        .filter { it.moduleType != ModuleType.Inline }
+                        .joinToString("\n") { "${it.asModDecl};" }),
                 announceSection("type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
                 announceSection("constants",
@@ -66,12 +83,15 @@ data class Module(
                 announceSection("functions",
                     functions.joinToString("\n\n") { it.asRust }),
                 leadingText(
-                    modules.filter { it.moduleType == ModuleType.Inline }.joinToString("\n\n") { it.asRust },
+                    modules
+                        .filter { it.moduleType == ModuleType.Inline }
+                        .joinToString("\n\n") { it.asRust },
                     "\n"
                 ),
                 announceSection("trait impls",
                     traitImpls.joinToString("\n\n") { it.asRust }
-                )
+                ),
+                testModule?.asRust ?: ""
             ).joinNonEmpty("\n\n")
         )
 

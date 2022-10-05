@@ -14,7 +14,7 @@ internal class StructTest {
                 /// A simple struct
                 pub struct SimpleStruct<T> {
                   /// An a
-                  pub a: i32
+                  pub a: i32,
                   /// A T
                   pub t: T
                 }

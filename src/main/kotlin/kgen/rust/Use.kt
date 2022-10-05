@@ -8,6 +8,14 @@ data class Use(
     val visibility: Visibility = Visibility.None,
     val attrs: AttrList = AttrList()
 ) : AsRust {
+
+    constructor(
+        pathName: String,
+        vararg attrs: Attr,
+        visibility: Visibility = Visibility.None
+    ) : this(pathName, visibility, AttrList(attrs.toList()))
+
+
     override val asRust: String
         get() = listOf(
             attrs.asRust,

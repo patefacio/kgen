@@ -7,3 +7,8 @@ open class AttrList(val attrs: List<Attr> = emptyList()) : AsRust {
     override val asRust: String
         get() = attrs.asRust
 }
+
+fun derive(vararg derives: String) = AttrList(
+    Attr.Words("derive", *derives)
+)
+
