@@ -52,6 +52,9 @@ trait T1 {
 /// S struct
 struct S {
 }
+
+// α <mod-def m1>
+// ω <mod-def m1>
 """.trimIndent(),
             Module(
                 "m1",
@@ -81,7 +84,7 @@ struct S {
                 Module(
                     "l1", moduleType = ModuleType.Inline,
                     modules = listOf(
-                        Module("l1c1", moduleType = ModuleType.Inline)
+                        Module("l1c1", moduleType = ModuleType.Inline, codeBlock = null)
                     )
                 ),
                 Module(
@@ -113,6 +116,9 @@ mod root {
     mod l1c1 {
       
     }
+    
+    // α <mod-def l1>
+    // ω <mod-def l1>
   }
   
   /// TODO: Document Module(l2)
@@ -120,9 +126,16 @@ mod root {
     
     /// TODO: Document Module(l2c2)
     mod l2c2 {
-      
+      // α <mod-def l2c2>
+      // ω <mod-def l2c2>
     }
+    
+    // α <mod-def l2>
+    // ω <mod-def l2>
   }
+  
+  // α <mod-def root>
+  // ω <mod-def root>
 }
         """.trimIndent(),
             rootModule.asRust

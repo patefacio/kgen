@@ -24,3 +24,5 @@ data class Use(
 }
 
 fun uses(vararg pathNames: String) = pathNames.map { Use(it) }
+
+fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }

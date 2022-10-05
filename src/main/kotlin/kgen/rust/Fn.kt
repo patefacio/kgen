@@ -64,7 +64,7 @@ data class Fn(
 
     val signature
         get() = withWhereClause(
-            "fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
+            "${trailingText(visibility.asRust)}fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
             genericParamSet
         )
 

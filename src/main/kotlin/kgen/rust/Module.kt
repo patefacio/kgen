@@ -18,7 +18,8 @@ data class Module(
     val attrs: AttrList = AttrList(),
     val macroUses: List<String> = emptyList(),
     val testMacroUses: List<String> = emptyList(),
-    val traitImpls: List<TraitImpl> = emptyList()
+    val traitImpls: List<TraitImpl> = emptyList(),
+    val codeBlock: String? = emptyBlock("mod-def $nameId")
 ) : Identifiable(nameId), AsRust {
 
     val isInline get() = moduleType == ModuleType.Inline
@@ -91,7 +92,8 @@ data class Module(
                 announceSection("trait impls",
                     traitImpls.joinToString("\n\n") { it.asRust }
                 ),
-                testModule?.asRust ?: ""
+                testModule?.asRust ?: "",
+                codeBlock ?: ""
             ).joinNonEmpty("\n\n")
         )
 
