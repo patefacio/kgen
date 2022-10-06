@@ -37,13 +37,19 @@ data class Module(
         content
     }
 
+    private val requiresUnitTest
+        get() = traitImpls.any { it.hasUnitTests } || functions.any { it.hasUnitTest }
+
     val testModule
-        get() = if (traitImpls.any { it.hasUnitTests }) {
+        get() = if (requiresUnitTest) {
             Module(
                 "unit_tests",
                 "Unit tests for `${nameId}`",
                 moduleType = ModuleType.Inline,
                 modules = traitImpls.mapNotNull { it.testModule },
+                functions = functions.filter { it.hasUnitTest }.map {
+                    Fn("test_${it.nameId}", doc = null, attrs = AttrList(attrTestFn))
+                },
                 attrs = AttrList(attrCfgTest)
             )
         } else {

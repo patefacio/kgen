@@ -8,6 +8,7 @@ data class TraitImpl(
     val doc: String = missingDoc(trait.nameId, "TraitImpl"),
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val genericArgSet: GenericArgSet = GenericArgSet(),
+    val selfBounds: Bounds = Bounds(),
     val associatedTypeAssignments: List<String> = emptyList(),
     val bodies: Map<String, String> = emptyMap(),
     val unitTestTraitFunctions: Boolean = false,
@@ -46,7 +47,14 @@ data class TraitImpl(
         get() = listOf(
             withWhereClause(
                 "impl ${trailingText(genericParamSet.asRust)}${trait.asRustName}${genericArgSet.asRust} for ${type.asRust}",
-                genericParamSet
+                if (selfBounds.isEmpty()) {
+                    genericParamSet
+                } else {
+                    genericParamSet.copy(
+                        typeParams = genericParamSet.typeParams +
+                                TypeParam("self", bounds = selfBounds)
+                    )
+                }
             ) + " {",
             indent(
                 trailingText(
