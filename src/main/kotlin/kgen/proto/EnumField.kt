@@ -1,6 +1,7 @@
 package kgen.proto
 
 import kgen.Identifiable
+import kgen.blockComment
 import kgen.missingDoc
 
 data class EnumField(
@@ -9,5 +10,8 @@ data class EnumField(
     val number: Int
 ) : Identifiable(nameId), AsProto {
     override val asProto: String
-        get() = TODO("Not yet implemented")
+        get() = listOf(
+            blockComment(doc),
+            "${id.shout} = $number"
+        ).joinToString("\n")
 }

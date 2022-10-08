@@ -1,6 +1,8 @@
 package kgen.proto
 
 import kgen.Identifiable
+import kgen.blockComment
+import kgen.indent
 import kgen.missingDoc
 
 data class Enum(
@@ -9,6 +11,15 @@ data class Enum(
     val enumFields: List<EnumField>
 ) : Identifiable(nameId), AsProto {
 
+
+    constructor(nameId: String, doc: String, vararg enumFields: EnumField) :
+            this(nameId, doc, enumFields.toList())
+
     override val asProto: String
-        get() = TODO("Not yet implemented")
+        get() = listOf(
+            blockComment(doc),
+            "enum ${id.capCamel} {",
+            indent(enumFields.map { "${it.asProto};" }.joinToString("\n\n")),
+            "}"
+        ).joinToString("\n")
 }

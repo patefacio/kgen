@@ -1,20 +1,23 @@
 package kgen.proto
 
-import kgen.Identifiable
-import kgen.blockComment
-import kgen.joinNonEmpty
-import kgen.missingDoc
+import kgen.*
 
 data class Field(
     val nameId: String,
     val type: FieldType,
     val doc: String = missingDoc(nameId, "Message Field"),
-    val number: Int
+    val number: Int,
+    val repeated: Boolean = false
 ) : Identifiable(nameId), AsProto {
 
+    private val repeatedDecl = if(repeated) {
+        "repeated "
+    } else {
+        ""
+    }
     override val asProto: String
         get() = joinNonEmpty(
             blockComment(doc),
-            "${type.asProto} $nameId = $number"
+            "$repeatedDecl${type.asProto} $nameId = $number"
         )
 }
