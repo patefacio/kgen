@@ -1,6 +1,7 @@
 package kgen.rust
 
 import kgen.Id
+import kgen.Identifiable
 import kgen.id
 
 sealed class Attr(id: Id) : Identifiable(id), AsRust {

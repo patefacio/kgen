@@ -1,9 +1,6 @@
 package kgen.rust
 
-import kgen.commentTriple
-import kgen.doubleQuote
-import kgen.joinNonEmpty
-import kgen.trailingText
+import kgen.*
 
 data class Const(
     val nameId: String,

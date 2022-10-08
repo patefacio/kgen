@@ -25,8 +25,6 @@ fun innerDoc(text: String?) = text
     ?.split("\n")
     ?.joinToString("\n") { "//! $it" }
 
-fun missingDoc(itemName: String, itemType: String) = "TODO: Document $itemType($itemName)"
-
 fun withWhereClause(text: String, genericParamSet: GenericParamSet?): String {
     val whereClause = genericParamSet?.whereClause
     return if (whereClause == null) {

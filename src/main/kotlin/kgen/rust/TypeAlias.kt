@@ -1,5 +1,6 @@
 package kgen.rust
 
+import kgen.Identifiable
 import kgen.trailingText
 
 data class TypeAlias(

@@ -1,4 +1,4 @@
-package kgen.rust
+package kgen
 
 import kgen.Id
 import kgen.id

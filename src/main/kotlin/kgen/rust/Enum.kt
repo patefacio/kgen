@@ -1,7 +1,9 @@
 package kgen.rust
 
+import kgen.Identifiable
 import kgen.commentTriple
 import kgen.indent
+import kgen.missingDoc
 
 data class Enum(
     val nameId: String,

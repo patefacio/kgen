@@ -1,5 +1,7 @@
 package kgen.rust
 
+import kgen.Identifiable
+
 data class TypeParam(
     val nameId: String,
     val default: Type? = null,
