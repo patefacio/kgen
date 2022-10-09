@@ -11,6 +11,11 @@ sealed class FieldType : AsProto {
             get() = "float"
     }
 
+    object ProtoDouble : FieldType() {
+        override val asProto: String
+            get() = "double"
+    }
+
     object ProtoInt32 : FieldType() {
         override val asProto: String
             get() = "int32"
@@ -66,14 +71,23 @@ sealed class FieldType : AsProto {
             get() = "bytes"
     }
 
-    class MessageType(val message: Message) : FieldType() {
+    class MessageType(val message: Message, val proto: String? = null) : FieldType() {
         override val asProto: String
-            get() = message.id.capCamel
+            get() = if(proto != null) {
+                "$proto."
+            } else {
+                ""
+            } + message.id.capCamel
     }
 
     class EnumType(val enum: Enum) : FieldType() {
         override val asProto: String
             get() = enum.id.capCamel
+    }
+
+    class NamedType(val name: String) : FieldType() {
+        override val asProto: String
+            get() = name
     }
 
     class MapOf(val keyType: FieldType, val valueType: FieldType) : FieldType() {

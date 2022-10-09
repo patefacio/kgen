@@ -1,10 +1,15 @@
 package kgen.proto
 
-import kgen.Identifiable
-import kgen.indent
-import kgen.joinNonEmpty
-import kgen.missingDoc
+import kgen.*
 
+/** A modeled message.
+ *
+ * @property nameId The name of the message.
+ * @property doc The documentation for the message.
+ * @property fields List of fields in the message.
+ * @property messages List of (sub)messages in the message.
+ * @property enums List of enums in the message.
+ */
 data class Message(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Proto Message"),
@@ -23,6 +28,7 @@ data class Message(
 
     override val asProto: String
         get() = listOf(
+            blockComment(doc),
             "message ${id.capCamel} {",
             indent(
                 (fields + messages + enums).joinToString("\n\n") { "${it.asProto};" }),

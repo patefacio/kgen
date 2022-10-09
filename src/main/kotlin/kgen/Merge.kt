@@ -1,6 +1,9 @@
 package kgen
 
 import java.io.File
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.pathString
 
 data class BlockDelimiter(val open: String, val close: String)
 
@@ -103,6 +106,10 @@ fun checkWriteFile(
         }
 
         else -> {
+            val parentPath = file.toPath().parent
+            if(!parentPath.exists() && !parentPath.toFile().mkdirs()) {
+                throw RuntimeException("Unable to create folder ${parentPath.pathString}")
+            }
             file.writeText(content)
             MergeFileStatus.Created
         }

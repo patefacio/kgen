@@ -10,6 +10,7 @@ internal class FieldTypeTest {
     fun basics() {
         assertEquals("string", ProtoString.asProto)
         assertEquals("float", ProtoFloat.asProto)
+        assertEquals("double", ProtoDouble.asProto)
         assertEquals("int32", ProtoInt32.asProto)
         assertEquals("int64", ProtoInt64.asProto)
         assertEquals("uint32", ProtoUInt32.asProto)
