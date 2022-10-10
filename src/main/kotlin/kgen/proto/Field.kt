@@ -6,7 +6,7 @@ data class Field(
     val nameId: String,
     val type: FieldType,
     val doc: String = missingDoc(nameId, "Message Field"),
-    val number: Int,
+    val number: Int? = null,
     val repeated: Boolean = false,
     val optional: Boolean = false
 ) : Identifiable(nameId), AsProto {

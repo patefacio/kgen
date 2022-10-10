@@ -26,6 +26,11 @@ data class Message(
         enums: List<Enum> = emptyList()
     ) : this(nameId, doc, fields.toList(), messages, enums)
 
+    val autoNumbered
+        get() = this.copy(
+            fields = this.fields.withIndex().map { (i, field) -> field.copy(number = i+1) }
+        )
+
     override val asProto: String
         get() = listOf(
             blockComment(doc),
