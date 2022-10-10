@@ -14,7 +14,7 @@ data class Trait(
     val visibility: Visibility = Visibility.None,
     val associatedTypes: List<AssociatedType> = emptyList(),
     val superTraits: List<AsSuperTrait> = emptyList(),
-    val uses: List<Use> = emptyList(),
+    val uses: Set<Use> = emptySet(),
     val attrs: AttrList = AttrList()
 ) : Identifiable(nameId), AsRust, AsSuperTrait {
 
@@ -27,7 +27,7 @@ data class Trait(
         visibility: Visibility = Visibility.None,
         associatedTypes: List<AssociatedType> = emptyList(),
         superTraits: List<AsSuperTrait> = emptyList(),
-        uses: List<Use> = emptyList(),
+        uses: Set<Use> = emptySet(),
         attrs: AttrList = AttrList()
     ) : this(
         nameId,

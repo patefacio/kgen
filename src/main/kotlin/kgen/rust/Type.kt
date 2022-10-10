@@ -1,5 +1,9 @@
 package kgen.rust
 
+/**
+ * Interface common to most rust type items that supports accessing it
+ * `asRust` (i.e. suitable for insertion into generated code).
+ */
 interface Type : AsRust {
     companion object {
         val nonTextRegex = """\W+""".toRegex()
@@ -8,11 +12,17 @@ interface Type : AsRust {
 
     val type: String
     override val asRust get() = type
+
+    val asRustName get() = asRust
+
     val hasRef get() = false
     val isRef get() = false
 
     val doc: String? get() = null
 
+    /** Removes special characters `<`, `>` and non word characters.
+     * Used to generate unique test module names for type trait impls.
+     */
     val sanitized
         get() = type
             .replace("<", "_lp_")

@@ -49,26 +49,35 @@ data class CrateGenerator(
     }
 
     fun generate(announceUpdates: Boolean = true): List<MergeResult> {
-        if (!File(cratePath).exists() && !File(cratePath).mkdirs()) {
-            throw RuntimeException("Unable to create crate directory $cratePath")
-        }
-        // If source path exists, use a tmp path to put generated code, then
-        // format that code and diff/replace to original
-        val srcPathExists = srcPath.exists()
-        val targetSrcPath: Path = getTargetPath(srcPathExists)
         val tomlMergeResult = mergeGeneratedWithFile(
             crate.cargoToml.toml,
             tomlPath.pathString,
             scriptDelimiter,
             announceUpdates = announceUpdates
         )
+
+        val buildModuleResult = if (crate.buildModule != null) {
+            generateTo(crate.buildModule, cratePath, announceUpdates = announceUpdates)
+        } else {
+            null
+        }
+
+        if (!File(cratePath).exists() && !File(cratePath).mkdirs()) {
+            throw RuntimeException("Unable to create crate directory $cratePath")
+        }
+        // If source path exists, use a tmp path to put generated code, then
+        // format that code and diff/replace to original
+        val srcPathExists = srcPath.exists()
+        val shouldAnnounce = announceUpdates && !srcPathExists
+        val targetSrcPath: Path = getTargetPath(srcPathExists)
         val targetSrcPathString = targetSrcPath.pathString
 
         val moduleGenerationResults =
-            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = announceUpdates && !srcPathExists)
+            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce)
+
         "cd $targetSrcPath; cargo fmt".runShellCommand()
 
-        return listOf(tomlMergeResult) +
+        return listOfNotNull(tomlMergeResult, buildModuleResult?.first()) +
                 if (targetSrcPath == srcPath) {
                     moduleGenerationResults
                 } else {
@@ -88,6 +97,9 @@ data class CrateGenerator(
     }
 
     private fun generateTo(module: Module, targetPath: String, announceUpdates: Boolean): List<MergeResult> {
+
+        val isPlaceholderModule = module.moduleType == ModuleType.PlaceholderModule
+
         val outPath = when (module.moduleType) {
             ModuleType.Directory -> {
                 val dir = Paths.get(targetPath, module.nameId).pathString
@@ -95,13 +107,26 @@ data class CrateGenerator(
                 Paths.get(dir, "mod.rs")
             }
 
-            ModuleType.FileModule -> Paths.get(targetPath, "${module.nameId}.rs")
+            ModuleType.FileModule,
+            ModuleType.PlaceholderModule -> Paths.get(targetPath, "${module.nameId}.rs")
+
             ModuleType.Inline -> null
+        }
+
+        if (isPlaceholderModule) {
+            // For a placeholder module, if it exists, leave it along. If not, just create an empty
+            // version of it. The out of modeling approach (e.g. tonic/proto will generate it in build procedures).
+            if (!outPath!!.exists()) {
+                kgenLogger.info { "Touching: file `${outPath.pathString}`" }
+                outPath.writeText("")
+            } else {
+                kgenLogger.info { "Leaving: file `${outPath.pathString}`" }
+            }
         }
 
         return listOf(
             listOfNotNull(
-                if (outPath != null) {
+                if (!isPlaceholderModule && outPath != null) {
                     checkWriteFile(outPath.pathString, module.asRust, announceUpdates = announceUpdates)
                 } else {
                     null

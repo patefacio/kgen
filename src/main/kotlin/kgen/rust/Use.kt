@@ -23,6 +23,6 @@ data class Use(
         ).joinNonEmpty()
 }
 
-fun uses(vararg pathNames: String) = pathNames.map { Use(it) }
+fun uses(vararg pathNames: String) = pathNames.map { Use(it) }.toSet()
 
 fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }

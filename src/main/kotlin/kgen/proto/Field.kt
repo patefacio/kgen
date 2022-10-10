@@ -7,7 +7,8 @@ data class Field(
     val type: FieldType,
     val doc: String = missingDoc(nameId, "Message Field"),
     val number: Int,
-    val repeated: Boolean = false
+    val repeated: Boolean = false,
+    val optional: Boolean = false
 ) : Identifiable(nameId), AsProto {
 
     private val repeatedDecl = if(repeated) {
@@ -15,9 +16,15 @@ data class Field(
     } else {
         ""
     }
+
+    private val optionalDecl = if(optional) {
+        "optional "
+    } else {
+        ""
+    }
     override val asProto: String
         get() = joinNonEmpty(
             blockComment(doc),
-            "$repeatedDecl${type.asProto} $nameId = $number"
+            "$repeatedDecl$optionalDecl${type.asProto} $nameId = $number"
         )
 }

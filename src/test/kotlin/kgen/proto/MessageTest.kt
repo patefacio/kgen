@@ -10,7 +10,10 @@ internal class MessageTest {
     fun getAsProto() {
 
         assertEquals(
-            """message FullName {
+            """/*
+  Full name of person
+*/
+message FullName {
   /*
     First name
   */
@@ -25,7 +28,10 @@ internal class MessageTest {
         )
 
         assertEquals(
-            """message KitchenSink {
+            """/*
+  Kitchen sink message
+*/
+message KitchenSink {
   /*
     A field
   */
@@ -41,6 +47,9 @@ internal class MessageTest {
   */
   repeated FullName full_names = 3;
   
+  /*
+    Full name of person
+  */
   message FullName {
     /*
       First name

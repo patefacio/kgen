@@ -15,7 +15,8 @@ data class Fn(
     val isTest: Boolean = false,
     val hasUnitTest: Boolean = false,
     val attrs: AttrList = AttrList(),
-    val blockName: String = nameId
+    val blockName: String = nameId,
+    val uses: Set<Use> = emptySet()
 ) : Identifiable(nameId), AsRust {
 
 
@@ -32,11 +33,12 @@ data class Fn(
         isTest: Boolean = false,
         hasUnitTest: Boolean = false,
         attrs: AttrList = AttrList(),
-        blockName: String = nameId
+        blockName: String = nameId,
+        uses: Set<Use> = emptySet()
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
         genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
-        blockName
+        blockName, uses
     )
 
     private val allAttrs = if (inlineDecl == InlineDecl.None) {

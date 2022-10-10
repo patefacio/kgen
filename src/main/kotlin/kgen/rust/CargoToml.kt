@@ -10,6 +10,7 @@ class CargoToml(
     val homepage: String? = null,
     val license: String = "MIT",
     val dependencies: List<String> = emptyList(),
+    val buildDependencies: List<String> = emptyList(),
     val edition: String = "2021",
     val keywords: List<String> = emptyList()
 ) : Identifiable(nameId) {
@@ -37,7 +38,14 @@ class CargoToml(
                 } else {
                     trailingText(dependencies.joinToString("\n"))
                 },
-                emptyBlock("dependencies", scriptDelimiter)
+                emptyBlock("dependencies", scriptDelimiter),
+                "\n[build-dependencies]",
+                if(buildDependencies.isEmpty()) {
+                    null
+                } else {
+                  trailingText(buildDependencies.joinToString("\n"))
+                },
+                emptyBlock("build-dependencies", scriptDelimiter)
             ).joinToString("\n")
         ).joinToString("\n")
 

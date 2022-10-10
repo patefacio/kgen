@@ -14,6 +14,9 @@ data class Struct(
 
     val structName = id.capCamel
 
+    override val asRustName: String
+        get() = structName
+
     constructor(
         nameId: String,
         doc: String,

@@ -12,13 +12,14 @@ data class Module(
     val functions: List<Fn> = emptyList(),
     val structs: List<Struct> = emptyList(),
     val modules: List<Module> = emptyList(),
-    val uses: List<Use> = emptyList(),
+    val uses: Set<Use> = emptySet(),
     val typeAliases: List<TypeAlias> = emptyList(),
     val consts: List<Const> = emptyList(),
     val attrs: AttrList = AttrList(),
     val macroUses: List<String> = emptyList(),
     val testMacroUses: List<String> = emptyList(),
     val traitImpls: List<TraitImpl> = emptyList(),
+    val typeImpls: List<TypeImpl> = emptyList(),
     val codeBlock: String? = emptyBlock("mod-def $nameId")
 ) : Identifiable(nameId), AsRust {
 
@@ -56,6 +57,12 @@ data class Module(
             null
         }
 
+    private var allUses = uses +
+            functions.map { it.uses }.flatten() +
+            traitImpls.map { it.uses }.flatten() +
+            typeImpls.map { it.uses }.flatten()
+
+
     override
     val asRust: String
         get() = wrapIfInline(
@@ -72,11 +79,12 @@ data class Module(
                     testMacroUses.map { "#[cfg(test)]\n#[macro_use]\nextern crate $it;" }
                 ),
                 announceSection("module uses",
-                    uses.joinToString("\n") { it.asRust }),
+                    allUses.joinToString("\n") { it.asRust }),
                 announceSection("mod decls",
-                    modules
+                    (modules
                         .filter { it.moduleType != ModuleType.Inline }
-                        .joinToString("\n") { "${it.asModDecl};" }),
+                        .map { "${it.asModDecl};" }).joinToString("\n")
+                ),
                 announceSection("type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
                 announceSection("constants",
@@ -94,6 +102,9 @@ data class Module(
                         .filter { it.moduleType == ModuleType.Inline }
                         .joinToString("\n\n") { it.asRust },
                     "\n"
+                ),
+                announceSection("type impls",
+                    typeImpls.joinToString("\n\n") { it.asRust }
                 ),
                 announceSection("trait impls",
                     traitImpls.joinToString("\n\n") { it.asRust }

@@ -23,6 +23,8 @@ data class ProtoFile(
     val version: Version = Version.Proto3,
 ) : Identifiable(nameId), AsProto {
 
+    val protoFileName get() = "$nameId.proto"
+
     override val asProto: String
         get() = listOf(
             "syntax = ${doubleQuote(version.asProto)};",
@@ -33,7 +35,7 @@ data class ProtoFile(
         ).joinNonEmpty("\n\n")
 
     fun generate(targetPath: Path) = checkWriteFile(
-        targetPath.resolve("$nameId.proto").pathString,
+        targetPath.resolve(protoFileName).pathString,
         this.asProto
     )
 

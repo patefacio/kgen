@@ -70,7 +70,7 @@ struct S {
                 traits = listOf(
                     Trait("t1", functions = listOf(Fn("foo")))
                 ),
-                uses = listOf(Use("crate::time_revalue::{Revalue, RevalueOn}"))
+                uses = uses("crate::time_revalue::{Revalue, RevalueOn}")
             ).asRust
         )
 

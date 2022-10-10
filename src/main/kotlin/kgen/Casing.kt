@@ -15,6 +15,11 @@ fun words(text: String): List<String> =
     }
 
 
+val List<String>.asSnake get() = this.joinToString("_")
+fun asSnake(name: String) = words(name).asSnake
+
+val String.asSnake get() = asSnake(this)
+
 fun capCamelWords(words: List<String>) = words.map { it.replaceFirstChar { it.uppercase() } }
 
 fun capCamel(text: String) = capCamelWords(words(text)).joinToString("")

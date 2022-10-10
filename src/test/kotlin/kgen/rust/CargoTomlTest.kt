@@ -23,6 +23,10 @@ keywords = []
 [dependencies]
 # α <dependencies>
 # ω <dependencies>
+
+[build-dependencies]
+# α <build-dependencies>
+# ω <build-dependencies>
 """.trimIndent(),
             CargoToml("foo_bar", "Project foo bar").toml
         )

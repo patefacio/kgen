@@ -35,4 +35,17 @@ internal class CasingKtTest {
         assertTrue(isSnake("this_is_snake_case"))
         assertFalse(isSnake("this_is_NOT_snake_case"))
     }
+
+    @Test
+    fun asSnake() {
+        assertEquals(
+            "foo_bar_goo",
+            "FooBarGoo".asSnake
+        )
+
+        assertEquals(
+            "foo_bar_goo",
+            "fooBarGoo".asSnake
+        )
+    }
 }

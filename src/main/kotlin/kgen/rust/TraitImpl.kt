@@ -2,6 +2,25 @@ package kgen.rust
 
 import kgen.*
 
+/** Represents an implementation of a trait on specified type.
+ *
+ * From a code generation perspective, a benefit here is a TraitImpl
+ * in a module will provide for all functions with the signature and
+ * stubs (which do not provide function bodies).
+ *
+ * @property type Type the trait is implemented for.
+ * @property trait Trait being implemented for the `type`.
+ * @property doc Documentation for the trait impl.
+ * @property genericParamSet Generic parameters of the impl.
+ * @property genericArgSet Generic arguments for the type.
+ * @property selfBounds Bounds in the where clause associated with `Self`.
+ * @property associatedTypeAssignments The impl's definition for associated types.
+ * @property bodies Map of function name to function body - for small functions which
+ *           are easily captured in the model (as opposed to the source protect block).
+ * @property unitTestTraitFunctions If true all functions have unit tests.
+ * @property functionUnitTests List of function names to include empty unit test,
+ *           in case not all need to be unit tested.
+ */
 data class TraitImpl(
     val type: Type,
     val trait: Trait,
@@ -12,16 +31,19 @@ data class TraitImpl(
     val associatedTypeAssignments: List<String> = emptyList(),
     val bodies: Map<String, String> = emptyMap(),
     val unitTestTraitFunctions: Boolean = false,
-    val unitTests: List<Id> = emptyList()
+    val functionUnitTests: List<Id> = emptyList(),
+    val uses: Set<Use> = emptySet()
 ) : AsRust {
 
-    val hasUnitTests get() = unitTestTraitFunctions || unitTests.isNotEmpty()
+    /** True if any/all functions have unit tests. */
+    val hasUnitTests get() = unitTestTraitFunctions || functionUnitTests.isNotEmpty()
+
     private val unitTestFunctionIds
         get() = if (unitTestTraitFunctions) {
             trait.functions.map { it.id }
         } else {
             emptyList()
-        } + unitTests
+        } + functionUnitTests
 
     val testModule
         get() = if (unitTestFunctionIds.isNotEmpty()) {
