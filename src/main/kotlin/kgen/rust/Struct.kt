@@ -10,7 +10,7 @@ data class Struct(
     val uses: List<Use> = emptyList(),
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val attrs: AttrList = AttrList()
-) : Identifiable(nameId), Type, AsRust {
+) : Identifier(nameId), Type, AsRust {
 
     val structName = id.capCamel
 

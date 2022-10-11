@@ -1,12 +1,12 @@
 package kgen.rust
 
-import kgen.Identifiable
+import kgen.Identifier
 
 data class TypeParam(
     val nameId: String,
     val default: Type? = null,
     val bounds: Bounds = Bounds()
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
     override val asRust: String
         get() = if (default == null) {
             id.capCamel

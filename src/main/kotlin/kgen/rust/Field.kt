@@ -15,7 +15,7 @@ data class Field(
     val type: Type = RustString,
     val access: Access = Access.Pub,
     val attrs: AttrList = AttrList()
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
 
     val decl get() = "${trailingText(access.asRust)}$nameId: ${type.type}"
 

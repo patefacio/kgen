@@ -13,30 +13,45 @@ import kgen.*
 data class Message(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Proto Message"),
-    val fields: List<Field> = emptyList(),
+    val fields: List<MessageField> = emptyList(),
     val messages: List<Message> = emptyList(),
     val enums: List<Enum> = emptyList()
-) : Identifiable(nameId), AsProto {
+) : Identifier(nameId), AsProto {
 
     constructor(
         nameId: String,
         doc: String,
-        vararg fields: Field,
+        vararg fields: MessageField,
         messages: List<Message> = emptyList(),
         enums: List<Enum> = emptyList()
     ) : this(nameId, doc, fields.toList(), messages, enums)
 
-    val autoNumbered
-        get() = this.copy(
-            fields = this.fields.withIndex().map { (i, field) -> field.copy(number = i+1) }
-        )
+
+
+    private val numberedFields
+        get() = when {
+            fields.all { !it.isNumbered } -> {
+                var number = 1
+                fields.map {
+                    val updatedField = it.copyFromNumber(number)
+                    number += 1
+                    updatedField
+                }
+            }
+
+            fields.any { !it.isNumbered } -> {
+                throw RuntimeException("Either *NO* fields are *ALL* fields must have numbers -> $nameId")
+            }
+
+            else -> fields
+        }
 
     override val asProto: String
         get() = listOf(
             blockComment(doc),
             "message ${id.capCamel} {",
             indent(
-                (fields + messages + enums).joinToString("\n\n") { "${it.asProto};" }),
+                (numberedFields + messages + enums).joinToString("\n\n") { "${it.asProto};" }),
             "}"
         ).joinToString("\n")
 }

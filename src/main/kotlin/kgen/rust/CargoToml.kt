@@ -13,7 +13,7 @@ class CargoToml(
     val buildDependencies: List<String> = emptyList(),
     val edition: String = "2021",
     val keywords: List<String> = emptyList()
-) : Identifiable(nameId) {
+) : Identifier(nameId) {
 
     val toml
         get() = listOfNotNull(

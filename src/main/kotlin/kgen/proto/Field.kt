@@ -9,15 +9,24 @@ data class Field(
     val number: Int? = null,
     val repeated: Boolean = false,
     val optional: Boolean = false
-) : Identifiable(nameId), AsProto {
+) : Identifier(nameId), AsProto, MessageField {
 
-    private val repeatedDecl = if(repeated) {
+    override val isNumbered: Boolean
+        get() = number != null
+
+    override fun copyFromNumber(fromNumber: Int) = if(fromNumber == this.number) {
+        this
+    } else {
+        copy(number = fromNumber)
+    }
+
+    private val repeatedDecl = if (repeated) {
         "repeated "
     } else {
         ""
     }
 
-    private val optionalDecl = if(optional) {
+    private val optionalDecl = if (optional) {
         "optional "
     } else {
         ""

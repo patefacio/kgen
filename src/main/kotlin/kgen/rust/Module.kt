@@ -21,7 +21,7 @@ data class Module(
     val traitImpls: List<TraitImpl> = emptyList(),
     val typeImpls: List<TypeImpl> = emptyList(),
     val codeBlock: String? = emptyBlock("mod-def $nameId")
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
 
     val isInline get() = moduleType == ModuleType.Inline
 

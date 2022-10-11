@@ -21,7 +21,7 @@ data class ProtoFile(
     val enums: List<Enum> = emptyList(),
     val imports: List<String> = emptyList(),
     val version: Version = Version.Proto3,
-) : Identifiable(nameId), AsProto {
+) : Identifier(nameId), AsProto {
 
     val protoFileName get() = "$nameId.proto"
 
@@ -39,4 +39,9 @@ data class ProtoFile(
         this.asProto
     )
 
+    private fun recursiveAllOneOfs(message: Message): List<OneOf> = message
+        .fields
+        .filterIsInstance<OneOf>() + message.messages.map { recursiveAllOneOfs(it) }.flatten()
+
+    val allOneOfs get() = messages.map { recursiveAllOneOfs(it) }.flatten()
 }

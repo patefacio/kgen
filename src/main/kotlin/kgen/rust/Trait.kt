@@ -16,7 +16,7 @@ data class Trait(
     val superTraits: List<AsSuperTrait> = emptyList(),
     val uses: Set<Use> = emptySet(),
     val attrs: AttrList = AttrList()
-) : Identifiable(nameId), AsRust, AsSuperTrait {
+) : Identifier(nameId), AsRust, AsSuperTrait {
 
 
     constructor(

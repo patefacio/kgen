@@ -1,11 +1,11 @@
 package kgen.rust
 
-import kgen.Identifiable
+import kgen.Identifier
 import kgen.commentTriple
 import kgen.indent
 import kgen.trailingText
 
-sealed class EnumValue(val nameId: String, val doc: String) : AsRust, Identifiable(nameId) {
+sealed class EnumValue(val nameId: String, val doc: String) : AsRust, Identifier(nameId) {
 
     val docComment get() = trailingText(commentTriple(doc), "\n")
 

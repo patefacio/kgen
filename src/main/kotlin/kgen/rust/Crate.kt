@@ -1,6 +1,6 @@
 package kgen.rust
 
-import kgen.Identifiable
+import kgen.Identifier
 import kgen.missingDoc
 
 /** Represents a rust crate.
@@ -18,7 +18,7 @@ data class Crate(
     val rootModule: Module = Module("lib"),
     val buildModule: Module? = null,
     val cargoToml: CargoToml = CargoToml(nameId)
-) : Identifiable(nameId) {
+) : Identifier(nameId) {
 }
 
 enum class CrateType {

@@ -31,7 +31,7 @@ data class ProtoCrateGenerator(
     val targetProtoPath: Path,
     val targetCratePath: Path,
     val customImplProtoPaths: Map<String, List<Fn>> = emptyMap()
-) : Identifiable(crateNameId) {
+) : Identifier(crateNameId) {
 
     private fun generateProtos() = protoFiles.map {
         it.generate(targetProtoPath)
@@ -77,7 +77,10 @@ data class ProtoCrateGenerator(
                 protoFiles
                     .map { it.enums }
                     .flatten()
-                    .map { it.id.capCamel }
+                    .map { it.id.capCamel } +
+                protoFiles
+                    .map { it.allOneOfs.map { it.nameId } }
+                    .flatten()
 
         val crate = Crate(
             crateNameId,

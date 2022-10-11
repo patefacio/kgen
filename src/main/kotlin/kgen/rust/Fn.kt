@@ -17,7 +17,7 @@ data class Fn(
     val attrs: AttrList = AttrList(),
     val blockName: String = nameId,
     val uses: Set<Use> = emptySet()
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
 
 
     constructor(

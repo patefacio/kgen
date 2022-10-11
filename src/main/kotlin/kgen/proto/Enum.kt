@@ -1,6 +1,6 @@
 package kgen.proto
 
-import kgen.Identifiable
+import kgen.Identifier
 import kgen.blockComment
 import kgen.indent
 import kgen.missingDoc
@@ -9,7 +9,7 @@ data class Enum(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Proto Enum"),
     val enumFields: List<EnumField>
-) : Identifiable(nameId), AsProto {
+) : Identifier(nameId), AsProto {
 
 
     constructor(nameId: String, doc: String, vararg enumFields: EnumField) :

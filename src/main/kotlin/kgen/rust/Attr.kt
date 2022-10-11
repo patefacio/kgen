@@ -1,10 +1,10 @@
 package kgen.rust
 
 import kgen.Id
-import kgen.Identifiable
+import kgen.Identifier
 import kgen.id
 
-sealed class Attr(id: Id) : Identifiable(id), AsRust {
+sealed class Attr(id: Id) : Identifier(id), AsRust {
     class Word(nameId: String) : Attr(id(nameId)) {
 
         override val asRust: String

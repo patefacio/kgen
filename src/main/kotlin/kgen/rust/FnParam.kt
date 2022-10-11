@@ -1,6 +1,6 @@
 package kgen.rust
 
-import kgen.Identifiable
+import kgen.Identifier
 import kgen.trailingText
 
 data class FnParam(
@@ -8,7 +8,7 @@ data class FnParam(
     val type: Type = RustString,
     val doc: String = "TODO Document Param($nameId)",
     val isMutable: Boolean = false
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
 
 
     constructor(nameId: String, type: String, doc: String) : this(nameId, UnmodeledType(type), doc)

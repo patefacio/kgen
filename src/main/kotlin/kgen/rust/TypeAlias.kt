@@ -1,13 +1,13 @@
 package kgen.rust
 
-import kgen.Identifiable
+import kgen.Identifier
 import kgen.trailingText
 
 data class TypeAlias(
     val nameId: String,
     val aliased: Type,
     val visibility: Visibility = Visibility.None
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
     override val asRust: String
         get() = "${trailingText(visibility.asRust)}type ${id.capCamel} = ${aliased.asRust};"
 }

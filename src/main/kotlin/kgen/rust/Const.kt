@@ -8,7 +8,7 @@ data class Const(
     val type: Type,
     val value: Any,
     val visibility: Visibility = Visibility.None
-) : Identifiable(nameId), AsRust {
+) : Identifier(nameId), AsRust {
 
     override val asRust: String
         get() {
