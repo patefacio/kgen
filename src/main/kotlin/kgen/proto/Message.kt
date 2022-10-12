@@ -40,7 +40,7 @@ data class Message(
             }
 
             fields.any { !it.isNumbered } -> {
-                throw RuntimeException("Either *NO* fields are *ALL* fields must have numbers -> $nameId")
+                throw RuntimeException("Either *NO* fields or *ALL* fields have numbers -> $nameId")
             }
 
             else -> fields

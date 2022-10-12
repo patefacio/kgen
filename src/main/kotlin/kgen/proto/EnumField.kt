@@ -7,7 +7,7 @@ import kgen.missingDoc
 data class EnumField(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Enum Field"),
-    val number: Int
+    val number: Int? = null
 ) : Identifier(nameId), AsProto {
     override val asProto: String
         get() = listOf(
