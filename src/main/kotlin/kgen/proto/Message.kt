@@ -34,7 +34,7 @@ data class Message(
                 var number = 1
                 fields.map {
                     val updatedField = it.copyFromNumber(number)
-                    number += 1
+                    number += it.numFields
                     updatedField
                 }
             }

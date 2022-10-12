@@ -11,6 +11,12 @@ internal class OneOfTest {
     fun getAsProto() {
 
         assertEquals("""
+            /*
+              `primary_color` supports _one_of_:
+              - Red
+              - Green
+              - Blue
+            */
             oneof primary_color {
               /*
                 Red value

@@ -5,32 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34a6f5bd-04e9-4a96-9c50-97bd3f77bb6e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/MessageField.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/OneOf.kt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/proto/OneOfTest.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/markdown/Markdown.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/utility/CommonRegexes.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/utility/RipGrep.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/Identifiable.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/Identifier.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/Enum.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/Enum.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/EnumField.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/EnumField.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/RunCommand.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/utility/RunCommand.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/Field.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/Field.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/Message.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/Message.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/ProtoFile.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/ProtoFile.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Attr.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Attr.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Binary.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Binary.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CargoToml.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Const.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Const.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Crate.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Crate.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Enum.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Enum.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/EnumValue.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/EnumValue.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Field.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Fn.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/FnParam.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/FnParam.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Struct.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Trait.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeAlias.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeAlias.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeParam.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/TypeParam.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/ProtoCrateGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/ProtoCrateGenerator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/MessageField.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/MessageField.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/OneOf.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/proto/OneOf.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/RunCommandKtTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/RunCommandKtTest.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -260,7 +246,7 @@
       <workItem from="1664460864948" duration="34533000" />
       <workItem from="1664805589969" duration="527000" />
       <workItem from="1664806339737" duration="10407000" />
-      <workItem from="1665492381558" duration="907000" />
+      <workItem from="1665492381558" duration="1505000" />
     </task>
     <servers />
   </component>
@@ -293,7 +279,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/kgen/StringUtilities.kt</url>
-          <line>35</line>
+          <line>41</line>
           <option name="timeStamp" value="10" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
@@ -303,7 +289,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/CrateGenerator.kt</url>
-          <line>77</line>
+          <line>78</line>
           <option name="timeStamp" value="14" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">

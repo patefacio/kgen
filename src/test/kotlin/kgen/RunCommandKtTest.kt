@@ -1,5 +1,7 @@
 package kgen
 
+import kgen.utility.runShellCommand
+import kgen.utility.runSimpleCommand
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*

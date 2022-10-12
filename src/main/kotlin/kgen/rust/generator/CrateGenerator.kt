@@ -4,6 +4,7 @@ import kgen.*
 import kgen.rust.Crate
 import kgen.rust.Module
 import kgen.rust.ModuleType
+import kgen.utility.runShellCommand
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths

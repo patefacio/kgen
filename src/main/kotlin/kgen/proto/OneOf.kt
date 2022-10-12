@@ -1,6 +1,8 @@
 package kgen.proto
 
 import kgen.Identifier
+import kgen.asMarkdownList
+import kgen.blockComment
 import kgen.indent
 
 data class OneOf(
@@ -11,6 +13,9 @@ data class OneOf(
 
     override val isNumbered: Boolean
         get() = fields.all { it.number != null }
+
+    override val numFields: Int
+        get() = fields.size
 
     override fun copyFromNumber(number: Int) =
         copy(fields = fields.withIndex().map { (id, field) -> field.copy(number = number + id) })
@@ -25,6 +30,7 @@ data class OneOf(
 
     override val asProto: String
         get() = listOf(
+            blockComment("`$nameId` supports _one_of_:\n${fields.map { it.id.capCamel }.asMarkdownList}"),
             "oneof ${nameId} {",
             indent(fields.joinToString("\n\n") { "${it.asProto};" }),
             "}"

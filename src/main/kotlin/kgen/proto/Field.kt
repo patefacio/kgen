@@ -14,7 +14,10 @@ data class Field(
     override val isNumbered: Boolean
         get() = number != null
 
-    override fun copyFromNumber(fromNumber: Int) = if(fromNumber == this.number) {
+    override val numFields: Int
+        get() = 1
+
+    override fun copyFromNumber(fromNumber: Int) = if (fromNumber == this.number) {
         this
     } else {
         copy(number = fromNumber)

@@ -1,5 +1,7 @@
 package kgen
 
+import java.nio.file.Paths
+
 fun trailingText(text: CharSequence?, trailing: String = " ") = if (text.isNullOrEmpty()) {
     text
 } else {
@@ -15,6 +17,10 @@ fun leadingText(text: String, leading: String = " ") = if (text.isEmpty()) {
 fun tripleQuote(text: String) = "\"\"\"$text\"\"\""
 
 fun doubleQuote(text: String) = "\"$text\""
+
+fun singleQuote(text: String) = "'$text'"
+
+fun backtickQuote(text: String) = "`$text`"
 
 fun List<String>.joinNonEmpty(separator: CharSequence = "\n") = this.filter { it.isNotEmpty() }.joinToString(separator)
 
@@ -44,3 +50,6 @@ val String.nullIfEmpty
 
 val CharSequence?.emptyIfNull
     get() = this ?: ""
+
+
+val String.asPath get() = Paths.get(this)
