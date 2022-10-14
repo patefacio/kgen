@@ -132,7 +132,7 @@ Ok(())
                 )
             ),
             cargoToml = CargoToml(
-                "modeled",
+                crateNameId,
                 dependencies = listOf(
                     "tonic = \"0.8\"",
                     "prost = \"0.11\"",

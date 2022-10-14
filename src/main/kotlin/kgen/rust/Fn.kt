@@ -72,7 +72,7 @@ data class Fn(
 
     val asTraitFn
         get() = listOfNotNull(
-            commentTriple(fnDoc),
+            fnDoc,
             allAttrs.asRust,
             signature +
                     if (body != null) {
@@ -82,24 +82,29 @@ data class Fn(
                     }
         ).joinNonEmpty()
 
-    private val fnDoc = listOf(
-        doc ?: "",
-        joinNonEmpty(
-            params
-                .filter { it != self && it != refSelf && it != refMutSelf }
-                .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
-            if (returnType != null) {
-                "  * _return_ - $returnDoc"
-            } else {
-                ""
-            }
+    private val fnDoc = if (doc != null) {
+        commentTriple(listOf(
+            doc,
+            joinNonEmpty(
+                params
+                    .filter { it != self && it != refSelf && it != refMutSelf }
+                    .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
+                if (returnType != null) {
+                    "  * _return_ - $returnDoc"
+                } else {
+                    ""
+                }
+            )
         )
-    )
-        .joinNonEmpty("\n\n")
+            .joinNonEmpty("\n\n")
+        )
+    } else {
+        null
+    }
 
 
     fun asRust(codeBlockName: String) = listOfNotNull(
-        commentTriple(fnDoc),
+        fnDoc,
         allAttrs.asRust,
         "$signature {",
         indent(body?.asRust ?: emptyBlock(codeBlockName)),

@@ -20,6 +20,9 @@ import kgen.*
  * @property unitTestTraitFunctions If true all functions have unit tests.
  * @property functionUnitTests List of function names to include empty unit test,
  *           in case not all need to be unit tested.
+ * @property uses List of uses for the trait impl
+ * @property noFunctionComments If set the comments will not be included - for
+ *           simple type trait impls no need to duplicate large doc comments.
  */
 data class TraitImpl(
     val type: Type,
@@ -32,7 +35,8 @@ data class TraitImpl(
     val bodies: Map<String, String> = emptyMap(),
     val unitTestTraitFunctions: Boolean = false,
     val functionUnitTests: List<Id> = emptyList(),
-    val uses: Set<Use> = emptySet()
+    val uses: Set<Use> = emptySet(),
+    val noFunctionComments: Boolean = false
 ) : AsRust {
 
     /** True if any/all functions have unit tests. */
@@ -84,13 +88,23 @@ data class TraitImpl(
                 )
             ),
             indent(
-                trait.functions.filter { it.body == null }.joinToString("\n\n") {
-                    if (bodies.contains(it.nameId)) {
-                        it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
-                    } else {
-                        it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
+                trait
+                    .functions
+                    .filter { it.body == null }
+                    .map {
+                        if (noFunctionComments) {
+                            it.copy(doc = null)
+                        } else {
+                            it
+                        }
                     }
-                }),
+                    .joinToString("\n\n") {
+                        if (bodies.contains(it.nameId)) {
+                            it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
+                        } else {
+                            it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
+                        }
+                    }),
             "}"
         ).joinToString("\n")
 

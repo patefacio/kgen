@@ -12,6 +12,7 @@ fun comment(text: String, opener: String = doubleOpener) = opener + text
     .joinToString("\n$opener")
 
 fun commentTriple(text: String) = comment(text, tripleOpener)
+
 fun commentScript(text: String) = comment(text, scriptOpener)
 
 fun blockComment(text: String, indent: String = "  ") = listOf(
