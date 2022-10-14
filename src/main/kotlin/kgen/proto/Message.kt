@@ -27,7 +27,6 @@ data class Message(
     ) : this(nameId, doc, fields.toList(), messages, enums)
 
 
-
     private val numberedFields
         get() = when {
             fields.all { !it.isNumbered } -> {
@@ -54,4 +53,9 @@ data class Message(
                 (numberedFields + messages + enums).joinToString("\n\n") { "${it.asProto};" }),
             "}"
         ).joinToString("\n")
+
+
+    val allMessages: List<Message>
+        get() = listOf(this) +
+                messages.map { it.allMessages }.flatten()
 }

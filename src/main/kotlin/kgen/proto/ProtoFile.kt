@@ -44,4 +44,8 @@ data class ProtoFile(
         .filterIsInstance<OneOf>() + message.messages.map { recursiveAllOneOfs(it) }.flatten()
 
     val allOneOfs get() = messages.map { recursiveAllOneOfs(it) }.flatten()
+
+    val allMessages get() = messages.map { it.allMessages }
 }
+
+val List<ProtoFile>.allMessages get() = this.map { it.allMessages.flatten() }.flatten()

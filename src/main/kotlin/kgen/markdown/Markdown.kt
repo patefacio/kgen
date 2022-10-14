@@ -6,6 +6,9 @@ import kotlin.math.max
 
 val List<String>.asMarkdownList get() = this.joinToString("\n") { "- $it" }
 
+val List<String>.asMarkdownBlockQuote get() = this.joinToString("\n") { it.prependIndent("> ") }
+val String.asMarkdownBlockQuote get() = this.split("\n").asMarkdownBlockQuote
+
 fun List<List<String>>.asMarkdownTable(
     addBlankHeader: Boolean = false,
     header: List<String> = emptyList()
