@@ -18,7 +18,8 @@ data class RipGrep(
     val filesOnly: Boolean = false,
     val excludeLineRegexes: List<Regex> = emptyList(),
     val commonExclusions: List<CommonRegexes> = emptyList(),
-    val wordBoundaryOnly: Boolean = false
+    val wordBoundaryOnly: Boolean = false,
+    val usePcre2: Boolean = false
 ) {
 
     constructor(
@@ -28,13 +29,15 @@ data class RipGrep(
         filesOnly: Boolean = false,
         excludeLineRegexes: List<Regex> = emptyList(),
         commonExclusions: List<CommonRegexes> = emptyList(),
-        wordBoundaryOnly: Boolean = false
+        wordBoundaryOnly: Boolean = false,
+        usePcre2: Boolean = false
     ) : this(
         expression, paths.map { it }, fileExclusions = fileExclusions,
         filesOnly = filesOnly,
         excludeLineRegexes,
         commonExclusions,
-        wordBoundaryOnly
+        wordBoundaryOnly,
+        usePcre2
     )
 
     val asCommand
@@ -50,7 +53,13 @@ data class RipGrep(
                     "-w"
                 } else {
                     ""
+                },
+                if (usePcre2) {
+                    "--pcre2"
+                } else {
+                    ""
                 }
+
             ),
             fileExclusions.map { "-g!$it" },
             listOf("-n -e'$expression'"),
