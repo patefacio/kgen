@@ -27,12 +27,26 @@ enum class BlockNameDelimiter {
         }
 }
 
+/** Create an empty block.
+ * @param blockName Name used in protection block delimiter
+ * @param blockDelimiter Type of delimiter (e.g. rust quote for rust, script for scripts)
+ * @param blockNameDelimiter Either single quote (e.g. if name has templates) or angle brackets
+ * @param emptyContents An empty block is usually just the delimiters and a new-line, but sometimes
+ *                      it is useful to create an empty block with something real like a `todo!()`
+ *                      that will be used to track progress (e.g. in a test function)
+ */
 fun emptyBlock(
     blockName: String,
     blockDelimiter: BlockDelimiter = alphaOmegaDelimiter,
-    blockNameDelimiter: BlockNameDelimiter = BlockNameDelimiter.AngleBracket
+    blockNameDelimiter: BlockNameDelimiter = BlockNameDelimiter.AngleBracket,
+    emptyContents: String? = null
 ) = """${blockDelimiter.open} ${blockNameDelimiter.open}$blockName${blockNameDelimiter.close}
-${blockDelimiter.close} ${blockNameDelimiter.open}$blockName${blockNameDelimiter.close}
+${
+    trailingText(
+        emptyContents,
+        "\n"
+    ) ?: ""
+}${blockDelimiter.close} ${blockNameDelimiter.open}$blockName${blockNameDelimiter.close}
 """.trimIndent()
 
 fun pullBlocks(text: String, blockDelimiter: BlockDelimiter = alphaOmegaDelimiter): Map<String, String> {
@@ -52,7 +66,11 @@ fun pullBlocks(text: String, blockDelimiter: BlockDelimiter = alphaOmegaDelimite
     }
 }
 
-fun mergeBlocks(generated: String, prior: String, blockDelimiter: BlockDelimiter = alphaOmegaDelimiter): String {
+fun mergeBlocks(
+    generated: String,
+    prior: String,
+    blockDelimiter: BlockDelimiter = alphaOmegaDelimiter
+): String {
     val generatedBlocks = pullBlocks(generated, blockDelimiter)
     val priorBlocks = pullBlocks(prior, blockDelimiter)
     var result = generated
@@ -107,7 +125,7 @@ fun checkWriteFile(
 
         else -> {
             val parentPath = file.toPath().parent
-            if(!parentPath.exists() && !parentPath.toFile().mkdirs()) {
+            if (!parentPath.exists() && !parentPath.toFile().mkdirs()) {
                 throw RuntimeException("Unable to create folder ${parentPath.pathString}")
             }
             file.writeText(content)

@@ -16,6 +16,7 @@ data class Fn(
     val hasUnitTest: Boolean = false,
     val attrs: AttrList = AttrList(),
     val blockName: String = nameId,
+    val emptyBlockContents: String? = null,
     val uses: Set<Use> = emptySet()
 ) : Identifier(nameId), AsRust {
 
@@ -34,11 +35,12 @@ data class Fn(
         hasUnitTest: Boolean = false,
         attrs: AttrList = AttrList(),
         blockName: String = nameId,
+        emptyBlockContents: String? = null,
         uses: Set<Use> = emptySet()
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
         genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
-        blockName, uses
+        blockName, emptyBlockContents, uses
     )
 
     private val allAttrs = if (inlineDecl == InlineDecl.None) {
@@ -107,7 +109,7 @@ data class Fn(
         fnDoc,
         allAttrs.asRust,
         "$signature {",
-        indent(body?.asRust ?: emptyBlock(codeBlockName)),
+        indent(body?.asRust ?: emptyBlock(codeBlockName, emptyContents = emptyBlockContents)),
         "}"
     )
         .joinNonEmpty()

@@ -59,8 +59,9 @@ data class TraitImpl(
                     Fn(
                         it.snakeCaseName,
                         blockName = "${testModuleNameId}_${it.snakeCaseName}",
+                        emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
                         doc = null,
-                        attrs = AttrList(attrTestFn)
+                        attrs = AttrList(attrTestFn),
                     )
                 },
                 moduleType = ModuleType.Inline

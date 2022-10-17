@@ -40,7 +40,7 @@ data class RipGrep(
         usePcre2
     )
 
-    val asCommand
+    private val asCommand
         get() = listOf(
             listOfNotNull(
                 "rg --no-heading",

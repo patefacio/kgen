@@ -17,10 +17,10 @@ data class Field(
     override val numFields: Int
         get() = 1
 
-    override fun copyFromNumber(fromNumber: Int) = if (fromNumber == this.number) {
+    override fun copyFromNumber(number: Int) = if (number == this.number) {
         this
     } else {
-        copy(number = fromNumber)
+        copy(number = number)
     }
 
     private val repeatedDecl = if (repeated) {

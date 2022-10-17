@@ -49,7 +49,11 @@ data class Module(
                 moduleType = ModuleType.Inline,
                 modules = traitImpls.mapNotNull { it.testModule },
                 functions = functions.filter { it.hasUnitTest }.map {
-                    Fn("test_${it.nameId}", doc = null, attrs = AttrList(attrTestFn))
+                    Fn("test_${it.nameId}",
+                        doc = null,
+                        attrs = AttrList(attrTestFn),
+                        emptyBlockContents = """todo!("Add test ${it.nameId}")"""
+                    )
                 },
                 attrs = AttrList(attrCfgTest)
             )
@@ -60,7 +64,8 @@ data class Module(
     private var allUses = uses +
             functions.map { it.uses }.flatten() +
             traitImpls.map { it.uses }.flatten() +
-            typeImpls.map { it.uses }.flatten()
+            typeImpls.map { it.uses }.flatten() +
+            structs.map { it.uses }.flatten()
 
 
     override

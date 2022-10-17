@@ -49,3 +49,9 @@ data class ProtoFile(
 }
 
 val List<ProtoFile>.allMessages get() = this.map { it.allMessages.flatten() }.flatten()
+
+val List<ProtoFile>.unusedMessages
+    get(): List<Message> {
+        val allMessages = this.allMessages
+        return emptyList() // TODO: Implement
+    }

@@ -9,9 +9,9 @@ import kgen.proto.*
 /** Creates a report for a `Message` in a set of protobufs that details
  * all Message and Enums related to it transitively.
  */
-data class MessageDependenciesReport(val protoFiles: List<ProtoFile>) {
+data class MessageAndEnumDependencies(val protoFiles: List<ProtoFile>) {
 
-    private val allMessagesAndEnums =
+    val allMessagesAndEnums =
         protoFiles
             .map { it.messages.associateBy { it.id.capCamel }.entries }
             .flatten()
@@ -39,7 +39,7 @@ data class MessageDependenciesReport(val protoFiles: List<ProtoFile>) {
     private fun MessageField.unqualifiedTypeName() = when (this) {
         is Field -> {
             when (this.type) {
-                is FieldType.MapOf -> (this.type as FieldType.MapOf).valueType.asProto
+                is FieldType.MapOf -> this.type.valueType.asProto
                 else -> this.type.asProto
             }
                 .split(".")
@@ -47,38 +47,6 @@ data class MessageDependenciesReport(val protoFiles: List<ProtoFile>) {
         }
 
         else -> null
-    }
-
-    fun reportAsMarkdown(message: Message): String {
-        val allEncountered = mutableSetOf<String>()
-        val bindings = getBindings(message).map { list ->
-            list.map {
-                allEncountered.add(it.type.id.capCamel)
-                it.toString()
-            }
-        }
-
-        val messagesNotInTree = allMessagesAndEnums.keys.toSortedSet() - allEncountered
-
-        return Markdown(
-            "Dependencies For ${message.id.capCamel}",
-            body = listOf(
-                message.doc.asMarkdownBlockQuote,
-                if (bindings.size == 1) {
-                    "## Does not use *any* internally modeled items."
-                } else {
-                    listOf(
-                        bindings.asMarkdownTable(addBlankHeader = true),
-                        "---",
-                        "## Not Encountered",
-                        messagesNotInTree
-                            .chunked(8)
-                            .asMarkdownTable(addBlankHeader = true)
-                    ).joinToString("\n\n")
-                }
-
-            ).joinToString("\n\n")
-        ).asMarkdown
     }
 
     fun getBindings(message: Message) = getBindings(listOf(listOf(FieldAndIdentifier(null, message))))
@@ -89,8 +57,13 @@ data class MessageDependenciesReport(val protoFiles: List<ProtoFile>) {
             is Message -> {
                 currentType.fields.mapNotNull { field: MessageField ->
                     when (field) {
-                        is OneOf -> field.fields.map {
-                            FieldAndIdentifier(it, it)
+                        is OneOf -> field.fields.mapNotNull {
+                            val type = allMessagesAndEnums[it.type.asProto.split(".").last()]
+                            if (type != null) {
+                                FieldAndIdentifier(it, type)
+                            } else {
+                                null
+                            }
                         }
 
                         else -> {

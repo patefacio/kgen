@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
-import kotlin.math.exp
-import kotlin.test.expect
 
 internal class MergeKtTest {
 
@@ -83,12 +81,13 @@ generated postfix text *updated4*
                 "foobar" to block3,
                 "defunct" to defunctBlock
             ),
-            results)
+            results
+        )
     }
 
     @Test
-    fun mergeBlocks() {
-        val merged = kgen.mergeBlocks(generated = newGeneratedText, prior = sampleText)
+    fun mergeBlocksTest() {
+        val merged = mergeBlocks(generated = newGeneratedText, prior = sampleText)
         assertEquals(expectedAfterMerge, merged)
     }
 
@@ -119,5 +118,44 @@ generated postfix text *updated4*
         )
 
         targetFile.delete()
+    }
+
+    @Test
+    fun mergeWithProvidedEmptyContent() {
+        val nonEmptyBlock = emptyBlock("not_really_empty", emptyContents = "TODO!()\n")
+        val prior = """
+Foo
+// α <not_really_empty>
+hand-coded stuff here!!
+// ω <not_really_empty>
+""".trimIndent()
+
+        assertEquals(
+            prior,
+            mergeBlocks(
+                generated = """
+Foo
+$nonEmptyBlock
+""".trimIndent(),
+                prior = prior
+            )
+        )
+
+        val newPrior = """
+FooBar
+// α <not_really_empty>
+hand-coded stuff here!!
+// ω <not_really_empty>
+""".trimIndent()
+
+        assertEquals(
+            newPrior,
+            mergeBlocks(newPrior, prior)
+        )
+
+        assertEquals(
+            nonEmptyBlock,
+            mergeBlocks(nonEmptyBlock, nonEmptyBlock)
+        )
     }
 }
