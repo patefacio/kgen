@@ -23,7 +23,7 @@ data class Fn(
 
     constructor(
         nameId: String,
-        doc: String = missingDoc(nameId, "Fn"),
+        doc: String? = missingDoc(nameId, "Fn"),
         vararg params: FnParam,
         returnType: Type? = null,
         returnDoc: String? = missingDoc(nameId, "FnReturn"),
@@ -89,7 +89,7 @@ data class Fn(
             doc,
             joinNonEmpty(
                 params
-                    .filter { it != self && it != refSelf && it != refMutSelf }
+                    .filter { it.nameId != "self" }
                     .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
                 if (returnType != null) {
                     "  * _return_ - $returnDoc"

@@ -19,4 +19,5 @@ data class FnParam(
 
 val self = FnParam("self", Self)
 val refSelf = FnParam("self", RefSelf)
+fun refSelf(lifetime: String) = FnParam("self", "&'$lifetime Self".asType)
 val refMutSelf = FnParam("self", RefMutSelf)

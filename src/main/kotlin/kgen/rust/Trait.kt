@@ -18,6 +18,7 @@ data class Trait(
     val attrs: AttrList = AttrList()
 ) : Identifier(nameId), AsRust, AsSuperTrait {
 
+    val allUses get() = uses + functions.map { it.uses }.flatten()
 
     constructor(
         nameId: String,

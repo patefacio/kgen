@@ -49,7 +49,8 @@ data class Module(
                 moduleType = ModuleType.Inline,
                 modules = traitImpls.mapNotNull { it.testModule },
                 functions = functions.filter { it.hasUnitTest }.map {
-                    Fn("test_${it.nameId}",
+                    Fn(
+                        "test_${it.nameId}",
                         doc = null,
                         attrs = AttrList(attrTestFn),
                         emptyBlockContents = """todo!("Add test ${it.nameId}")"""
@@ -62,6 +63,7 @@ data class Module(
         }
 
     private var allUses = uses +
+            traits.map { it.allUses }.flatten() +
             functions.map { it.uses }.flatten() +
             traitImpls.map { it.uses }.flatten() +
             typeImpls.map { it.uses }.flatten() +
