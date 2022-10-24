@@ -7,7 +7,7 @@ data class Struct(
     override val doc: String = missingDoc(nameId, "Struct"),
     val fields: List<Field> = emptyList(),
     val visibility: Visibility = Visibility.None,
-    val uses: List<Use> = emptyList(),
+    val uses: Set<Use> = emptySet(),
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val attrs: AttrList = AttrList()
 ) : Identifier(nameId), Type, AsRust {
@@ -22,7 +22,7 @@ data class Struct(
         doc: String,
         vararg fields: Field,
         visibility: Visibility = Visibility.None,
-        uses: List<Use> = emptyList(),
+        uses: Set<Use> = emptySet(),
         genericParamSet: GenericParamSet = GenericParamSet(),
         attrs: AttrList = AttrList()
     ) : this(nameId, doc, fields.toList(), visibility, uses, genericParamSet, attrs)

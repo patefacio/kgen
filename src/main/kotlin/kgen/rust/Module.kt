@@ -66,7 +66,7 @@ data class Module(
             traits.map { it.allUses }.flatten() +
             functions.map { it.uses }.flatten() +
             traitImpls.map { it.uses }.flatten() +
-            typeImpls.map { it.uses }.flatten() +
+            typeImpls.map { it.allUses }.flatten() +
             structs.map { it.uses }.flatten()
 
 

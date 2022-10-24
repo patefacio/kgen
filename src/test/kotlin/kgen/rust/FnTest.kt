@@ -13,8 +13,8 @@ internal class FnTest {
             """
 /// Does foo and bar
 /// 
-///   * a - The a value
-///   * b - The b value
+///   * **a** - The a value
+///   * **b** - The b value
 #[foo]
 #[inline = "always"]
 fn foo_bar(

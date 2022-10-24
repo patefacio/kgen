@@ -17,5 +17,19 @@ internal class UseTest {
                 attrs = AttrList(Attr.Words("foo", "goo", "moo"))
             ).asRust
         )
+
+
+        assertEquals(
+            Use("foo::bar::Goo"),
+            Use("foo::bar::Goo")
+        )
+
+        assertEquals(
+            1,
+            setOf(
+                Use("foo::bar::Goo"),
+                Use("foo::bar::Goo")
+            ).size
+        )
     }
 }

@@ -1,6 +1,6 @@
 package kgen.rust
 
-open class AttrList(val attrs: List<Attr> = emptyList()) : AsRust {
+data class AttrList(val attrs: List<Attr> = emptyList()) : AsRust {
 
     constructor(vararg attrs: Attr) : this(attrs.toList())
 

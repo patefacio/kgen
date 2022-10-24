@@ -90,7 +90,7 @@ data class Fn(
             joinNonEmpty(
                 params
                     .filter { it.nameId != "self" }
-                    .joinToString("\n") { "  * ${it.nameId} - ${it.doc}" },
+                    .joinToString("\n") { "  * ${it.nameId.bold} - ${it.doc}" },
                 if (returnType != null) {
                     "  * _return_ - $returnDoc"
                 } else {

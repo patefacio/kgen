@@ -47,6 +47,7 @@ val List<Attr>.asRust
     }
 
 val attrCfgTest = Attr.Words("cfg", "test")
+val aggrSerdeSerialize = Attr.Words("derive", "Serialize", "Deserialize")
 val attrTestFn = Attr.Word("test")
 
 

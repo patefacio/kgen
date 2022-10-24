@@ -71,6 +71,10 @@ object RustString : Type {
     override val type get() = "String"
 }
 
+object RustBoolean : Type {
+    override val type get() = "bool"
+}
+
 object Str : Type {
     override val type get() = "str"
 }

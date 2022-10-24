@@ -22,10 +22,12 @@ data class TypeImpl(
     val uses: Set<Use> = emptySet()
 ) : AsRust {
 
+    val allUses get() = uses + functions.map { it.uses }.flatten()
+    
     override val asRust: String
         get() = listOf(
             withWhereClause(
-                "impl ${type.asRustName}",
+                "impl${genericParamSet.asRust} ${type.asRustName}",
                 genericParamSet
             ) + " {",
             indent(
