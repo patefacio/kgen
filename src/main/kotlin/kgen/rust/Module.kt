@@ -39,7 +39,7 @@ data class Module(
     }
 
     private val requiresUnitTest
-        get() = traitImpls.any { it.hasUnitTests } || functions.any { it.hasUnitTest }
+        get() = traitImpls.any { it.hasUnitTests } || typeImpls.any { it.hasUnitTests } || functions.any { it.hasUnitTest }
 
     val testModule
         get() = if (requiresUnitTest) {
@@ -47,7 +47,7 @@ data class Module(
                 "unit_tests",
                 "Unit tests for `${nameId}`",
                 moduleType = ModuleType.Inline,
-                modules = traitImpls.mapNotNull { it.testModule },
+                modules = traitImpls.mapNotNull { it.testModule } + typeImpls.mapNotNull { it.testModule },
                 functions = functions.filter { it.hasUnitTest }.map {
                     Fn(
                         "test_${it.nameId}",

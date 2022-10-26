@@ -1,6 +1,7 @@
 package kgen.rust
 
 import kgen.Id
+import kgen.asSnake
 import kgen.indent
 
 /** Represents an implementation of provided type.
@@ -18,12 +19,41 @@ data class TypeImpl(
     val genericArgSet: GenericArgSet = GenericArgSet(),
     val doc: String? = null,
     val unitTestImplFunctions: Boolean = true,
-    val unitTests: List<Id> = emptyList(),
+    val functionUnitTests: List<Id> = emptyList(),
     val uses: Set<Use> = emptySet()
 ) : AsRust {
 
     val allUses get() = uses + functions.map { it.uses }.flatten()
-    
+
+    val hasUnitTests get() = unitTestImplFunctions || functionUnitTests.isNotEmpty()
+    private val unitTestFunctionIds
+        get() = if (unitTestImplFunctions) {
+            functions.map { it.id }
+        } else {
+            emptyList()
+        } + functionUnitTests
+
+    val testModule get() = if (unitTestFunctionIds.isNotEmpty()) {
+        val testModuleNameId = "test_${type.sanitized.asSnake}"
+        Module(
+            testModuleNameId,
+            "Test type ${type.asRustName}",
+            functions = unitTestFunctionIds.map {
+                Fn(
+                    it.snakeCaseName,
+                    blockName = "${testModuleNameId}_${it.snakeCaseName}",
+                    emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
+                    doc = null,
+                    attrs = AttrList(attrTestFn),
+                )
+            },
+            moduleType = ModuleType.Inline,
+            uses = setOf(Use("test_log::test"))
+        )
+    } else {
+        null
+    }
+
     override val asRust: String
         get() = listOf(
             withWhereClause(

@@ -64,7 +64,8 @@ data class TraitImpl(
                         attrs = AttrList(attrTestFn),
                     )
                 },
-                moduleType = ModuleType.Inline
+                moduleType = ModuleType.Inline,
+                uses = setOf(Use("test_log::test"))
             )
         } else {
             null

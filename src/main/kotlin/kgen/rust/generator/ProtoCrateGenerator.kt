@@ -21,8 +21,8 @@ import kotlin.io.path.relativeTo
  * the proto file that require custom impls. Attaching an impl directly to a
  * protobuf message's struct is a convenient way to attach functionality to
  * the struct.
- *
- *
+ * @property additionalDerives Set mapping Rust Message/Enum name to list of
+ * additional derives.
  */
 data class ProtoCrateGenerator(
     val crateNameId: String,
@@ -30,7 +30,8 @@ data class ProtoCrateGenerator(
     val protoFiles: List<ProtoFile>,
     val targetProtoPath: Path,
     val targetCratePath: Path,
-    val customImplProtoPaths: Map<String, List<Fn>> = emptyMap()
+    val customImplProtoPaths: Map<String, List<Fn>> = emptyMap(),
+    val additionalDerives: Map<String, Set<String>> = emptyMap()
 ) : Identifier(crateNameId) {
 
     private fun generateProtos() = protoFiles.map {
@@ -116,7 +117,11 @@ ${
                                     indent(
                                         serdeSerializables
                                             .joinToString("\n") {
-                                                ".type_attribute(${doubleQuote(it)}, \"#[derive(Serialize, Deserialize)]\")"
+                                                val derives = (setOf(
+                                                    "Serialize",
+                                                    "Deserialize"
+                                                ) + (additionalDerives[it] ?: emptySet())).joinToString()
+                                                ".type_attribute(${doubleQuote(it)}, \"#[derive($derives)]\")"
                                             },
                                         "    "
                                     )
