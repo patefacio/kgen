@@ -63,6 +63,11 @@ object U64 : Type {
     override val type get() = "u64"
 }
 
+object USize : Type {
+    override val type get() = "usize"
+}
+
+
 object F64 : Type {
     override val type: String get() = "f64"
 }
