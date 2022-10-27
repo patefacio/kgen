@@ -56,7 +56,8 @@ data class Module(
                         emptyBlockContents = """todo!("Add test ${it.nameId}")"""
                     )
                 },
-                attrs = AttrList(attrCfgTest)
+                attrs = AttrList(attrCfgTest),
+                visibility = Visibility.Pub
             )
         } else {
             null

@@ -9,8 +9,7 @@ data class Enum(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Proto Enum"),
     val enumFields: List<EnumField>
-) : Identifier(nameId), AsProto {
-
+) : Identifier(nameId), Udt, AsProto {
 
     constructor(nameId: String, doc: String, vararg enumFields: EnumField) :
             this(nameId, doc, enumFields.toList())

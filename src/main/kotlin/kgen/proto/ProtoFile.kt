@@ -49,6 +49,30 @@ data class ProtoFile(
 }
 
 val List<ProtoFile>.allMessages get() = this.map { it.allMessages.flatten() }.flatten()
+val List<ProtoFile>.allFileMessages
+    get() = this.map { protoFile ->
+        protoFile.allMessages.map { messages ->
+            messages.map { message ->
+                Pair(
+                    protoFile,
+                    message
+                )
+            }
+        }.flatten()
+    }.flatten()
+
+val List<ProtoFile>.allFileEnums
+    get() = this.map { protoFile ->
+        protoFile.enums.map { enum -> Pair(protoFile, enum) }
+    }.flatten()
+
+val List<ProtoFile>.udtsByNamedType
+    get() = this.allFileMessages.associate { (protoFile, message) ->
+        "${protoFile.nameId}.${message.id.capCamel}" to message as Udt
+    } + allFileEnums.associate { (protoFile, enum) ->
+        "${protoFile.nameId}.${enum.id.capCamel}" to enum as Udt
+    }
+
 
 val List<ProtoFile>.unusedMessages
     get(): List<Message> {

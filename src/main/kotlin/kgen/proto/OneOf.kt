@@ -9,7 +9,7 @@ data class OneOf(
     val nameId: String,
     val fields: List<Field>,
     val doc: String? = null
-) : Identifier(nameId), AsProto, MessageField {
+) : Identifier(nameId), Udt, AsProto, MessageField {
 
     override val isNumbered: Boolean
         get() = fields.all { it.number != null }

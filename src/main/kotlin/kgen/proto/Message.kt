@@ -16,7 +16,7 @@ data class Message(
     val fields: List<MessageField> = emptyList(),
     val messages: List<Message> = emptyList(),
     val enums: List<Enum> = emptyList()
-) : Identifier(nameId), AsProto {
+) : Identifier(nameId), Udt, AsProto {
 
     constructor(
         nameId: String,
