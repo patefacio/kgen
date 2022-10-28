@@ -19,10 +19,18 @@ data class Field(
 
     val decl get() = "${trailingText(access.asRust)}$nameId: ${type.type}"
 
+    val tupleStructDecl get() = "${trailingText(access.asRust)}${type.type}"
+
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
             attrs.asRust,
             decl
         ).joinNonEmpty("\n")
+
+    val asTupleStructField get() = listOf(
+        commentTriple(doc),
+        attrs.asRust,
+        tupleStructDecl
+    ).joinNonEmpty("\n")
 }

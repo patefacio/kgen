@@ -137,7 +137,29 @@ data class ProtoCrateGenerator(
      * Defines the module with the required field validation code.
      */
     private val requiredValidatorsModule
-        get() = Module("required_fields_present", traits = listOf(
+        get() = Module(
+            "required_fields_present",
+            """
+                Eases the pain of dealing with `proto3` choice to not support required fields.
+                
+                From a developer perspective it is nice to know the messages coming over have
+                the fields set. However, since `proto3` assumes all items are _optional_ the 
+                generated rust is littered with `Option<MessageType>` and there are lots of 
+                checks required. It is rust, so there is no way around doing all the checks
+                on access. But this supports the upfront check that all fields that are truly
+                _required_ are present. In `proto3` **all** non-primitive fields are _optional_.
+                But there was a problem in usage with that because some wanted really **optional**
+                fields with the support of knowing the _presence_ of a field. So, in `proto3`
+                a field with an _optional_ annotation is optional like all the others, but also
+                supports the concept of checking for presence. 
+                
+                To support this _required_fields_present_ we ignore the intent of `proto3` and
+                assume _all fields are **required** unless marked **optional**_. This does not
+                change the generated files but gives an up-front way to validate messages from 
+                the client.
+            """.trimIndent(),
+
+            traits = listOf(
             requiredFieldsPresentTrait
         ), traitImpls = udtsByNamedType
             .filter { (namedType, message) ->

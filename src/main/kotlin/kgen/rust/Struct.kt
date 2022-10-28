@@ -9,7 +9,8 @@ data class Struct(
     val visibility: Visibility = Visibility.None,
     val uses: Set<Use> = emptySet(),
     val genericParamSet: GenericParamSet = GenericParamSet(),
-    val attrs: AttrList = AttrList()
+    val attrs: AttrList = AttrList(),
+    val asTupleStruct: Boolean = false
 ) : Identifier(nameId), Type, AsRust {
 
     val structName = id.capCamel
@@ -24,15 +25,19 @@ data class Struct(
         visibility: Visibility = Visibility.None,
         uses: Set<Use> = emptySet(),
         genericParamSet: GenericParamSet = GenericParamSet(),
-        attrs: AttrList = AttrList()
-    ) : this(nameId, doc, fields.toList(), visibility, uses, genericParamSet, attrs)
+        attrs: AttrList = AttrList(),
+        asTupleStruct: Boolean = false
+    ) : this(nameId, doc, fields.toList(), visibility, uses, genericParamSet, attrs, asTupleStruct)
+
+    private val openStruct = if(asTupleStruct) { "(" } else { "{" }
+    private val closeStruct = if(asTupleStruct) { ")" } else { "}" }
 
     private val header
         get() =
             withWhereClause(
                 "${trailingText(visibility.asRust)}struct ${structName}${genericParamSet.asRust}",
                 genericParamSet
-            ) + " {"
+            ) + openStruct
 
     override val type: String
         get() = structName
@@ -46,10 +51,19 @@ data class Struct(
                 ""
             } else {
                 indent(
-                    fields.joinToString(",\n") { it.asRust },
+                    fields.joinToString(",\n") { if(asTupleStruct) {
+                        it.asTupleStructField
+                    } else {
+                        it.asRust
+                    } },
                 ) ?: ""
             },
-            "}"
+            closeStruct,
+            if (asTupleStruct) {
+                ";"
+            } else {
+                ""
+            }
         ).joinNonEmpty()
 
 }
