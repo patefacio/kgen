@@ -21,6 +21,7 @@ data class ProtoFile(
     val enums: List<Enum> = emptyList(),
     val imports: List<String> = emptyList(),
     val version: Version = Version.Proto3,
+    val protoRootPackage: String = "plus_modeled"
 ) : Identifier(nameId), AsProto {
 
     val protoFileName get() = "$nameId.proto"
@@ -30,6 +31,7 @@ data class ProtoFile(
             "syntax = ${doubleQuote(version.asProto)};",
             imports.joinToString("\n") { "import ${doubleQuote(it)};" },
             "package $packageName;",
+            "option java_package=\"plus_modeled\";",
             enums.joinToString("\n\n") { it.asProto },
             messages.joinToString("\n\n") { it.asProto }
         ).joinNonEmpty("\n\n")

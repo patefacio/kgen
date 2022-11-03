@@ -20,7 +20,7 @@ data class Module(
     val testMacroUses: List<String> = emptyList(),
     val traitImpls: List<TraitImpl> = emptyList(),
     val typeImpls: List<TypeImpl> = emptyList(),
-    val codeBlock: String? = emptyBlock("mod-def $nameId"),
+    val codeBlock: String? = emptyOpenDelimitedBlock("mod-def $nameId"),
     val moduleBody: FnBody? = null
 ) : Identifier(nameId), AsRust {
 
@@ -124,7 +124,15 @@ data class Module(
             ).joinNonEmpty("\n\n")
         )
 
-    val asModDecl: String get() = "${trailingText(visibility.asRust)}mod $nameId"
+    val asModDecl: String
+        get() = listOfNotNull(
+            if (moduleType != ModuleType.Inline && attrs.attrs.isNotEmpty()) {
+                attrs.asRust
+            } else {
+                null
+            },
+            "${trailingText(visibility.asRust)}mod $nameId"
+        ).joinToString("\n")
 }
 
 fun visitModules(rootModule: Module, function: (module: Module) -> Unit) {

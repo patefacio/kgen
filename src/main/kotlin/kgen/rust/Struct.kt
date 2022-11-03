@@ -29,7 +29,7 @@ data class Struct(
         asTupleStruct: Boolean = false
     ) : this(nameId, doc, fields.toList(), visibility, uses, genericParamSet, attrs, asTupleStruct)
 
-    private val openStruct = if(asTupleStruct) { "(" } else { "{" }
+    private val openStruct = if(asTupleStruct) { "(" } else { " {" }
     private val closeStruct = if(asTupleStruct) { ")" } else { "}" }
 
     private val header

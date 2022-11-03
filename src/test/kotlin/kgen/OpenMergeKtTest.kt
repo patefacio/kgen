@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
 
-internal class MergeKtTest {
+internal class OpenMergeKtTest {
 
     val blockName1 = "block_name<foo>"
     val blockName2 = "block_name<bar>"
@@ -26,15 +26,15 @@ internal class MergeKtTest {
         hand written with different naming
         // ω `$blockName3`""".trimIndent()
 
-    val defunctBlock = emptyBlock("defunct")
+    val defunctBlock = emptyOpenDelimitedBlock("defunct")
 
     val emptyGenerated = """
 generated prefix text
-${emptyBlock(blockName1)}
+${emptyOpenDelimitedBlock(blockName1)}
 preserved
-${emptyBlock(blockName2)}
+${emptyOpenDelimitedBlock(blockName2)}
 also preserved
-${emptyBlock(blockName3, blockNameDelimiter = BlockNameDelimiter.BackTick)}
+${emptyOpenDelimitedBlock(blockName3, blockNameDelimiter = BlockNameDelimiter.BackTick)}
 generated postfix text
 $defunctBlock
         """
@@ -52,11 +52,11 @@ $defunctBlock
 
     val newGeneratedText = """
 generated prefix text *updated1*
-${emptyBlock(blockName1)}
+${emptyOpenDelimitedBlock(blockName1)}
 preserved *updated2*
-${emptyBlock(blockName2)}
+${emptyOpenDelimitedBlock(blockName2)}
 also preserved *updated3*
-${emptyBlock(blockName3, blockNameDelimiter = BlockNameDelimiter.BackTick)}
+${emptyOpenDelimitedBlock(blockName3, blockNameDelimiter = BlockNameDelimiter.BackTick)}
 generated postfix text *updated4*
         """
 
@@ -72,7 +72,7 @@ generated postfix text *updated4*
 
     @Test
     fun pullBlocks() {
-        val results = pullBlocks(sampleText)
+        val results = alphaOmegaDelimiter.pullBlocks(sampleText)
 
         assertEquals(
             mapOf(
@@ -122,7 +122,7 @@ generated postfix text *updated4*
 
     @Test
     fun mergeWithProvidedEmptyContent() {
-        val nonEmptyBlock = emptyBlock("not_really_empty", emptyContents = "TODO!()\n")
+        val nonEmptyBlock = emptyOpenDelimitedBlock("not_really_empty", emptyContents = "TODO!()\n")
         val prior = """
 Foo
 // α <not_really_empty>

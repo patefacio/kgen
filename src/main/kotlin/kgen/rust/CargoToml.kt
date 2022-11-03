@@ -38,14 +38,14 @@ class CargoToml(
                 } else {
                     trailingText(dependencies.joinToString("\n"))
                 },
-                emptyBlock("dependencies", scriptDelimiter),
+                emptyOpenDelimitedBlock("dependencies", scriptDelimiter),
                 "\n[build-dependencies]",
                 if(buildDependencies.isEmpty()) {
                     null
                 } else {
                   trailingText(buildDependencies.joinToString("\n"))
                 },
-                emptyBlock("build-dependencies", scriptDelimiter)
+                emptyOpenDelimitedBlock("build-dependencies", scriptDelimiter)
             ).joinToString("\n")
         ).joinToString("\n")
 

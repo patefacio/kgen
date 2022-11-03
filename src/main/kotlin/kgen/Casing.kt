@@ -22,7 +22,7 @@ val String.asSnake get() = asSnake(this)
 
 fun capCamelWords(words: List<String>) = words.map { it.replaceFirstChar { it.uppercase() } }
 
-fun capCamel(text: String) = capCamelWords(words(text)).joinToString("")
+fun capCamel(text: String, sep: String = "") = capCamelWords(words(text)).joinToString(sep)
 
 fun camel(text: String) = capCamel(text).replaceFirstChar { it.lowercase() }
 

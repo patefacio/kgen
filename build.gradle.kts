@@ -6,7 +6,7 @@ java {
 }
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.7.20"
 }
 
 group = "org.example"
@@ -21,7 +21,7 @@ dependencies {
     implementation(
         group = "ch.qos.logback",
         name = "logback-classic",
-        version = "1.2.6"
+        version = "1.2.9"
     )
 
     testImplementation(kotlin("test"))

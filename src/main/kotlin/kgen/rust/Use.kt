@@ -6,7 +6,8 @@ import kgen.trailingText
 data class Use(
     val pathName: String,
     val visibility: Visibility = Visibility.None,
-    val attrs: AttrList = AttrList()
+    val attrs: AttrList = AttrList(),
+    val allowUnusedImports: Boolean = false
 ) : AsRust {
 
     constructor(
@@ -17,7 +18,12 @@ data class Use(
 
 
     override val asRust: String
-        get() = listOf(
+        get() = listOfNotNull(
+            if (allowUnusedImports) {
+                "#[allow(unused_imports)]"
+            } else {
+                null
+            },
             attrs.asRust,
             "${trailingText(visibility.asRust)}use $pathName;"
         ).joinNonEmpty()

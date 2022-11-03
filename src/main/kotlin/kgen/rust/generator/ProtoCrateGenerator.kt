@@ -191,7 +191,7 @@ data class ProtoCrateGenerator(
                                     }
 
                                     else -> if (fieldTypeRequiresCheck) {
-                                        "self.${field.nameId}.as_ref().and_then(|${field.nameId}| Some(${field.nameId}.required_fields_present())).unwrap_or(false)"
+                                        "self.${field.nameId}.as_ref().map(|${field.nameId}| ${field.nameId}.required_fields_present()).unwrap_or(false)"
                                     } else {
                                         "self.${field.nameId}.is_some()"
                                     }

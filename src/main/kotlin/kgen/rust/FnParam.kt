@@ -13,8 +13,26 @@ data class FnParam(
 
     constructor(nameId: String, type: String, doc: String) : this(nameId, UnmodeledType(type), doc)
 
+    // TODO: So ugly - using regex to back out special case
+    private val selfWithLifetime = """\s*&\s*'(\w+)\s+Self""".toRegex()
+
     override val asRust: String
-        get() = "${trailingText(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
+        get() = when (type.asRust) {
+            "Self" -> "self"
+            "& Self" -> "&self"
+            "& mut Self" -> "& mut self"
+            else -> {
+                val typeAsRust = type.asRust
+                val lifetimeMatch = selfWithLifetime.find(typeAsRust)
+
+                if(lifetimeMatch != null) {
+                    val lifetime = lifetimeMatch.groupValues[1]
+                    "& '$lifetime ${id.snakeCaseName}"
+                } else {
+                    "${trailingText(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
+                }
+            }
+        }
 }
 
 val self = FnParam("self", Self)

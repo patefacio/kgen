@@ -109,7 +109,7 @@ data class Fn(
         fnDoc,
         allAttrs.asRust,
         "$signature {",
-        indent(body?.asRust ?: emptyBlock(codeBlockName, emptyContents = emptyBlockContents)),
+        indent(body?.asRust ?: emptyOpenDelimitedBlock(codeBlockName, emptyContents = emptyBlockContents)),
         "}"
     )
         .joinNonEmpty()

@@ -15,6 +15,7 @@ fun commentTriple(text: String) = comment(text, tripleOpener)
 
 fun commentScript(text: String) = comment(text, scriptOpener)
 
-fun blockComment(text: String, indent: String = "  ") = listOf(
+fun blockComment(text: String, indent: String = "  ", separator: String = "\n") = listOf(
     "/*", comment(text, indent), "*/"
-).joinToString("\n")
+).joinToString(separator)
+
