@@ -43,11 +43,19 @@ data class Fn(
         blockName, emptyBlockContents, uses
     )
 
-    private val allAttrs = if (inlineDecl == InlineDecl.None) {
-        attrs
-    } else {
-        AttrList(attrs.attrs + inlineDecl.asRust())
-    }
+    private val allAttrs = listOfNotNull(
+        attrs,
+        if (inlineDecl != InlineDecl.None) {
+            AttrList(inlineDecl.asRust())
+        } else {
+            null
+        },
+        if (isTest) {
+            AttrList(attrTestFn)
+        } else {
+            null
+        }
+    ).reduce { acc, attrList -> acc + attrList }
 
     private var paramText = if (params.isEmpty()) {
         "()"
