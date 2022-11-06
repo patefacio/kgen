@@ -13,7 +13,7 @@ fun runSimpleCommand(
     ignoreErrors: Set<Int> = emptySet()
 ): String? {
     return try {
-        kgenLogger.info { "Running `$command`" }
+        kgenLogger.info { "Running (`$command`) from `$workingDir`" }
         val proc = ProcessBuilder(command)
             .directory(workingDir)
             .redirectOutput(ProcessBuilder.Redirect.PIPE)
