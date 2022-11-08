@@ -15,6 +15,7 @@ sealed class Access : AsRust {
     object None : Access()
 
     override val asRust get() = when(this) {
+        None, ReadOnly, ReadOnlyRef, ReadWrite, ReadWriteRef, Inaccessible -> ""
         Pub -> "pub"
         PubCrate -> "pub(crate)"
         PubSelf -> "pub(self)"
@@ -22,4 +23,26 @@ sealed class Access : AsRust {
         is PubIn -> "pub(in $inPackage)"
         else -> throw RuntimeException("$this can not be summarized `asCode`")
     }
+
+    val requiresReader get() = when(this){
+        ReadOnly, ReadWrite -> true
+        else -> false
+    }
+
+    val requiresRefReader get() = when(this) {
+        ReadOnlyRef, ReadWriteRef -> true
+        else -> false
+    }
+
+    val requiresWriter get() = when(this) {
+        ReadWrite -> true
+        else -> false
+    }
+
+    val requiresRefWriter get() = when(this) {
+        ReadWriteRef -> true
+        else -> false
+    }
+
+
 }

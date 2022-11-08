@@ -1,6 +1,5 @@
 package kgen.proto
 
-import kgen.proto.Enum
 import kgen.proto.FieldType.*
 
 val fullNameMessage = Message(
@@ -22,8 +21,8 @@ val kitchenSink = Message(
     "kitchen_sink",
     "Kitchen sink message",
     Field("a_field", ProtoString, "A field", 1),
-    Field("color_choices", EnumType(colorEnum), "Choices", 2, repeated = true),
-    Field("full_names", MessageType(fullNameMessage), "Messages", 3, repeated = true),
+    Field("color_choices", EnumType(colorEnum), "Choices", 2, isRepeated = true),
+    Field("full_names", NamedType("FullName"), "Messages", 3, isRepeated = true),
     messages = listOf(fullNameMessage),
     enums = listOf(colorEnum)
 )

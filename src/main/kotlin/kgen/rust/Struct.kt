@@ -15,6 +15,11 @@ data class Struct(
 
     val structName = id.capCamel
 
+    val accessors get() = fields.fold(mutableListOf<Fn>()) { acc, field ->
+        acc.addAll(field.accessors)
+        acc
+    }.toList()
+
     override val asRustName: String
         get() = structName
 

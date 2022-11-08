@@ -31,9 +31,9 @@ data class Message(
         get() = when {
             fields.all { !it.isNumbered } -> {
                 var number = 1
-                fields.map {
-                    val updatedField = it.copyFromNumber(number)
-                    number += it.numFields
+                fields.map {messageField ->
+                    val updatedField = messageField.copyFromNumber(number)
+                    number += messageField.numFields
                     updatedField
                 }
             }

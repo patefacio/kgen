@@ -26,6 +26,15 @@ data class Module(
 
     val isInline get() = moduleType == ModuleType.Inline
 
+    val structAccessorImpls = structs.mapNotNull {struct ->
+        val accessors = struct.accessors
+        if(accessors.isNotEmpty()) {
+            TypeImpl(struct.asRustName.asType, functions = accessors, doc = "Accessors for [${struct.structName}] fields")
+        } else {
+            null
+        }
+    }
+
     private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
         joinNonEmpty(
             commentTriple(doc),
@@ -113,7 +122,7 @@ data class Module(
                     "\n"
                 ),
                 announceSection("type impls",
-                    typeImpls.joinToString("\n\n") { it.asRust }
+                    (typeImpls + structAccessorImpls).joinToString("\n\n") { it.asRust }
                 ),
                 announceSection("trait impls",
                     traitImpls.joinToString("\n\n") { it.asRust }

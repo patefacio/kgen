@@ -19,3 +19,9 @@ fun blockComment(text: String, indent: String = "  ", separator: String = "\n") 
     "/*", comment(text, indent), "*/"
 ).joinToString(separator)
 
+
+val String?.commentTriple get() = if(this != null) {
+    commentTriple(this)
+} else {
+    null
+}

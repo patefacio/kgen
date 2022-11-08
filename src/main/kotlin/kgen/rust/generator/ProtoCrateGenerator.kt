@@ -90,13 +90,13 @@ data class ProtoCrateGenerator(
             .fields
             .filterIsInstance<Field>()
             // Skip optional because those are intended
-            .filter { !it.optional }
+            .filter { !it.isOptional }
             .any { field: Field ->
                 val type = field.type
                 when (type) {
                     is FieldType.NamedType -> {
                         val fieldUdt = udtsByName.get(typeName(type.name))!!
-                        if (field.repeated) {
+                        if (field.isRepeated) {
                             messageShouldValidate(type.name)
                         } else {
                             // If enum no need to check
@@ -173,7 +173,7 @@ data class ProtoCrateGenerator(
                 val body = validatingFields.mapNotNull { messageField ->
                     val field = messageField as Field
                     when {
-                        field.optional -> null
+                        field.isOptional -> null
                         else -> when (field.type) {
                             is FieldType.NamedType -> {
                                 val fieldTypeName = typeName(field.type.name)
@@ -184,7 +184,7 @@ data class ProtoCrateGenerator(
                                 when {
                                     // Enums need no check
                                     fieldUdt is Enum -> null
-                                    field.repeated -> if (fieldTypeRequiresCheck) {
+                                    field.isRepeated -> if (fieldTypeRequiresCheck) {
                                         "self.${field.nameId}.iter().all(|${field.nameId}| ${field.nameId}.required_fields_present())"
                                     } else {
                                         null

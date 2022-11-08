@@ -7,9 +7,17 @@ data class Field(
     val type: FieldType,
     val doc: String = missingDoc(nameId, "Message Field"),
     val number: Int? = null,
-    val repeated: Boolean = false,
-    val optional: Boolean = false
+    val isRepeated: Boolean = false,
+    val isOptional: Boolean = false,
+    val optionalJustification: String? = null,
+    val requiredJustification: String? = null
 ) : Identifier(nameId), AsProto, MessageField {
+
+    init {
+        if(requiredJustification != null && isOptional) {
+            throw Exception("Cannot be both `optional` and `required` due to $requiredJustification!")
+        }
+    }
 
     override val isNumbered: Boolean
         get() = number != null
@@ -23,11 +31,13 @@ data class Field(
         copy(number = number)
     }
 
-    private val repeatedDecl = if (repeated) {
+    private val repeatedDecl = if (isRepeated) {
         "repeated "
     } else {
         ""
     }
+
+    val optional get() = isOptional || optionalJustification != null
 
     private val optionalDecl = if (optional) {
         "optional "

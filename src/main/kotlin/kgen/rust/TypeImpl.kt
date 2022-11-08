@@ -2,6 +2,7 @@ package kgen.rust
 
 import kgen.Id
 import kgen.asSnake
+import kgen.commentTriple
 import kgen.indent
 
 /** Represents an implementation of provided type.
@@ -33,35 +34,46 @@ data class TypeImpl(
             emptyList()
         } + functionUnitTests
 
-    val testModule get() = if (unitTestFunctionIds.isNotEmpty()) {
-        val testModuleNameId = "test_${type.sanitized.asSnake}"
-        Module(
-            testModuleNameId,
-            "Test type ${type.asRustName}",
-            functions = unitTestFunctionIds.map {
-                Fn(
-                    it.snakeCaseName,
-                    blockName = "${testModuleNameId}_${it.snakeCaseName}",
-                    emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
-                    doc = null,
-                    attrs = AttrList(attrTestFn),
-                )
-            },
-            moduleType = ModuleType.Inline,
-            uses = setOf(Use("test_log::test"))
-        )
-    } else {
-        null
-    }
+    val testModule
+        get() = if (unitTestFunctionIds.isNotEmpty()) {
+            val testModuleNameId = "test_${type.sanitized.asSnake}"
+            Module(
+                testModuleNameId,
+                "Test type ${type.asRustName}",
+                functions = unitTestFunctionIds.map {
+                    Fn(
+                        it.snakeCaseName,
+                        blockName = "${testModuleNameId}_${it.snakeCaseName}",
+                        emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
+                        doc = null,
+                        attrs = AttrList(attrTestFn),
+                    )
+                },
+                moduleType = ModuleType.Inline,
+                uses = setOf(Use("test_log::test"))
+            )
+        } else {
+            null
+        }
 
     override val asRust: String
-        get() = listOf(
+        get() = listOfNotNull(
+            doc.commentTriple,
             withWhereClause(
                 "impl${genericParamSet.asRust} ${type.asRustName}",
                 genericParamSet
             ) + " {",
             indent(
-                functions.joinToString("\n\n") {
+                functions.map {
+                    if (it.nameId == it.blockName) {
+                        it.copy(
+                            blockName = "${type.asRustName}::${it.nameId}"
+                        )
+                    } else {
+                        it
+                    }
+
+                }.joinToString("\n\n") {
                     it.asRust
                 }
             ),

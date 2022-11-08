@@ -71,15 +71,6 @@ sealed class FieldType : AsProto {
             get() = "bytes"
     }
 
-    class MessageType(val message: Message, val proto: String? = null) : FieldType() {
-        override val asProto: String
-            get() = if(proto != null) {
-                "$proto."
-            } else {
-                ""
-            } + message.id.capCamel
-    }
-
     class EnumType(val enum: Enum) : FieldType() {
         override val asProto: String
             get() = enum.id.capCamel

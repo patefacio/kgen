@@ -21,6 +21,37 @@ data class Field(
 
     val tupleStructDecl get() = "${trailingText(access.asRust)}${type.type}"
 
+    val accessors
+        get() = listOfNotNull(
+            if (access.requiresReader) {
+                Fn(
+                    "get_${id.snake}",
+                    null,
+                    refSelf,
+                    body = FnBody("self.${id.snake}"),
+                    returnDoc = "The value.",
+                    returnType = type,
+                    visibility = Visibility.Pub
+                )
+            } else {
+                null
+            },
+            if (access.requiresRefReader) {
+                Fn(
+                    "get_${id.snake}",
+                    null,
+                    refSelf,
+                    body = FnBody("& self.${id.snake}"),
+                    returnDoc = "The value.",
+                    returnType = "& ${type.asRust}".asType,
+                    visibility = Visibility.Pub
+                )
+            } else {
+                null
+            },
+        )
+
+
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
@@ -28,9 +59,10 @@ data class Field(
             decl
         ).joinNonEmpty("\n")
 
-    val asTupleStructField get() = listOf(
-        commentTriple(doc),
-        attrs.asRust,
-        tupleStructDecl
-    ).joinNonEmpty("\n")
+    val asTupleStructField
+        get() = listOf(
+            commentTriple(doc),
+            attrs.asRust,
+            tupleStructDecl
+        ).joinNonEmpty("\n")
 }
