@@ -50,7 +50,8 @@ data class TypeImpl(
                     )
                 },
                 moduleType = ModuleType.Inline,
-                uses = setOf(Use("test_log::test"))
+                uses = setOf(Use("test_log::test")),
+                visibility = Visibility.None
             )
         } else {
             null

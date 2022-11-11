@@ -6,7 +6,7 @@ data class Module(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Module"),
     val moduleType: ModuleType = ModuleType.FileModule,
-    val visibility: Visibility = Visibility.None,
+    val visibility: Visibility = Visibility.Pub,
     val enums: List<Enum> = emptyList(),
     val traits: List<Trait> = emptyList(),
     val functions: List<Fn> = emptyList(),

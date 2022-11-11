@@ -31,3 +31,5 @@ data class GenericParamSet(
         get() = typeParams.mapNotNull { it.boundsDecl }.joinNonEmpty(", ").nullIfEmpty
 
 }
+
+val tickA = GenericParamSet(lifetimes = listOf("a"))
