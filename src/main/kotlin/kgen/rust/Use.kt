@@ -24,7 +24,7 @@ data class Use(
             } else {
                 null
             },
-            attrs.asRust,
+            attrs.asOuterAttr,
             "${trailingText(visibility.asRust)}use $pathName;"
         ).joinNonEmpty()
 }

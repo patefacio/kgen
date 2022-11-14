@@ -55,14 +55,14 @@ data class Field(
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
-            attrs.asRust,
+            attrs.asOuterAttr,
             decl
         ).joinNonEmpty("\n")
 
     val asTupleStructField
         get() = listOf(
             commentTriple(doc),
-            attrs.asRust,
+            attrs.asOuterAttr,
             tupleStructDecl
         ).joinNonEmpty("\n")
 }

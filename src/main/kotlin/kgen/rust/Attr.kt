@@ -4,22 +4,34 @@ import kgen.Id
 import kgen.Identifier
 import kgen.id
 
-sealed class Attr(id: Id) : Identifier(id), AsRust {
+interface AsAttr {
+    val asInnerAttr: String
+    val asOuterAttr: String
+}
+
+sealed class Attr(id: Id) : Identifier(id), AsAttr {
     class Word(nameId: String) : Attr(id(nameId)) {
 
-        override val asRust: String
+        override val asInnerAttr: String
+            get() = "#![${id.snakeCaseName}]"
+
+        override val asOuterAttr: String
             get() = "#[${id.snakeCaseName}]"
     }
 
     class Value(nameId: String, val value: String) : Attr(id(nameId)) {
-        override val asRust: String
+        override val asInnerAttr: String
+            get() = "#![${id.snakeCaseName} = \"$value\"]"
+        override val asOuterAttr: String
             get() = "#[${id.snakeCaseName} = \"$value\"]"
     }
 
     class Words(nameId: String, val words: List<String>) : Attr(id(nameId)) {
         constructor(nameId: String, vararg words: String) : this(nameId, words.toList())
 
-        override val asRust: String
+        override val asInnerAttr: String
+            get() = "#![${id.snakeCaseName}(${words.joinToString(", ")})]"
+        override val asOuterAttr: String
             get() = "#[${id.snakeCaseName}(${words.joinToString(", ")})]"
     }
 
@@ -29,7 +41,14 @@ sealed class Attr(id: Id) : Identifier(id), AsRust {
             words.map { (k, v) -> id(k) to v }.toMap()
         )
 
-        override val asRust: String
+        override val asInnerAttr: String
+            get() = "#![${id.snakeCaseName}(${
+                dict.entries
+                    .map { (k, v) -> "${k.snakeCaseName} = \"${v}\"" }
+                    .joinToString(", ")
+            })]"
+
+        override val asOuterAttr: String
             get() = "#[${id.snakeCaseName}(${
                 dict.entries
                     .map { (k, v) -> "${k.snakeCaseName} = \"${v}\"" }
@@ -39,11 +58,18 @@ sealed class Attr(id: Id) : Identifier(id), AsRust {
 
 }
 
-val List<Attr>.asRust
+val List<Attr>.asOuterAttr
     get() = if (this.isEmpty()) {
         ""
     } else {
-        this.joinToString("\n") { it.asRust }
+        this.joinToString("\n") { it.asOuterAttr }
+    }
+
+val List<Attr>.asInnerAttr
+    get() = if (this.isEmpty()) {
+        ""
+    } else {
+        this.joinToString("\n") { it.asInnerAttr }
     }
 
 val attrCfgTest = Attr.Words("cfg", "test")

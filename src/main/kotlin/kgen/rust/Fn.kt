@@ -83,7 +83,7 @@ data class Fn(
     val asTraitFn
         get() = listOfNotNull(
             fnDoc,
-            allAttrs.asRust,
+            allAttrs.asOuterAttr,
             signature +
                     if (body != null) {
                         bracketText(indent(body.asRust)!!)
@@ -115,7 +115,7 @@ data class Fn(
 
     fun asRust(codeBlockName: String) = listOfNotNull(
         fnDoc,
-        allAttrs.asRust,
+        allAttrs.asOuterAttr,
         "$signature {",
         indent(body?.asRust ?: emptyOpenDelimitedBlock(codeBlockName, emptyContents = emptyBlockContents)),
         "}"

@@ -50,7 +50,7 @@ data class Struct(
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
-            attrs.asRust,
+            attrs.asOuterAttr,
             header,
             if (fields.isEmpty()) {
                 ""

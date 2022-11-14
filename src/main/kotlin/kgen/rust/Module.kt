@@ -26,10 +26,14 @@ data class Module(
 
     val isInline get() = moduleType == ModuleType.Inline
 
-    val structAccessorImpls = structs.mapNotNull {struct ->
+    val structAccessorImpls = structs.mapNotNull { struct ->
         val accessors = struct.accessors
-        if(accessors.isNotEmpty()) {
-            TypeImpl(struct.asRustName.asType, functions = accessors, doc = "Accessors for [${struct.structName}] fields")
+        if (accessors.isNotEmpty()) {
+            TypeImpl(
+                struct.asRustName.asType,
+                functions = accessors,
+                doc = "Accessors for [${struct.structName}] fields"
+            )
         } else {
             null
         }
@@ -38,7 +42,7 @@ data class Module(
     private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
         joinNonEmpty(
             commentTriple(doc),
-            attrs.asRust,
+            attrs.asOuterAttr,
             "$asModDecl {",
             indent(content) ?: "",
             "}"
@@ -86,7 +90,10 @@ data class Module(
         get() = wrapIfInline(
             listOf(
                 if (!isInline) {
-                    innerDoc(doc) ?: ""
+                    listOf(
+                        innerDoc(doc) ?: "",
+                        attrs.asInnerAttr,
+                    ).joinNonEmpty()
                 } else {
                     ""
                 },
@@ -136,7 +143,7 @@ data class Module(
     val asModDecl: String
         get() = listOfNotNull(
             if (moduleType != ModuleType.Inline && attrs.attrs.isNotEmpty()) {
-                attrs.asRust
+                attrs.asOuterAttr
             } else {
                 null
             },

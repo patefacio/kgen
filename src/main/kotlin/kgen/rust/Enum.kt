@@ -14,7 +14,7 @@ data class Enum(
         nameId: String,
         doc: String = missingDoc(nameId, "Enum"),
         vararg values: EnumValue,
-        visibility: Visibility,
+        visibility: Visibility = Visibility.Pub,
         attrs: AttrList = AttrList()
     ) : this(
         nameId,
@@ -26,7 +26,7 @@ data class Enum(
 
     override val asRust: String
         get() = listOfNotNull(
-            attrs.asRust,
+            attrs.asOuterAttr,
             "${commentTriple(doc)}\n${trailingText(visibility.asRust)}enum ${id.capCamel} {\n${
                 indent(values.joinToString(",\n") { it.asRust })
             }\n}"

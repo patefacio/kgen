@@ -9,22 +9,22 @@ internal class AttrTest {
     fun attrBasics() {
         assertEquals(
             "#[foo]",
-            Attr.Word("foo").asRust
+            Attr.Word("foo").asOuterAttr
         )
 
         assertEquals(
             "#[macro_use(a, b)]",
-            Attr.Words("macro_use", "a", "b").asRust
+            Attr.Words("macro_use", "a", "b").asOuterAttr
         )
 
         assertEquals(
             "#[foo = \"bar\"]",
-            Attr.Value("foo", "bar").asRust
+            Attr.Value("foo", "bar").asOuterAttr
         )
 
         assertEquals(
             "#[foo(name = \"bar\", age = \"3\")]",
-            Attr.Dict("foo", "name" to "bar", "age" to "3").asRust
+            Attr.Dict("foo", "name" to "bar", "age" to "3").asOuterAttr
         )
     }
 }
