@@ -43,7 +43,7 @@ data class TypeImpl(
                 functions = unitTestFunctionIds.map {
                     Fn(
                         it.snakeCaseName,
-                        blockName = "${testModuleNameId}_${it.snakeCaseName}",
+                        blockName = "test ${type.sanitizedSpecial}::${it.snakeCaseName}",
                         emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
                         doc = null,
                         attrs = AttrList(attrTestFn),
@@ -73,7 +73,6 @@ data class TypeImpl(
                     } else {
                         it
                     }
-
                 }.joinToString("\n\n") {
                     it.asRust
                 }

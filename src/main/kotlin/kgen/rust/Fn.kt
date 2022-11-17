@@ -29,7 +29,7 @@ data class Fn(
         returnDoc: String? = missingDoc(nameId, "FnReturn"),
         inlineDecl: InlineDecl = InlineDecl.None,
         genericParamSet: GenericParamSet? = null,
-        visibility: Visibility = Visibility.None,
+        visibility: Visibility = Visibility.Pub,
         body: FnBody? = null,
         isTest: Boolean = false,
         hasUnitTest: Boolean = false,

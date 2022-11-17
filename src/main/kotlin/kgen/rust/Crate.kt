@@ -2,6 +2,7 @@ package kgen.rust
 
 import kgen.Identifier
 import kgen.missingDoc
+import kgen.rust.clap_binary.ClapBinary
 
 /** Represents a rust crate.
  *
@@ -17,7 +18,8 @@ data class Crate(
     val doc: String = missingDoc(nameId, "Crate"),
     val rootModule: Module = Module("lib"),
     val buildModule: Module? = null,
-    val cargoToml: CargoToml = CargoToml(nameId)
+    val cargoToml: CargoToml = CargoToml(nameId),
+    val binaries: List<ClapBinary> = emptyList()
 ) : Identifier(nameId) {
 }
 

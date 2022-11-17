@@ -35,25 +35,32 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
             get() = "#[${id.snakeCaseName}(${words.joinToString(", ")})]"
     }
 
-    class Dict(nameId: String, val dict: Map<Id, String>) : Attr(id(nameId)) {
-        constructor(nameId: String, vararg words: Pair<String, String>) : this(
+    class Dict(nameId: String, val dict: Map<Id, String?>) : Attr(id(nameId)) {
+        constructor(nameId: String, vararg words: Pair<String, String?>) : this(
             nameId,
-            words.map { (k, v) -> id(k) to v }.toMap()
+            words.associate { (k, v) -> id(k) to v }
         )
 
+        constructor(nameId: String, words: List<Pair<String, String?>>) : this(
+            nameId,
+            words.associate { (k, v) -> id(k) to v }
+        )
+
+        private val attrDecl get() = dict.entries
+            .map { (k, v) ->
+                if (v == null) {
+                    k.snakeCaseName
+                } else {
+                    "${k.snakeCaseName} = \"${v}\""
+                }
+            }
+            .joinToString(", ")
+
         override val asInnerAttr: String
-            get() = "#![${id.snakeCaseName}(${
-                dict.entries
-                    .map { (k, v) -> "${k.snakeCaseName} = \"${v}\"" }
-                    .joinToString(", ")
-            })]"
+            get() = "#![${id.snakeCaseName}($attrDecl)]"
 
         override val asOuterAttr: String
-            get() = "#[${id.snakeCaseName}(${
-                dict.entries
-                    .map { (k, v) -> "${k.snakeCaseName} = \"${v}\"" }
-                    .joinToString(", ")
-            })]"
+            get() = "#[${id.snakeCaseName}($attrDecl)]"
     }
 
 }

@@ -1,5 +1,7 @@
 package kgen.rust
 
+import kgen.asSnake
+
 /**
  * Interface common to most rust type items that supports accessing it
  * `asRust` (i.e. suitable for insertion into generated code).
@@ -25,9 +27,18 @@ interface Type : AsRust {
      */
     val sanitized
         get() = type
-            .replace("<", "_lp_")
-            .replace(">", "_rp_")
+            .replace("""\w+""".toRegex()) { match ->
+                match.value.asSnake
+            }
+            .replace("<", "_")
+            .replace(">", "_")
             .replace(nonTextRegex, "")
+            .replace(trailingUnderbarsRegex, "")
+
+    val sanitizedSpecial
+        get() = type
+            .replace("<", "[")
+            .replace(">", "]")
             .replace(trailingUnderbarsRegex, "")
 }
 

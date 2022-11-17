@@ -48,7 +48,7 @@ data class Trait(
         get() = asRustName
 
     val traitScopedFunctions = functions.map {
-        it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}")
+        it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}").copy(visibility = Visibility.None)
     }
 
     private val traitContent = indent(

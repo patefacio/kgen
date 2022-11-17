@@ -28,6 +28,8 @@ data class CrateGenerator(
     val cratePath: String
 ) {
     val srcPath = Paths.get(cratePath, "src").toAbsolutePath()
+    val binPath = srcPath.resolve("../bin").toAbsolutePath()
+    val benchPath = srcPath.resolve("../bench").toAbsolutePath()
     val tomlPath = Paths.get(cratePath, "Cargo.toml").toAbsolutePath()
     val srcPathString = srcPath.pathString
 
@@ -40,7 +42,11 @@ data class CrateGenerator(
     private fun getTargetPath(srcPathExists: Boolean): Path = if (srcPathExists) {
         val tempPath = createTempDirectory("crate_${crate.nameId}")
         val tempSrcPath = Paths.get(tempPath.pathString, "src")
+        val tempBinPath = tempSrcPath.resolve("bin")
+        val tempBenchesPath = tempSrcPath.resolve("../benches")
         File(tempSrcPath.pathString).mkdirs()
+        File(tempBinPath.pathString).mkdirs()
+        File(tempBenchesPath.pathString).mkdirs()
         // Copy the cargo file into the newly created directory so `cargo fmt` will work
         tomlPath.copyTo(Paths.get(tempPath.pathString, "Cargo.toml"))
         tempSrcPath
@@ -71,10 +77,16 @@ data class CrateGenerator(
         val srcPathExists = srcPath.exists()
         val shouldAnnounce = announceUpdates && !srcPathExists
         val targetSrcPath: Path = getTargetPath(srcPathExists)
+        val targetBinPath = targetSrcPath.resolve("bin").toAbsolutePath()
+        val targetBenchPath = targetSrcPath.resolve("../benches").toAbsolutePath()
+        val targetExamplePath = targetSrcPath.resolve("../examples").toAbsolutePath()
         val targetSrcPathString = targetSrcPath.pathString
 
         val moduleGenerationResults =
-            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce)
+            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce) +
+                    crate.binaries.map { clapBinary ->
+                        generateTo(clapBinary.module, targetBinPath.pathString, announceUpdates = shouldAnnounce)
+                    }.flatten()
 
         "cd $targetSrcPath; cargo fmt".runShellCommand()
 

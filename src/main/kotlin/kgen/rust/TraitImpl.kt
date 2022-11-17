@@ -58,7 +58,7 @@ data class TraitImpl(
                 functions = unitTestFunctionIds.map {
                     Fn(
                         it.snakeCaseName,
-                        blockName = "${testModuleNameId}_${it.snakeCaseName}",
+                        blockName = "test ${trait.asRustName}::${it.snakeCaseName} on ${type.sanitizedSpecial}",
                         emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
                         doc = null,
                         attrs = AttrList(attrTestFn),
@@ -98,7 +98,7 @@ data class TraitImpl(
                             it.copy(doc = null)
                         } else {
                             it
-                        }
+                        }.copy(visibility = Visibility.None)
                     }
                     .joinToString("\n\n") {
                         if (bodies.contains(it.nameId)) {

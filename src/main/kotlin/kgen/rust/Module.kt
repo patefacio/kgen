@@ -30,9 +30,14 @@ data class Module(
         val accessors = struct.accessors
         if (accessors.isNotEmpty()) {
             TypeImpl(
-                struct.asRustName.asType,
+                if(struct.genericParamSet.isEmpty) {
+                    struct.asRustName.asType
+                } else {
+                    "${struct.asRustName}${struct.genericParamSet.asRust}".asType
+                },
                 functions = accessors,
-                doc = "Accessors for [${struct.structName}] fields"
+                doc = "Accessors for [${struct.structName}] fields",
+                genericParamSet = struct.genericParamSet
             )
         } else {
             null
