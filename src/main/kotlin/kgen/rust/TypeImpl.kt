@@ -11,6 +11,7 @@ import kgen.indent
  * @property functions List of functions in the implementation.
  * @property genericParamSet Generic parameters of the impl.
  * @property genericArgSet Generic arguments for the type.
+ * @property skipTestsSet Functions that don't warrant a test
  *
  */
 data class TypeImpl(
@@ -20,6 +21,7 @@ data class TypeImpl(
     val genericArgSet: GenericArgSet = GenericArgSet(),
     val doc: String? = null,
     val unitTestImplFunctions: Boolean = true,
+    val skipTestsSet: Set<Id> = emptySet(),
     val functionUnitTests: List<Id> = emptyList(),
     val uses: Set<Use> = emptySet()
 ) : AsRust {
@@ -29,7 +31,7 @@ data class TypeImpl(
     val hasUnitTests get() = unitTestImplFunctions || functionUnitTests.isNotEmpty()
     private val unitTestFunctionIds
         get() = if (unitTestImplFunctions) {
-            functions.map { it.id }
+            functions.filter { !skipTestsSet.contains(it.id) }.map { it.id }
         } else {
             emptyList()
         } + functionUnitTests

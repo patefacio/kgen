@@ -1,6 +1,6 @@
 package kgen.rust
 
-class StrRef(
+open class StrRef(
     lifetime: Lifetime? = null,
     isMutable: Boolean = false
 ) : Ref(Str, lifetime, isMutable)

@@ -12,7 +12,7 @@ internal class TraitTest {
         assertEquals(
             """
                 /// Supports performing foo and bar operations
-                trait FooBar {
+                pub trait FooBar {
                   /// foo operation
                   fn foo();
                   

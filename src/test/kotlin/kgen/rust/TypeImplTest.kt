@@ -25,8 +25,8 @@ internal class TypeImplTest {
             """impl A {
   /// Do foo
   fn foo() {
-    // α <fn foo>
-    // ω <fn foo>
+    // α <fn A::foo>
+    // ω <fn A::foo>
   }
 }""",
             impl.asRust

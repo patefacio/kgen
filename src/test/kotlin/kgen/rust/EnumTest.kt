@@ -11,7 +11,7 @@ internal class EnumTest {
         assertEquals(
             """
 /// TODO: Document Enum(message)
-enum Message {
+pub enum Message {
   /// Means quit the process
   Quit,
   /// Request to change color
@@ -46,7 +46,7 @@ enum Message {
         assertEquals(
             """
 /// A basic message
-enum Message {
+pub enum Message {
   /// TODO Document UnitStruct(quit)
   Quit,
   /// Request to change color

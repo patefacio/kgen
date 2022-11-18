@@ -11,7 +11,7 @@ internal class ConstTest {
         assertEquals(
             """
             /// This is a foo
-            const FOO: i32 = 234;
+            pub const FOO: i32 = 234;
             """.trimIndent(),
             Const("foo", "This is a foo", I32, 234).asRust
         )
@@ -19,7 +19,7 @@ internal class ConstTest {
         assertEquals(
             """
             /// This is a foo
-            const FOO: &str = "Foo";
+            pub const FOO: &str = "Foo";
             """.trimIndent(),
             Const("foo", "This is a foo", StrRef(), "Foo").asRust
         )

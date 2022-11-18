@@ -35,13 +35,13 @@ use crate::time_revalue::{Revalue, RevalueOn};
 // --- constants ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// This is a foo
-const FOO: i32 = 234;
+pub const FOO: i32 = 234;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- traits ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// TODO: Document Trait(t1)
-trait T1 {
+pub trait T1 {
   /// TODO: Document Fn(foo)
   fn foo();
 }
@@ -50,7 +50,7 @@ trait T1 {
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// S struct
-struct S {
+pub struct S {
 }
 
 // α <mod-def m1>
@@ -102,18 +102,18 @@ struct S {
         assertEquals(
             """
 /// TODO: Document Module(root)
-mod root {
+pub mod root {
   ////////////////////////////////////////////////////////////////////////////////////
   // --- mod decls ---
   ////////////////////////////////////////////////////////////////////////////////////
-  mod file;
+  pub mod file;
   
   
   /// TODO: Document Module(l1)
-  mod l1 {
+  pub mod l1 {
     
     /// TODO: Document Module(l1c1)
-    mod l1c1 {
+    pub mod l1c1 {
       
     }
     
@@ -122,10 +122,10 @@ mod root {
   }
   
   /// TODO: Document Module(l2)
-  mod l2 {
+  pub mod l2 {
     
     /// TODO: Document Module(l2c2)
-    mod l2c2 {
+    pub mod l2c2 {
       // α <mod-def l2c2>
       // ω <mod-def l2c2>
     }
