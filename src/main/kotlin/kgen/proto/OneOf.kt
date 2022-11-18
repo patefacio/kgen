@@ -30,8 +30,8 @@ data class OneOf(
 
     override val asProto: String
         get() = listOf(
-            blockComment("`$nameId` supports _one_of_:\n${fields.map { it.id.capCamel }.asMarkdownList}"),
-            "oneof ${nameId} {",
+            blockComment(doc ?: "`$nameId` supports _one_of_:\n${fields.map { it.id.capCamel }.asMarkdownList}"),
+            "oneof $nameId {",
             indent(fields.joinToString("\n\n") { "${it.asProto};" }),
             "}"
         ).joinToString("\n")
