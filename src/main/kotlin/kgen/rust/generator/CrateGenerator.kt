@@ -117,7 +117,11 @@ data class CrateGenerator(
             ModuleType.Directory -> {
                 val dir = Paths.get(targetPath, module.nameId).pathString
                 File(dir).mkdirs()
-                Paths.get(dir, "mod.rs")
+                if (module.classicModStructure) {
+                    Paths.get(dir, "mod.rs")
+                } else {
+                    Paths.get(targetPath, "${module.nameId}.rs")
+                }
             }
 
             ModuleType.FileModule,
@@ -127,7 +131,7 @@ data class CrateGenerator(
         }
 
         if (isPlaceholderModule) {
-            // For a placeholder module, if it exists, leave it along. If not, just create an empty
+            // For a placeholder module, if it exists, leave it alone. If not, just create an empty
             // version of it. The out of modeling approach (e.g. tonic/proto will generate it in build procedures).
             if (!outPath!!.exists()) {
                 kgenLogger.info { "Touching: file `${outPath.pathString}`" }
@@ -146,7 +150,15 @@ data class CrateGenerator(
                 }
             ),
             module.modules.filter { !it.isInline }.map {
-                generateTo(it, outPath!!.parent.pathString, announceUpdates)
+                generateTo(
+                    it,
+                    if (module.classicModStructure) {
+                        outPath!!.parent.pathString
+                    } else {
+                        outPath!!.parent.resolve(module.nameId).pathString
+                    },
+                    announceUpdates
+                )
             }.flatten()
         ).flatten()
     }

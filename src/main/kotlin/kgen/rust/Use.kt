@@ -34,3 +34,5 @@ fun uses(vararg pathNames: String) = pathNames.map { Use(it) }.toSet()
 val List<String>.asUses get() = this.map { Use(it) }.toSet()
 
 fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }
+
+val List<String>.asPubUses get() = this.map { Use(it, visibility = kgen.rust.Visibility.Pub) }.toSet()
