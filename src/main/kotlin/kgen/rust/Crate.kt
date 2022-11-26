@@ -16,11 +16,19 @@ import kgen.rust.clap_binary.ClapBinary
 data class Crate(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Crate"),
-    val rootModule: Module = Module("lib"),
+    val rootModule: Module = Module("lib", moduleRootType = ModuleRootType.LibraryRoot),
     val buildModule: Module? = null,
     val cargoToml: CargoToml = CargoToml(nameId),
-    val binaries: List<ClapBinary> = emptyList()
+    val binaries: List<ClapBinary> = emptyList(),
+    val includeTypeSizes: Boolean = false
 ) : Identifier(nameId) {
+
+    init {
+        if (rootModule.moduleRootType == ModuleRootType.NonRoot) {
+            throw Exception("Assign root module type to crate `$nameId's` root module!")
+        }
+    }
+
 }
 
 enum class CrateType {

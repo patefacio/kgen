@@ -17,7 +17,9 @@ data class Fn(
     val attrs: AttrList = AttrList(),
     val blockName: String = nameId,
     val emptyBlockContents: String? = null,
-    val uses: Set<Use> = emptySet()
+    val uses: Set<Use> = emptySet(),
+    val testNameIds: List<String> = emptyList(),
+    val panicTestNameIds: List<String> = emptyList(),
 ) : Identifier(nameId), AsRust {
 
 
@@ -36,11 +38,13 @@ data class Fn(
         attrs: AttrList = AttrList(),
         blockName: String = nameId,
         emptyBlockContents: String? = null,
-        uses: Set<Use> = emptySet()
+        uses: Set<Use> = emptySet(),
+        testNameIds: List<String> = emptyList(),
+        panicTestNameIds: List<String> = emptyList()
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
         genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
-        blockName, emptyBlockContents, uses
+        blockName, emptyBlockContents, uses, testNameIds, panicTestNameIds
     )
 
     private val allAttrs = listOfNotNull(

@@ -2,10 +2,7 @@ package kgen.rust.generator
 
 import kgen.MergeFileStatus
 import kgen.kgenLogger
-import kgen.rust.Crate
-import kgen.rust.Module
-import kgen.rust.ModuleType
-import kgen.rust.Struct
+import kgen.rust.*
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
@@ -20,6 +17,7 @@ val testCrate = Crate(
     Module(
         "lib",
         "Root module",
+        moduleRootType = ModuleRootType.LibraryRoot,
         structs = listOf(Struct("s")),
         modules = listOf(
             Module("c1"),

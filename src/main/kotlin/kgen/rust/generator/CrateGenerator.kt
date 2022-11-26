@@ -3,6 +3,7 @@ package kgen.rust.generator
 import kgen.*
 import kgen.rust.Crate
 import kgen.rust.Module
+import kgen.rust.ModuleRootType
 import kgen.rust.ModuleType
 import kgen.utility.runShellCommand
 import java.io.File
@@ -85,7 +86,11 @@ data class CrateGenerator(
         val moduleGenerationResults =
             generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce) +
                     crate.binaries.map { clapBinary ->
-                        generateTo(clapBinary.module, targetBinPath.pathString, announceUpdates = shouldAnnounce)
+                        generateTo(
+                            clapBinary.module,
+                            targetBinPath.pathString,
+                            announceUpdates = shouldAnnounce
+                        )
                     }.flatten()
 
         "cd $targetSrcPath; cargo fmt".runShellCommand()
@@ -109,9 +114,15 @@ data class CrateGenerator(
                 }
     }
 
-    private fun generateTo(module: Module, targetPath: String, announceUpdates: Boolean): List<MergeResult> {
+    private fun generateTo(moduleOriginal: Module, targetPath: String, announceUpdates: Boolean): List<MergeResult> {
 
+        val module = moduleOriginal.copy(includeTypeSizes = crate.includeTypeSizes)
         val isPlaceholderModule = module.moduleType == ModuleType.PlaceholderModule
+        val moduleFileName = when(module.moduleRootType) {
+            ModuleRootType.LibraryRoot -> "lib.rs"
+            ModuleRootType.BinaryRoot -> "main.rs"
+            ModuleRootType.NonRoot -> "${module.nameId}.rs"
+        }
 
         val outPath = when (module.moduleType) {
             ModuleType.Directory -> {
@@ -125,7 +136,7 @@ data class CrateGenerator(
             }
 
             ModuleType.FileModule,
-            ModuleType.PlaceholderModule -> Paths.get(targetPath, "${module.nameId}.rs")
+            ModuleType.PlaceholderModule -> Paths.get(targetPath, moduleFileName)
 
             ModuleType.Inline -> null
         }

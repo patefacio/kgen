@@ -4,11 +4,11 @@ import kgen.*
 
 data class Enum(
     val nameId: String,
-    val doc: String = missingDoc(nameId, "Enum"),
+    override val doc: String = missingDoc(nameId, "Enum"),
     val values: List<EnumValue>,
     val visibility: Visibility = Visibility.Pub,
     val attrs: AttrList = AttrList()
-) : Identifier(nameId), AsRust {
+) : Identifier(nameId), Type, AsRust {
 
     constructor(
         nameId: String,
@@ -24,10 +24,18 @@ data class Enum(
         attrs
     )
 
+    val enumName = id.capCamel
+
+    override val asRustName: String
+        get() = enumName
+
+    override val type: String
+        get() = enumName
+
     override val asRust: String
         get() = listOfNotNull(
             attrs.asOuterAttr,
-            "${commentTriple(doc)}\n${trailingText(visibility.asRust)}enum ${id.capCamel} {\n${
+            "${commentTriple(doc)}\n${trailingText(visibility.asRust)}enum $asRustName {\n${
                 indent(values.joinToString(",\n") { it.asRust })
             }\n}"
         ).joinNonEmpty()

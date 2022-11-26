@@ -1,11 +1,14 @@
 package kgen.rust
 
 import kgen.*
+import kgen.utility.panicTest
+import kgen.utility.unitTest
 
 data class Module(
     val nameId: String,
     val doc: String = missingDoc(nameId, "Module"),
     val moduleType: ModuleType = ModuleType.FileModule,
+    val moduleRootType: ModuleRootType = ModuleRootType.NonRoot,
     val visibility: Visibility = Visibility.Pub,
     val enums: List<Enum> = emptyList(),
     val traits: List<Trait> = emptyList(),
@@ -23,16 +26,20 @@ data class Module(
     val codeBlock: String? = emptyOpenDelimitedBlock("mod-def $nameId"),
     val moduleBody: FnBody? = null,
     val publishPublicTypes: Boolean = true,
-    val classicModStructure: Boolean = true
+    val classicModStructure: Boolean = true,
+    val includeTypeSizes: Boolean = false,
+    val isBinary: Boolean = false
 ) : Identifier(nameId), AsRust {
 
     val isInline get() = moduleType == ModuleType.Inline
+    val isPrivate get() = visibility == Visibility.None
+    val sizesIncluded get() = includeTypeSizes && !isBinary
 
-    val structAccessorImpls = structs.mapNotNull { struct ->
+    private val structAccessorImpls = structs.mapNotNull { struct ->
         val accessors = struct.accessors
         if (accessors.isNotEmpty()) {
             TypeImpl(
-                if(struct.genericParamSet.isEmpty) {
+                if (struct.genericParamSet.isEmpty) {
                     struct.asRustName.asType
                 } else {
                     "${struct.asRustName}${struct.genericParamSet.asRust}".asType
@@ -45,6 +52,66 @@ data class Module(
             null
         }
     }
+
+    private val typeSizesImpl
+        get(): String {
+
+            val typedItems = structs.map { it.asRustName } + enums.map { it.asRustName }
+
+            val extensions = modules.map { submodule ->
+                val statementAttr = if (submodule.attrs.attrs.contains(attrCfgTest)) {
+                    attrCfgTest.asOuterAttr
+                } else {
+                    ""
+                }
+                """$statementAttr                    
+result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (format!("$nameId::{k}"), v)));
+                """.trimIndent()
+            }
+
+            val typeBtreeMap = listOf(
+                "std::collections::BTreeMap::from([",
+                indent(
+                    typedItems
+                        .joinToString(",\n") { rustName ->
+                            val itemName = doubleQuote("$nameId::$rustName")
+                            "(String::from($itemName), " +
+                                    "(std::mem::size_of::<$rustName>(), std::mem::align_of::<$rustName>())" +
+                                    ")"
+                        }
+                ),
+                "])"
+            ).joinToString("\n")
+
+            return if (extensions.isNotEmpty() || typedItems.isNotEmpty()) {
+                if (extensions.isNotEmpty()) {
+                    listOf(
+                        "let mut result = $typeBtreeMap;",
+                        extensions.joinToString("\n\n"),
+                        "result"
+                    ).joinToString("\n")
+                } else {
+                    typeBtreeMap
+                }
+            } else {
+                "std::collections::BTreeMap::new()"
+            }
+        }
+
+    private val allFunctions
+        get() = if (!sizesIncluded) {
+            functions
+        } else {
+            functions + Fn(
+                "get_type_sizes",
+                "Returns BTreeMap of type name to size.",
+                returnDoc = "Map of type name to its size.",
+                returnType = "std::collections::BTreeMap<String, (usize, usize)>".asType,
+                body = FnBody(typeSizesImpl),
+                attrs = attrDebugBuild.asAttrList,
+                visibility = Visibility.Pub
+            )
+        }
 
     private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
         joinNonEmpty(
@@ -60,9 +127,9 @@ data class Module(
     }
 
     private val requiresUnitTest
-        get() = traitImpls.any { it.hasUnitTests } || typeImpls.any { it.hasUnitTests } || functions.any { it.hasUnitTest }
+        get() = traitImpls.any { it.hasUnitTests } || typeImpls.any { it.hasTestModule } || functions.any { it.hasUnitTest }
 
-    val testModule
+    private val testModule
         get() = if (requiresUnitTest) {
             Module(
                 "unit_tests",
@@ -76,7 +143,11 @@ data class Module(
                         attrs = AttrList(attrTestFn),
                         emptyBlockContents = """todo!("Add test ${it.nameId}")"""
                     )
-                },
+                } + (functions.map { fn ->
+                    fn.testNameIds.map { unitTest(it) }
+                } + functions.map { fn ->
+                    fn.panicTestNameIds.map { panicTest(it) }
+                }).flatten(),
                 attrs = AttrList(attrCfgTest),
                 visibility = Visibility.Pub
             )
@@ -128,7 +199,7 @@ data class Module(
                 announceSection("structs",
                     structs.joinToString("\n\n") { it.asRust }),
                 announceSection("functions",
-                    functions.joinToString("\n\n") { it.asRust }),
+                    allFunctions.joinToString("\n\n") { it.asRust }),
                 leadingText(
                     modules
                         .filter { it.moduleType == ModuleType.Inline }
@@ -143,11 +214,11 @@ data class Module(
                 ),
                 testModule?.asRust ?: "",
                 codeBlock ?: "",
-                moduleBody?.asRust ?: ""
+                moduleBody?.asRust ?: "",
             ).joinNonEmpty("\n\n")
         )
 
-    val asModDecl: String
+    private val asModDecl: String
         get() = listOfNotNull(
             if (moduleType != ModuleType.Inline && attrs.attrs.isNotEmpty()) {
                 attrs.asOuterAttr
@@ -158,8 +229,44 @@ data class Module(
         ).joinToString("\n")
 }
 
-fun visitModules(rootModule: Module, function: (module: Module) -> Unit) {
-    kgenLogger.warn { "Visiting ${rootModule.nameId}" }
-    function(rootModule)
-    rootModule.modules.forEach { visitModules(it, function) }
+enum class ModuleRootType {
+    LibraryRoot,
+    BinaryRoot,
+    NonRoot
 }
+enum class ModuleInclusionType {
+    All,
+    StopAtPrivateInclude,
+    StopAtPrivateExclude
+}
+
+fun allModules(
+    module: Module,
+    path: List<String>,
+    moduleInclusionType: ModuleInclusionType = ModuleInclusionType.All
+): Set<Pair<List<String>, Module>> =
+    (module.modules.fold(
+        mutableSetOf<Pair<List<String>, Module>>()
+    ) { acc, submodule ->
+        val includeSubmodules = when (moduleInclusionType) {
+            ModuleInclusionType.All -> true
+            ModuleInclusionType.StopAtPrivateInclude -> !module.isPrivate
+            ModuleInclusionType.StopAtPrivateExclude -> !submodule.isPrivate
+        }
+
+        if (includeSubmodules) {
+            acc.addAll(allModules(submodule, path + listOf(module.nameId), moduleInclusionType))
+        }
+
+        acc
+    }) + if (when (moduleInclusionType) {
+            ModuleInclusionType.All -> true
+            ModuleInclusionType.StopAtPrivateInclude -> true
+            ModuleInclusionType.StopAtPrivateExclude -> !module.isPrivate
+        }
+    ) {
+        setOf(Pair(path + module.nameId, module))
+    } else {
+        emptySet()
+    }
+

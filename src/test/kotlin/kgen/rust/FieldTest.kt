@@ -30,8 +30,8 @@ internal class FieldTest {
             /// The critical foo field
             #[foo]
             #[goo(a, b, c)]
-            #[foo(a = "A", b = "B")]
-            #[foo = "bar"]
+            #[foo(a="A", b="B")]
+            #[foo="bar"]
             pub foo: String
         """.trimIndent(),
             Field(

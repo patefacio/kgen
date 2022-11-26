@@ -10,6 +10,9 @@ interface Type : AsRust {
     companion object {
         val nonTextRegex = """\W+""".toRegex()
         val trailingUnderbarsRegex = """_+$""".toRegex()
+        val whiteSpaceRegex = """\w+""".toRegex()
+        val lifetimeRegex = """'\w+""".toRegex()
+        val emptyBracketsRegex = """<\s*>""".toRegex()
     }
 
     val type: String
@@ -27,7 +30,7 @@ interface Type : AsRust {
      */
     val sanitized
         get() = type
-            .replace("""\w+""".toRegex()) { match ->
+            .replace(whiteSpaceRegex) { match ->
                 match.value.asSnake
             }
             .replace("<", "_")
@@ -37,6 +40,8 @@ interface Type : AsRust {
 
     val sanitizedSpecial
         get() = type
+            .replace(lifetimeRegex, "")
+            .replace(emptyBracketsRegex, "")
             .replace("<", "[")
             .replace(">", "]")
             .replace(trailingUnderbarsRegex, "")

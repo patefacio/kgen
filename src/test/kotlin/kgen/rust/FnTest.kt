@@ -16,7 +16,7 @@ internal class FnTest {
 ///   * **a** - The a value
 ///   * **b** - The b value
 #[foo]
-#[inline = "always"]
+#[inline="always"]
 fn foo_bar(
   a: i32,
   b: i32

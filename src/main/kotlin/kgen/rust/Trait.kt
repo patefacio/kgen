@@ -80,3 +80,5 @@ data class Trait(
 data class UnmodeledTrait(override val asSuperTrait: String) : AsSuperTrait
 
 fun unmodeledSuperTraits(vararg superTraits: String) = superTraits.map { UnmodeledTrait(it) }
+
+val List<String>.asSuperTraits get() = this.map { UnmodeledTrait(it) }

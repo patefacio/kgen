@@ -1,9 +1,8 @@
 package kgen.rust
 
-import kgen.Id
-import kgen.asSnake
-import kgen.commentTriple
-import kgen.indent
+import kgen.*
+import kgen.utility.panicTest
+import kgen.utility.unitTest
 
 /** Represents an implementation of provided type.
  *
@@ -28,29 +27,27 @@ data class TypeImpl(
 
     val allUses get() = uses + functions.map { it.uses }.flatten()
 
-    val hasUnitTests get() = unitTestImplFunctions || functionUnitTests.isNotEmpty()
+    val hasTestModule get() = unitTestFunctionIds.isNotEmpty() || panicTestFunctionIds.isNotEmpty()
+
     private val unitTestFunctionIds
         get() = if (unitTestImplFunctions) {
             functions.filter { !skipTestsSet.contains(it.id) }.map { it.id }
         } else {
             emptyList()
-        } + functionUnitTests
+        } + functionUnitTests + functions.map { it.testNameIds.map { nameId -> nameId.asId } }.flatten()
+
+    private val panicTestFunctionIds
+        get() = functions.map { it.panicTestNameIds.map { nameId -> nameId.asId } }.flatten()
 
     val testModule
-        get() = if (unitTestFunctionIds.isNotEmpty()) {
+        get() = if (hasTestModule) {
             val testModuleNameId = "test_${type.sanitized.asSnake}"
             Module(
                 testModuleNameId,
                 "Test type ${type.asRustName}",
                 functions = unitTestFunctionIds.map {
-                    Fn(
-                        it.snakeCaseName,
-                        blockName = "test ${type.sanitizedSpecial}::${it.snakeCaseName}",
-                        emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
-                        doc = null,
-                        attrs = AttrList(attrTestFn),
-                    )
-                },
+                    unitTest(it, "test ${type.sanitizedSpecial}::${it.snakeCaseName}")
+                } + panicTestFunctionIds.map { panicTest(it) },
                 moduleType = ModuleType.Inline,
                 uses = setOf(Use("test_log::test")),
                 visibility = Visibility.None
