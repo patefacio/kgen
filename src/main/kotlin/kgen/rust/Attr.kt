@@ -86,6 +86,9 @@ val List<Attr>.asInnerAttr
     }
 
 val attrCfgTest = Attr.Words("cfg", "test")
+val attrInline = Attr.Word("inline")
+val attrDynamic = Attr.Word("dynamic")
+
 val aggrSerdeSerialize = Attr.Words("derive", "Serialize", "Deserialize")
 val attrDebugBuild = Attr.Words("cfg", "debug_assertions")
 val attrNotDebugBuild = Attr.Words("cfg", "not(debug_assertions)")

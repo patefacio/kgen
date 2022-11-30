@@ -160,62 +160,62 @@ data class ProtoCrateGenerator(
             """.trimIndent(),
 
             traits = listOf(
-            requiredFieldsPresentTrait
-        ), traitImpls = udtsByNamedType
-            .filter { (namedType, message) ->
-                (message is Message) &&
-                        messagesRequiringValidation.get(typeName(namedType)) ?: false
-            }.mapNotNull { (namedType, udt) ->
+                requiredFieldsPresentTrait
+            ), traitImpls = udtsByNamedType
+                .filter { (namedType, message) ->
+                    (message is Message) &&
+                            messagesRequiringValidation.get(typeName(namedType)) ?: false
+                }.mapNotNull { (namedType, udt) ->
 
-                val message = udt as Message
-                val rustName = namedType.replace(".", "::")
-                val validatingFields = message.fields.filter { fieldTypeShouldValidate(it) }
-                val body = validatingFields.mapNotNull { messageField ->
-                    val field = messageField as Field
-                    when {
-                        field.isOptional -> null
-                        else -> when (field.type) {
-                            is FieldType.NamedType -> {
-                                val fieldTypeName = typeName(field.type.name)
-                                val fieldTypeRequiresCheck =
-                                    messagesRequiringValidation.get(fieldTypeName) ?: false
-                                val fieldUdt = udtsByName.get(fieldTypeName)!!
+                    val message = udt as Message
+                    val rustName = namedType.replace(".", "::")
+                    val validatingFields = message.fields.filter { fieldTypeShouldValidate(it) }
+                    val body = validatingFields.mapNotNull { messageField ->
+                        val field = messageField as Field
+                        when {
+                            field.isOptional -> null
+                            else -> when (field.type) {
+                                is FieldType.NamedType -> {
+                                    val fieldTypeName = typeName(field.type.name)
+                                    val fieldTypeRequiresCheck =
+                                        messagesRequiringValidation.get(fieldTypeName) ?: false
+                                    val fieldUdt = udtsByName.get(fieldTypeName)!!
 
-                                when {
-                                    // Enums need no check
-                                    fieldUdt is Enum -> null
-                                    field.isRepeated -> if (fieldTypeRequiresCheck) {
-                                        "self.${field.nameId}.iter().all(|${field.nameId}| ${field.nameId}.required_fields_present())"
-                                    } else {
-                                        null
-                                    }
+                                    when {
+                                        // Enums need no check
+                                        fieldUdt is Enum -> null
+                                        field.isRepeated -> if (fieldTypeRequiresCheck) {
+                                            "self.${field.nameId}.iter().all(|${field.nameId}| ${field.nameId}.required_fields_present())"
+                                        } else {
+                                            null
+                                        }
 
-                                    else -> if (fieldTypeRequiresCheck) {
-                                        "self.${field.nameId}.as_ref().map(|${field.nameId}| ${field.nameId}.required_fields_present()).unwrap_or(false)"
-                                    } else {
-                                        "self.${field.nameId}.is_some()"
+                                        else -> if (fieldTypeRequiresCheck) {
+                                            "self.${field.nameId}.as_ref().map(|${field.nameId}| ${field.nameId}.required_fields_present()).unwrap_or(false)"
+                                        } else {
+                                            "self.${field.nameId}.is_some()"
+                                        }
                                     }
                                 }
+
+                                else -> null
                             }
-
-                            else -> null
                         }
-                    }
-                }.joinToString("&&\n")
+                    }.joinToString("&&\n")
 
-                if (body.isNotEmpty()) {
-                    TraitImpl(
-                        message.id.capCamel.asType,
-                        requiredFieldsPresentTrait,
-                        uses = setOf(Use("crate::$rustName")),
-                        bodies = mapOf(
-                            "required_fields_present" to body
+                    if (body.isNotEmpty()) {
+                        TraitImpl(
+                            message.id.capCamel.asType,
+                            requiredFieldsPresentTrait,
+                            uses = setOf(Use("crate::$rustName")),
+                            bodies = mapOf(
+                                "required_fields_present" to body
+                            )
                         )
-                    )
-                } else {
-                    null
-                }
-            },
+                    } else {
+                        null
+                    }
+                },
             visibility = Visibility.Pub
         )
 
@@ -260,14 +260,19 @@ data class ProtoCrateGenerator(
 
         val crate = Crate(crateNameId,
             doc,
-            Module("lib", "Top library module for crate $crateNameId\n\n$doc", modules = protoFiles.map {
-                Module(
-                    it.nameId,
-                    "Placeholder for ${it.nameId} proto",
-                    moduleType = ModuleType.PlaceholderModule,
-                    visibility = Visibility.Pub
-                )
-            } + customImplModules + validationModules, macroUses = listOf("serde_derive")),
+            Module(
+                "lib",
+                "Top library module for crate $crateNameId\n\n$doc",
+                moduleRootType = ModuleRootType.LibraryRoot,
+                modules = protoFiles.map {
+                    Module(
+                        it.nameId,
+                        "Placeholder for ${it.nameId} proto",
+                        moduleType = ModuleType.PlaceholderModule,
+                        visibility = Visibility.Pub
+                    )
+                } + customImplModules + validationModules,
+                macroUses = listOf("serde_derive")),
             Module(
                 "build", "Build proto files.", functions = listOf(
                     Fn(

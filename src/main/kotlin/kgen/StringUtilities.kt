@@ -53,3 +53,31 @@ val CharSequence?.emptyIfNull
 
 
 val String.asPath get() = Paths.get(this)
+
+fun wordWrap(text: String, lineWidth: Int = 80): String {
+    val words = text.split(' ')
+    val sb = StringBuilder(words[0])
+    var spaceLeft = lineWidth - words[0].length
+    for (word in words.drop(1)) {
+        val len = word.length
+        if (len + 1 > spaceLeft) {
+            sb.append("\n").append(word)
+            spaceLeft = lineWidth - len
+        } else {
+            sb.append(" ").append(word)
+            spaceLeft -= (len + 1)
+        }
+    }
+    return sb.toString()
+}
+
+fun wrapIndent(text: String, lineWidth: Int = 76, indent: String = "    ") =
+    wordWrap(text, lineWidth).replaceIndent(indent)
+
+fun wrapIndentExceptFirst(text: String, lineWidth: Int = 76, indent: String = "    ") =
+    wrapIndent(text, lineWidth, indent).replaceFirst(indent, "")
+
+fun wrapParamDoc(paramPrefixLength: Int, doc: String): String {
+    val indent = " ".repeat(paramPrefixLength)
+    return wrapIndentExceptFirst(doc, 80-paramPrefixLength, indent)
+}

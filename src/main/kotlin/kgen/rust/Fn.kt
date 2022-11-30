@@ -87,7 +87,7 @@ data class Fn(
     val asTraitFn
         get() = listOfNotNull(
             fnDoc,
-            allAttrs.asOuterAttr,
+            allAttrs.attrs.filter { it != attrInline }.asOuterAttr,
             signature +
                     if (body != null) {
                         bracketText(indent(body.asRust)!!)
