@@ -3,7 +3,30 @@ package kgen.utility
 import kgen.kgenLogger
 import java.io.File
 import java.io.IOException
+import java.util.Scanner
 import java.util.concurrent.TimeUnit
+
+fun runCommandInteractive(
+    workingDir: File = File("."),
+    command: List<String>,
+    ignoreError: Boolean = false,
+    timeoutMinutes: Long = 60,
+    ignoreErrors: Set<Int> = emptySet()
+) {
+    kgenLogger.info { "Running (`$command`) from `$workingDir`" }
+    val proc = ProcessBuilder(command)
+        .directory(workingDir)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start()
+
+    proc.inputStream.use {inputStream ->
+        val scanner = Scanner(inputStream)
+        while(scanner.hasNextLine()) {
+            println(scanner.nextLine())
+        }
+    }
+}
 
 fun runSimpleCommand(
     workingDir: File = File("."),

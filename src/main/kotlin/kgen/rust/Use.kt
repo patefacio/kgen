@@ -1,5 +1,6 @@
 package kgen.rust
 
+import kgen.asId
 import kgen.joinNonEmpty
 import kgen.trailingText
 
@@ -7,15 +8,24 @@ data class Use(
     val pathName: String,
     val visibility: Visibility = Visibility.None,
     val attrs: AttrList = AttrList(),
-    val allowUnusedImports: Boolean = false
+    val allowUnusedImports: Boolean = false,
+    val aliasNameId: String? = null
 ) : AsRust {
 
     constructor(
         pathName: String,
         vararg attrs: Attr,
-        visibility: Visibility = Visibility.None
-    ) : this(pathName, visibility, AttrList(attrs.toList()))
+        visibility: Visibility = Visibility.None,
+        allowUnusedImports: Boolean = false,
+        aliasNameId: String? = null
+    ) : this(pathName, visibility, AttrList(attrs.toList()), allowUnusedImports, aliasNameId)
 
+
+    private val asAlias get() = if(aliasNameId != null) {
+        " as ${aliasNameId.asId.capCamel}"
+    } else {
+        ""
+    }
 
     override val asRust: String
         get() = listOfNotNull(
@@ -25,7 +35,7 @@ data class Use(
                 null
             },
             attrs.asOuterAttr,
-            "${trailingText(visibility.asRust)}use $pathName;"
+            "${trailingText(visibility.asRust)}use $pathName$asAlias;"
         ).joinNonEmpty()
 }
 

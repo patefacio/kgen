@@ -10,10 +10,10 @@ data class Fn(
     val returnDoc: String? = missingDoc(nameId, "FnReturn"),
     val inlineDecl: InlineDecl = InlineDecl.None,
     val genericParamSet: GenericParamSet? = null,
-    val visibility: Visibility = Visibility.None,
+    val visibility: Visibility = Visibility.Pub,
     val body: FnBody? = null,
     val isTest: Boolean = false,
-    val hasUnitTest: Boolean = false,
+    val hasUnitTest: Boolean? = null,
     val attrs: AttrList = AttrList(),
     val blockName: String = nameId,
     val emptyBlockContents: String? = null,
@@ -34,7 +34,7 @@ data class Fn(
         visibility: Visibility = Visibility.Pub,
         body: FnBody? = null,
         isTest: Boolean = false,
-        hasUnitTest: Boolean = false,
+        hasUnitTest: Boolean? = null,
         attrs: AttrList = AttrList(),
         blockName: String = nameId,
         emptyBlockContents: String? = null,
@@ -78,9 +78,15 @@ data class Fn(
             ""
         }
 
+    val visibilityDecl get() = if(!isTest) {
+        visibility.asRust
+    } else {
+        ""
+    }
+
     val signature
         get() = withWhereClause(
-            "${trailingText(visibility.asRust)}fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
+            "${trailingText(visibilityDecl)}fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
             genericParamSet
         )
 

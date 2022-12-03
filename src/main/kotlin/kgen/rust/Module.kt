@@ -128,7 +128,9 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     }
 
     private val requiresUnitTest
-        get() = traitImpls.any { it.hasUnitTests } || typeImpls.any { it.hasTestModule } || functions.any { it.hasUnitTest }
+        get() = traitImpls.any { it.hasUnitTests } || typeImpls.any { it.hasTestModule } || functions.any {
+            it.hasUnitTest ?: false
+        }
 
     private val testModule
         get() = if (requiresUnitTest) {
@@ -137,12 +139,13 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 "Unit tests for `${nameId}`",
                 moduleType = ModuleType.Inline,
                 modules = traitImpls.mapNotNull { it.testModule } + typeImpls.mapNotNull { it.testModule },
-                functions = functions.filter { it.hasUnitTest }.map {
+                functions = functions.filter { it.hasUnitTest ?: false }.map {
                     Fn(
                         "test_${it.nameId}",
                         doc = null,
                         attrs = AttrList(attrTestFn),
-                        emptyBlockContents = """todo!("Add test ${it.nameId}")"""
+                        emptyBlockContents = """todo!("Add test ${it.nameId}")""",
+                        visibility = Visibility.None
                     )
                 } + (functions.map { fn ->
                     fn.testNameIds.map { unitTest(it) }
@@ -237,6 +240,7 @@ enum class ModuleRootType {
     BinaryRoot,
     NonRoot
 }
+
 enum class ModuleInclusionType {
     All,
     StopAtPrivateInclude,

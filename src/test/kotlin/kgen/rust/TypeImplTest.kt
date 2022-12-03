@@ -24,7 +24,7 @@ internal class TypeImplTest {
         assertEquals(
             """impl A {
   /// Do foo
-  fn foo() {
+  pub fn foo() {
     // α <fn A::foo>
     // ω <fn A::foo>
   }

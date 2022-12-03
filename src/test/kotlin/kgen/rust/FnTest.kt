@@ -17,7 +17,7 @@ internal class FnTest {
 ///   * **b** - The b value
 #[foo]
 #[inline="always"]
-fn foo_bar(
+pub fn foo_bar(
   a: i32,
   b: i32
 ) {
@@ -43,7 +43,7 @@ fn foo_bar(
         assertEquals(
             """
             /// Does foo and bar
-            fn foo_bar() {
+            pub fn foo_bar() {
               // α <fn foo_bar>
               // ω <fn foo_bar>
             }
@@ -61,7 +61,7 @@ fn foo_bar(
     fun whereClause() {
         assertEquals(
             """
-fn foo<T>()
+pub fn foo<T>()
 where
   T: Debug + Addable""".trimIndent(),
             Fn(

@@ -37,6 +37,6 @@ sealed class EnumValue(val nameId: String, val doc: String) : AsRust, Identifier
         )
 
         override val asRust: String
-            get() = "$docComment${id.capCamel} {\n${indent(fields.joinToString(",\n") { it.asRust })}\n}"
+            get() = "$docComment${id.capCamel} {\n${indent(fields.joinToString(",\n") { it.copy(access = Access.None).asRust })}\n}"
     }
 }

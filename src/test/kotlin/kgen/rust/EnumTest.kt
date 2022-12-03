@@ -19,9 +19,9 @@ pub enum Message {
   /// Request to move object
   Move {
     /// TODO: Document Field(x)
-    pub x: i32,
+    x: i32,
     /// TODO: Document Field(y)
-    pub y: i32
+    y: i32
   },
   /// Request to write object
   Write(String)
@@ -54,9 +54,9 @@ pub enum Message {
   /// Request to move object
   Move {
     /// TODO: Document Field(x)
-    pub x: i32,
+    x: i32,
     /// TODO: Document Field(y)
-    pub y: i32
+    y: i32
   },
   /// Request to write object
   Write(String)

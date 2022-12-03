@@ -44,7 +44,7 @@ data class TraitImpl(
 
     private val unitTestFunctionIds
         get() = if (unitTestTraitFunctions) {
-            trait.functions.map { it.id }
+            trait.functions.filter { it.hasUnitTest ?: true }.map { it.id }
         } else {
             emptyList()
         } + functionUnitTests
@@ -62,6 +62,7 @@ data class TraitImpl(
                         emptyBlockContents = """todo!("Test ${it.snakeCaseName}")""",
                         doc = null,
                         attrs = AttrList(attrTestFn),
+                        visibility = Visibility.None
                     )
                 },
                 moduleType = ModuleType.Inline,

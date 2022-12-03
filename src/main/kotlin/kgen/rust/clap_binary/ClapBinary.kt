@@ -79,7 +79,8 @@ Ok(())
 """.trimIndent()
                     ),
                     returnType = "anyhow::Result<()>".asType,
-                    returnDoc = null
+                    returnDoc = null,
+                    visibility = Visibility.None
                 ),
             ),
             enums = listOfNotNull(
