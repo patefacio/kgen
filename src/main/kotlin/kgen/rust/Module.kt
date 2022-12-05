@@ -164,7 +164,12 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             functions.map { it.uses }.flatten() +
             traitImpls.map { it.uses }.flatten() +
             typeImpls.map { it.allUses }.flatten() +
-            structs.map { it.uses }.flatten()
+            structs.map { it.uses }.flatten() +
+            if(staticInits.isNotEmpty()) {
+                setOf(Use("static_init::dynamic"))
+            } else {
+                emptySet()
+            }
 
 
     override

@@ -15,7 +15,9 @@ data class ClapBinary(
     val hasLogLevel: Boolean = true,
     val mainRunBody: FnBody? = null,
     val functions: List<Fn> = emptyList(),
-    val uses: Set<Use> = emptySet()
+    val staticInits: List<StaticInit> = emptyList(),
+    val uses: Set<Use> = emptySet(),
+    val inSeparateDirectory: Boolean = false
 ) : Identifier(nameId) {
 
     private val logLevelArg
@@ -58,6 +60,7 @@ tracing::subscriber::set_global_default(
             nameId,
             brief,
             modules = submodules,
+            staticInits = staticInits,
             functions = functions + listOf(
                 Fn(
                     "main_run", "Bulk of work for main - placed in fn for consistent error handling.",

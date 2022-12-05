@@ -86,9 +86,14 @@ data class CrateGenerator(
         val moduleGenerationResults =
             generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce) +
                     crate.binaries.map { clapBinary ->
+                        val targetDir = if(clapBinary.inSeparateDirectory) {
+                            targetBinPath.resolve(clapBinary.nameId)
+                        } else {
+                            targetBinPath
+                        }
                         generateTo(
                             clapBinary.module,
-                            targetBinPath.pathString,
+                            targetDir.pathString,
                             announceUpdates = shouldAnnounce
                         )
                     }.flatten()
