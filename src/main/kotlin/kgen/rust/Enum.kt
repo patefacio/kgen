@@ -7,7 +7,8 @@ data class Enum(
     override val doc: String = missingDoc(nameId, "Enum"),
     val values: List<EnumValue>,
     val visibility: Visibility = Visibility.Pub,
-    val attrs: AttrList = AttrList()
+    val attrs: AttrList = AttrList(),
+    val uses: Set<Use> = emptySet()
 ) : Identifier(nameId), Type, AsRust {
 
     constructor(

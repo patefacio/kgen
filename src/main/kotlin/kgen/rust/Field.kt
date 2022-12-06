@@ -31,7 +31,8 @@ data class Field(
                     body = FnBody("self.${id.snake}"),
                     returnDoc = "The value.",
                     returnType = type,
-                    visibility = Visibility.Pub
+                    visibility = Visibility.Pub,
+                    attrs = attrInline.asAttrList
                 )
             } else {
                 null
@@ -44,7 +45,8 @@ data class Field(
                     body = FnBody("& self.${id.snake}"),
                     returnDoc = "The value.",
                     returnType = "& ${type.asRust}".asType,
-                    visibility = Visibility.Pub
+                    visibility = Visibility.Pub,
+                    attrs = attrInline.asAttrList
                 )
             } else {
                 null
