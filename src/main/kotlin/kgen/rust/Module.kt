@@ -6,7 +6,7 @@ import kgen.utility.unitTest
 
 data class Module(
     val nameId: String,
-    val doc: String = missingDoc(nameId, "Module"),
+    val doc: String? = missingDoc(nameId, "Module"),
     val moduleType: ModuleType = ModuleType.FileModule,
     val moduleRootType: ModuleRootType = ModuleRootType.NonRoot,
     val visibility: Visibility = Visibility.Pub,
@@ -34,7 +34,7 @@ data class Module(
 
     val isInline get() = moduleType == ModuleType.Inline
     val isPrivate get() = visibility == Visibility.None
-    val sizesIncluded get() = includeTypeSizes && !isBinary
+    private val sizesIncluded get() = includeTypeSizes && !isBinary
 
     private val structAccessorImpls = structs.mapNotNull { struct ->
         val accessors = struct.accessors
@@ -116,7 +116,11 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
 
     private fun wrapIfInline(content: String) = if (moduleType == ModuleType.Inline) {
         joinNonEmpty(
-            commentTriple(doc),
+            if (doc != null) {
+                commentTriple(doc)
+            } else {
+                ""
+            },
             attrs.asOuterAttr,
             "$asModDecl {",
             indent(content) ?: "",
@@ -166,7 +170,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             typeImpls.map { it.allUses }.flatten() +
             structs.map { it.uses }.flatten() +
             enums.map { it.uses }.flatten() +
-            if(staticInits.isNotEmpty()) {
+            if (staticInits.isNotEmpty()) {
                 setOf(Use("static_init::dynamic"))
             } else {
                 emptySet()

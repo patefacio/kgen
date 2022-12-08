@@ -94,6 +94,11 @@ val attrDebugBuild = Attr.Words("cfg", "debug_assertions")
 val attrNotDebugBuild = Attr.Words("cfg", "not(debug_assertions)")
 val attrTestFn = Attr.Word("test")
 
+val attrIterIntersperse = Attr.Words("feature", "iter_intersperse")
+val attrUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
+
+
 val Attr.asAttrList get() = AttrList(this)
+val List<Attr>.asAttrList get() = AttrList(attrs = this)
 
 
