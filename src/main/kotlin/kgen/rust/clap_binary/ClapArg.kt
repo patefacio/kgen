@@ -1,6 +1,7 @@
 package kgen.rust.clap_binary
 
 import kgen.Identifier
+import kgen.charQuote
 import kgen.doubleQuote
 import kgen.rust.*
 
@@ -29,7 +30,11 @@ data class ClapArg(
                         null
                     },
                     if (includeShort) {
-                        "short" to shortName
+                        "short" to if (shortName?.isNotEmpty() == true) {
+                            shortName.first()
+                        } else {
+                            null
+                        }
                     } else {
                         null
                     },
@@ -42,7 +47,7 @@ data class ClapArg(
                         null -> null
                         else -> "default_value" to defaultValue
                     },
-                    when(defaultLiteralValue) {
+                    when (defaultLiteralValue) {
                         null -> null
                         else -> "default_value_t" to DictValue.LiteralValue(defaultLiteralValue)
                     }

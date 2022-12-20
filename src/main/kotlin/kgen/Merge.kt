@@ -221,7 +221,7 @@ fun mergeBlocks(
     var result = generated
 
     priorBlocks.entries.forEach { (blockName, block) ->
-        val generatedBlock = generatedBlocks.get(blockName)
+        val generatedBlock = generatedBlocks[blockName]
         if (generatedBlock != null) {
             result = result.replace(generatedBlock, block)
         } else {

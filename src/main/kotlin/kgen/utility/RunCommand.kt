@@ -3,58 +3,69 @@ package kgen.utility
 import kgen.kgenLogger
 import java.io.File
 import java.io.IOException
-import java.util.Scanner
+import java.io.StringWriter
+import java.io.Writer
 import java.util.concurrent.TimeUnit
 
-fun runCommandInteractive(
+fun runCommand(
     workingDir: File = File("."),
     command: List<String>,
     ignoreError: Boolean = false,
     timeoutMinutes: Long = 60,
-    ignoreErrors: Set<Int> = emptySet()
+    ignoreErrors: Set<Int> = emptySet(),
+    mergeStreams: Boolean = false,
+    targetOut: Writer? = null,
+    targetErr: Writer? = null,
+    echoOutputs: Boolean = true
 ) {
-    kgenLogger.info { "Running (`$command`) from `$workingDir`" }
-    val proc = ProcessBuilder(command)
-        .directory(workingDir)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start()
-
-    proc.inputStream.use {inputStream ->
-        val scanner = Scanner(inputStream)
-        while(scanner.hasNextLine()) {
-            println(scanner.nextLine())
-        }
-    }
-}
-
-fun runSimpleCommand(
-    workingDir: File = File("."),
-    command: List<String>,
-    ignoreError: Boolean = false,
-    timeoutMinutes: Long = 60,
-    ignoreErrors: Set<Int> = emptySet()
-): String? {
-    return try {
+    try {
         kgenLogger.info { "Running (`$command`) from `$workingDir`" }
-        val proc = ProcessBuilder(command)
+
+        val procBuilder = ProcessBuilder(command)
             .directory(workingDir)
-            .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .redirectError(ProcessBuilder.Redirect.PIPE)
-            .start()
+
+        if (mergeStreams) {
+            procBuilder.redirectErrorStream(true)
+        }
+
+        val proc = procBuilder.start()
+
+        val stdoutReader = Thread {
+            proc.inputStream.bufferedReader().lines().forEach { line ->
+                val withNewLine = "$line\n"
+                targetOut?.write(withNewLine)
+                if (echoOutputs) {
+                    print(withNewLine)
+                }
+            }
+        }
+
+        val stderrReader = Thread {
+            proc.errorStream.bufferedReader().lines().forEach { line ->
+                val withNewLine = "$line\n"
+                targetErr?.write(withNewLine)
+                if (echoOutputs) {
+                    print(withNewLine)
+                }
+            }
+        }
+
+        stdoutReader.start()
+        stderrReader.start()
+        stdoutReader.join()
+        stderrReader.join()
 
         proc.waitFor(timeoutMinutes, TimeUnit.MINUTES)
+
         if (!ignoreError && !ignoreErrors.contains(proc.exitValue()) && proc.exitValue() != 0) {
-            val errorMessage = "RunSimpleCommand FAILED: exit(${proc.exitValue()}) command($command) - ${
-                proc.inputStream.bufferedReader().readText()
-            }"
-            kgenLogger.error { "$errorMessage\n${proc.errorStream.bufferedReader().readText()}\n" }
-            throw RuntimeException(errorMessage)
+            throw RuntimeException("RunSimpleCommand FAILED: exit(${proc.exitValue()}) command($command)")
         }
-        proc.inputStream.bufferedReader().readText()
+
+        targetOut?.close()
+        targetErr?.close()
+
     } catch (e: IOException) {
         e.printStackTrace()
-        null
     }
 }
 
@@ -62,14 +73,57 @@ fun String.runSimpleCommand(
     workingDir: File = File("."),
     ignoreError: Boolean = false,
     timeoutMinutes: Long = 60,
-    ignoreErrors: Set<Int> = emptySet()
-) =
-    runSimpleCommand(workingDir, this.split("\\s".toRegex()), ignoreError, timeoutMinutes, ignoreErrors)
+    ignoreErrors: Set<Int> = emptySet(),
+    mergeStreams: Boolean = false,
+    echoOutputs: Boolean = false
+): String {
+
+    val out = StringWriter()
+
+    runCommand(
+        workingDir,
+        this.split("\\s".toRegex()),
+        ignoreError,
+        timeoutMinutes,
+        ignoreErrors,
+        mergeStreams,
+        targetOut = out,
+        //targetErr = targetErr,
+        echoOutputs = echoOutputs
+
+    )
+
+    return out.toString()
+}
 
 fun String.runShellCommand(
     workingDir: File = File("."),
     ignoreError: Boolean = false,
     timeoutMinutes: Long = 60,
-    ignoreErrors: Set<Int> = emptySet()
-) =
-    runSimpleCommand(workingDir, listOf("/bin/sh", "-c", this), ignoreError, timeoutMinutes, ignoreErrors)
+    ignoreErrors: Set<Int> = emptySet(),
+    mergeStreams: Boolean = false,
+    echoOutputs: Boolean = false
+): String {
+    val out = StringWriter()
+
+    runCommand(
+        workingDir,
+        listOf("/bin/sh", "-c", this),
+        ignoreError,
+        timeoutMinutes,
+        ignoreErrors,
+        mergeStreams,
+        targetOut = out,
+        echoOutputs = echoOutputs
+    )
+
+    return out.toString()
+}
+
+
+fun main() {
+
+    val x = "echo a b c | wc -w".runShellCommand()
+
+    println("Results -> ${x.trim()}")
+}

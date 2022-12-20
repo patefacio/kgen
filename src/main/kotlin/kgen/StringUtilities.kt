@@ -18,6 +18,8 @@ fun tripleQuote(text: String) = "\"\"\"$text\"\"\""
 
 fun doubleQuote(text: String) = "\"$text\""
 
+fun charQuote(c: Char) = "'$c'"
+
 fun singleQuote(text: String) = "'$text'"
 
 fun backtickQuote(text: String) = "`$text`"

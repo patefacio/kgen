@@ -20,7 +20,8 @@ data class Crate(
     val buildModule: Module? = null,
     val cargoToml: CargoToml = CargoToml(nameId),
     val binaries: List<ClapBinary> = emptyList(),
-    val includeTypeSizes: Boolean = false
+    val includeTypeSizes: Boolean = false,
+    val integrationTestModules: List<Module> = emptyList()
 ) : Identifier(nameId) {
 
     init {

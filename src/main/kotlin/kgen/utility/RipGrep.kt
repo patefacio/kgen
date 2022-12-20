@@ -71,7 +71,7 @@ data class RipGrep(
         val exclusions = excludeLineRegexes + commonExclusions.map { it.asRegex() }
         val outputLines = asCommand
             // error code 1 implies no matches, not really an error
-            .runShellCommand(ignoreErrors = setOf(1))!!
+            .runShellCommand(ignoreErrors = setOf(1))
             .split("\n")
 
         val lines = outputLines.take(outputLines.size - 1)

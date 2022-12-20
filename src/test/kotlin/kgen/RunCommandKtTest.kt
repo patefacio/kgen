@@ -16,7 +16,7 @@ internal class RunCommandKtTest {
             "this is a test\n",
             "echo this is a test".runSimpleCommand()
         )
-        assertEquals("3", "echo a b c | wc -w".runShellCommand()?.trim())
+        assertEquals("3", "echo a b c | wc -w".runShellCommand(echoOutputs = true).trim())
     }
 
     @Test

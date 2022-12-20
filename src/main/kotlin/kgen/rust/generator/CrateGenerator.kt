@@ -31,6 +31,7 @@ data class CrateGenerator(
     val srcPath = Paths.get(cratePath, "src").toAbsolutePath()
     val binPath = srcPath.resolve("../bin").toAbsolutePath()
     val benchPath = srcPath.resolve("../bench").toAbsolutePath()
+    val integrationTestsPath = srcPath.resolve("../tests").toAbsolutePath()
     val tomlPath = Paths.get(cratePath, "Cargo.toml").toAbsolutePath()
     val srcPathString = srcPath.pathString
 
@@ -65,7 +66,7 @@ data class CrateGenerator(
         )
 
         val buildModuleResult = if (crate.buildModule != null) {
-            generateTo(crate.buildModule, cratePath, announceUpdates = announceUpdates)
+            generateTo(crate.buildModule, cratePath, announceUpdates = announceUpdates, includeTypeSizes = false)
         } else {
             null
         }
@@ -80,23 +81,31 @@ data class CrateGenerator(
         val targetSrcPath: Path = getTargetPath(srcPathExists)
         val targetBinPath = targetSrcPath.resolve("bin").toAbsolutePath()
         val targetBenchPath = targetSrcPath.resolve("../benches").toAbsolutePath()
+        val targetIntegrationTestsPath = targetSrcPath.resolve("../tests").toAbsolutePath()
         val targetExamplePath = targetSrcPath.resolve("../examples").toAbsolutePath()
         val targetSrcPathString = targetSrcPath.pathString
 
+        val integrationTestsResults = crate.integrationTestModules.map { module ->
+            generateTo(module, targetIntegrationTestsPath.pathString, announceUpdates, includeTypeSizes = false)
+        }.flatten()
+
+        val binaryModuleResults = crate.binaries.map { clapBinary ->
+            val targetDir = if (clapBinary.inSeparateDirectory) {
+                targetBinPath.resolve(clapBinary.nameId)
+            } else {
+                targetBinPath
+            }
+            generateTo(
+                clapBinary.module,
+                targetDir.pathString,
+                announceUpdates = shouldAnnounce,
+                includeTypeSizes = false
+            )
+        }.flatten()
+
         val moduleGenerationResults =
-            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce) +
-                    crate.binaries.map { clapBinary ->
-                        val targetDir = if(clapBinary.inSeparateDirectory) {
-                            targetBinPath.resolve(clapBinary.nameId)
-                        } else {
-                            targetBinPath
-                        }
-                        generateTo(
-                            clapBinary.module,
-                            targetDir.pathString,
-                            announceUpdates = shouldAnnounce
-                        )
-                    }.flatten()
+            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce, crate.includeTypeSizes) +
+                    binaryModuleResults + integrationTestsResults
 
         "cd $targetSrcPath; cargo fmt".runShellCommand()
 
@@ -119,11 +128,16 @@ data class CrateGenerator(
                 }
     }
 
-    private fun generateTo(moduleOriginal: Module, targetPath: String, announceUpdates: Boolean): List<MergeResult> {
+    private fun generateTo(
+        moduleOriginal: Module,
+        targetPath: String,
+        announceUpdates: Boolean,
+        includeTypeSizes: Boolean
+    ): List<MergeResult> {
 
-        val module = moduleOriginal.copy(includeTypeSizes = crate.includeTypeSizes)
+        val module = moduleOriginal.copy(includeTypeSizes = includeTypeSizes)
         val isPlaceholderModule = module.moduleType == ModuleType.PlaceholderModule
-        val moduleFileName = when(module.moduleRootType) {
+        val moduleFileName = when (module.moduleRootType) {
             ModuleRootType.LibraryRoot -> "lib.rs"
             ModuleRootType.BinaryRoot -> "main.rs"
             ModuleRootType.NonRoot -> "${module.nameId}.rs"
@@ -173,7 +187,8 @@ data class CrateGenerator(
                     } else {
                         outPath!!.parent.resolve(module.nameId).pathString
                     },
-                    announceUpdates
+                    announceUpdates,
+                    includeTypeSizes
                 )
             }.flatten()
         ).flatten()

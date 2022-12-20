@@ -5,16 +5,33 @@ import kgen.commentTriple
 import kgen.indent
 import kgen.trailingText
 
-sealed class EnumValue(val nameId: String, val doc: String) : AsRust, Identifier(nameId) {
+sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList = AttrList(emptyList())) : AsRust,
+    Identifier(nameId) {
 
     val docComment get() = trailingText(commentTriple(doc), "\n")
 
-    class UnitStruct(nameId: String, doc: String = "TODO Document UnitStruct($nameId)") : EnumValue(nameId, doc) {
+    class UnitStruct(nameId: String, doc: String = "TODO Document UnitStruct($nameId)", isDefault: Boolean = false) :
+        EnumValue(
+            nameId, doc, attrs = if (isDefault) {
+                Attr.Word("default").asAttrList
+            } else {
+                AttrList(emptyList())
+            }
+        ) {
         override val asRust: String
-            get() = "${docComment}${id.capCamel}"
+            get() = listOfNotNull(
+                if (attrs.attrs.isNotEmpty()) {
+                    attrs.asOuterAttr
+                } else {
+                    null
+                }, "${docComment}${id.capCamel}"
+            ).joinToString("\n")
     }
 
-    class TupleStruct(nameId: String, doc: String = "TODO Document TupleStruct($nameId)", val types: List<Type>) :
+    class TupleStruct(
+        nameId: String, doc: String = "TODO Document TupleStruct($nameId)",
+        val types: List<Type>
+    ) :
         EnumValue(nameId, doc) {
 
         constructor(nameId: String, doc: String = "TODO Document TupleStruct($nameId)", vararg types: Type) : this(

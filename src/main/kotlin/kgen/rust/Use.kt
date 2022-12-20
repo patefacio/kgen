@@ -42,6 +42,7 @@ data class Use(
 fun uses(vararg pathNames: String) = pathNames.map { Use(it) }.toSet()
 
 val List<String>.asUses get() = this.map { Use(it) }.toSet()
+val String.asUses get() = listOf(this).asUses
 
 fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }
 

@@ -1,9 +1,6 @@
 package kgen.rust
 
-import kgen.Id
-import kgen.Identifier
-import kgen.doubleQuote
-import kgen.id
+import kgen.*
 
 interface AsAttr {
     val asInnerAttr: String
@@ -52,6 +49,7 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
                 when (v) {
                     null -> k.snakeCaseName
                     is String -> "${k.snakeCaseName}=${doubleQuote(v)}"
+                    is Char -> "${k.snakeCaseName}=${charQuote(v)}"
                     is DictValue.StringValue -> "${k.snakeCaseName}=${doubleQuote(v.value)}"
                     is DictValue.LiteralValue -> "${k.snakeCaseName}=${v.value}"
                     else -> v.toString()
@@ -96,6 +94,7 @@ val attrTestFn = Attr.Word("test")
 
 val attrIterIntersperse = Attr.Words("feature", "iter_intersperse")
 val attrUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
+val attrVariantCount = Attr.Words("feature", "variant_count")
 
 
 val Attr.asAttrList get() = AttrList(this)
