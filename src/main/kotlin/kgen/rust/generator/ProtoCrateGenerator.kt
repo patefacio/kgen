@@ -36,7 +36,8 @@ data class ProtoCrateGenerator(
     val targetCratePath: Path,
     val customImplProtoPaths: Map<String, List<Fn>> = emptyMap(),
     val additionalDerives: Map<String, Set<String>> = emptyMap(),
-    val includeRequiredValidators: Boolean = false
+    val includeRequiredValidators: Boolean = false,
+    val additionalTraitImpls: Map<Message, List<TraitImpl>> = emptyMap()
 ) : Identifier(crateNameId) {
 
     private fun generateProtos() = protoFiles.map {
@@ -92,8 +93,7 @@ data class ProtoCrateGenerator(
             // Skip optional because those are intended
             .filter { !it.isOptional }
             .any { field: Field ->
-                val type = field.type
-                when (type) {
+                when (val type = field.type) {
                     is FieldType.NamedType -> {
                         val fieldUdt = udtsByName.get(typeName(type.name))!!
                         if (field.isRepeated) {
@@ -161,10 +161,11 @@ data class ProtoCrateGenerator(
 
             traits = listOf(
                 requiredFieldsPresentTrait
-            ), traitImpls = udtsByNamedType
+            ),
+            traitImpls = udtsByNamedType
                 .filter { (namedType, message) ->
                     (message is Message) &&
-                            messagesRequiringValidation.get(typeName(namedType)) ?: false
+                            messagesRequiringValidation[typeName(namedType)] ?: false
                 }.mapNotNull { (namedType, udt) ->
 
                     val message = udt as Message
@@ -271,8 +272,11 @@ data class ProtoCrateGenerator(
                         moduleType = ModuleType.PlaceholderModule,
                         visibility = Visibility.Pub
                     )
-                } + customImplModules + validationModules,
-                macroUses = listOf("serde_derive")),
+                } + customImplModules + validationModules + additionalTraitImpls.map { (message, traitImpls) ->
+                    Module("${message.nameId}_traits", null, traitImpls = traitImpls)
+                },
+                macroUses = listOf("serde_derive")
+            ),
             Module(
                 "build", "Build proto files.", functions = listOf(
                     Fn(

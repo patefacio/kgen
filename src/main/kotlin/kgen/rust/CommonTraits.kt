@@ -11,3 +11,41 @@ val defaultTrait = Trait(
         )
     )
 )
+
+val addAssignTrait = Trait(
+    "add_assign",
+    "The addition assignment operator `+=`",
+    functions = listOf(
+        Fn(
+            "add_assign",
+            "Add `Rhs` to `self`",
+            refMutSelf,
+            FnParam("rhs", "Rhs".asType, "Right hand side")
+        )
+    ),
+    genericParamSet = GenericParamSet(
+        typeParams = listOf(
+            TypeParam("rhs", "Self".asType)
+        )
+    ),
+    uses = listOf("std::ops::AddAssign").asUses
+)
+
+val mulAssignTrait = Trait(
+    "mul_assign",
+    "The multiplication assignment operator `*=`",
+    functions = listOf(
+        Fn(
+            "mul_assign",
+            "Multiply `self` by `Rhs`",
+            refMutSelf,
+            FnParam("rhs", "Rhs".asType, "Right hand side")
+        )
+    ),
+    genericParamSet = GenericParamSet(
+        typeParams = listOf(
+            TypeParam("rhs", "Self".asType)
+        )
+    ),
+    uses = listOf("std::ops::MulAssign").asUses
+)

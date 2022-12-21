@@ -94,11 +94,33 @@ data class TraitImpl(
                 trait
                     .functions
                     .filter { it.body == null }
-                    .map {
-                        if (noFunctionComments) {
-                            it.copy(doc = null)
+                    .map { traitFunction ->
+                        // The trait may be defined with generic parameters, like `T` that are satisfied
+                        // by argument types. In the trait function those types can appear as function parameter types
+                        // as T and need to be replaced with the actual argument type.
+                        val fnParams = if (trait.genericParamSet.typeParams.isNotEmpty() &&
+                            genericArgSet.types.isNotEmpty()
+                        ) {
+
+                            val matches = (trait.genericParamSet.typeParams.map { it.id.capCamel } zip
+                                    genericArgSet.types.map { it.asRust }).toMap()
+
+                            traitFunction
+                                .params
+                                .map { fnParam ->
+                                    val replacement = matches[fnParam.type.asRust]?.asType ?: fnParam.type
+                                    fnParam.copy(
+                                        type = replacement
+                                    )
+                                }
                         } else {
-                            it
+                            traitFunction.params
+                        }
+
+                        if (noFunctionComments) {
+                            traitFunction.copy(doc = null, params = fnParams)
+                        } else {
+                            traitFunction.copy(params = fnParams)
                         }.copy(visibility = Visibility.None)
                     }
                     .joinToString("\n\n") {
