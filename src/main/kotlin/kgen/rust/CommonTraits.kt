@@ -49,3 +49,27 @@ val mulAssignTrait = Trait(
     ),
     uses = listOf("std::ops::MulAssign").asUses
 )
+
+val mulTrait = Trait(
+    "mul",
+    "The multiplication operator `*`",
+    functions = listOf(
+        Fn(
+            "mul",
+            "Return new `self` multiplied by `Rhs`.",
+            self,
+            FnParam("rhs", "Rhs".asType, "Right hand side"),
+            returnDoc = "The new scaled `Self`",
+            returnType = "Self::Output".asType
+        )
+    ),
+    associatedTypes = listOf(
+        AssociatedType("output", "The output type of the operation.")
+    ),
+    genericParamSet = GenericParamSet(
+        typeParams = listOf(
+            TypeParam("rhs", "Self".asType)
+        )
+    ),
+    uses = listOf("std::ops::Mul").asUses
+)

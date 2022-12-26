@@ -176,6 +176,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 emptySet()
             }
 
+    private val pubUses = allUses.filter { it.visibility == Visibility.Pub }
 
     override
     val asRust: String
@@ -195,8 +196,10 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 announceSection("test-macro-use imports",
                     testMacroUses.map { "#[cfg(test)]\n#[macro_use]\nextern crate $it;" }
                 ),
+                announceSection("pub module uses",
+                    pubUses.joinToString("\n") { it.asRust }),
                 announceSection("module uses",
-                    allUses.joinToString("\n") { it.asRust }),
+                    allUses.filter { it.visibility != Visibility.Pub }.joinToString("\n") { it.asRust }),
                 announceSection("mod decls",
                     (modules
                         .filter { it.moduleType != ModuleType.Inline }

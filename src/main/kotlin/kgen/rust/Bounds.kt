@@ -17,3 +17,6 @@ data class Bounds(
 
     fun isEmpty() = lifetimes.isEmpty() && traitBounds.isEmpty()
 }
+
+val List<String>.asTraitBounds get() = this.map { TraitBound.Unmodeled(it)}
+val List<String>.asBounds get() = Bounds(traitBounds = this.asTraitBounds)
