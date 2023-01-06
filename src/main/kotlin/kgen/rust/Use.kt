@@ -20,12 +20,12 @@ data class Use(
         aliasNameId: String? = null
     ) : this(pathName, visibility, AttrList(attrs.toList()), allowUnusedImports, aliasNameId)
 
-
-    private val asAlias get() = if(aliasNameId != null) {
-        " as ${aliasNameId.asId.capCamel}"
-    } else {
-        ""
-    }
+    private val asAlias
+        get() = when {
+            aliasNameId == null -> ""
+            aliasNameId.all { it == '_' || it.isUpperCase() } -> " as $aliasNameId"
+            else -> " as ${aliasNameId.asId.capCamel}"
+        }
 
     override val asRust: String
         get() = listOfNotNull(
@@ -43,6 +43,14 @@ fun uses(vararg pathNames: String) = pathNames.map { Use(it) }.toSet()
 
 val List<String>.asUses get() = this.map { Use(it) }.toSet()
 val String.asUses get() = listOf(this).asUses
+
+val String.asAllowUnusedUses
+    get() = listOf(
+        Use(
+            this,
+            attrs = Attr.Words("allow", "unused_imports").asAttrList
+        )
+    )
 
 fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }
 

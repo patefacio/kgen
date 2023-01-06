@@ -67,6 +67,13 @@ data class ClapArg(
             },
             attrs = attrList
         )
-
-
 }
+
+val standardLogLevelArg = ClapArg(
+    "log_level",
+    "Log-level for the run.",
+    type = "LogLevel".asType,
+    defaultLiteralValue = "LogLevel::Warn",
+    longName = "ll",
+    isEnum = true
+)

@@ -16,7 +16,7 @@ fun words(text: String): List<String> =
 
 
 val List<String>.asSnake get() = this.joinToString("_")
-fun asSnake(name: String) = words(name).asSnake
+fun asSnake(name: String) = words(name.replace(" ","-")).asSnake
 
 val String.asSnake get() = asSnake(this)
 

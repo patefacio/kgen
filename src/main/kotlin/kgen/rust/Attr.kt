@@ -45,7 +45,7 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
         )
 
         private val attrDecl
-            get() = dict.entries.joinToString(", ") { (k, v) ->
+            get() = dict.entries.map { (k, v) ->
                 when (v) {
                     null -> k.snakeCaseName
                     is String -> "${k.snakeCaseName}=${doubleQuote(v)}"
@@ -54,7 +54,7 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
                     is DictValue.LiteralValue -> "${k.snakeCaseName}=${v.value}"
                     else -> v.toString()
                 }
-            }
+            }.sortedBy { it }.joinToString(", ")
 
         override val asInnerAttr: String
             get() = "#![${id.snakeCaseName}($attrDecl)]"
@@ -69,18 +69,63 @@ sealed class DictValue {
     class LiteralValue(val value: String) : DictValue()
 }
 
+/**
+ * Given list of attributes, checks for multiple dictionary attributes that
+ * could be combined into one. For example:
+ * ```
+ * #[template(escape = "none")]
+ * #[derive(Template)]
+ * #[template(path = "view_static_page.html")]
+ * pub struct ViewStaticPage<'a> {
+ *    ...
+ * ```
+ *
+ * In this case the two `template` dict attrs should be joined
+ */
+val List<Attr>.coalesced
+    get(): List<Attr> {
+        val (dicts, nonDicts) = this.partition { it is Attr.Dict }
+        val matchingDicts = dicts.fold(mutableMapOf<String, Map<Id, Any?>>()) { acc, attr ->
+            val dictAttr = attr as Attr.Dict
+            acc.merge(attr.id.snake, dictAttr.dict) { mergedDict, newDict ->
+                mergedDict + newDict
+            }
+
+            acc
+        }
+
+        val all = (matchingDicts.map { (nameId, dict) ->
+            Attr.Dict(nameId, dict)
+        } + nonDicts)/* TODO: rethink sorting these .sortedBy { it.id.snake }*/
+
+        // Order attrs to put `derive` attrs ahead of others to avoid this nonsense
+        // warning: derive helper attribute is used before it is introduced
+        //  --> plus_forecast/src/askama/distribution_spec_table.rs:12:3
+        //   |
+        //12 | #[template(path = "distribution_spec_table.html")]
+        //   |   ^^^^^^^^
+        //13 | #[derive(Template)]
+        //   |          -------- the attribute is introduced here
+        //   |
+        //   = note: `#[warn(legacy_derive_helpers)]` on by default
+        //   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+        //   = note: for more information, see issue #79202 <https://github.com/rust-lang/rust/issues/79202>
+        val (derives, nonDerives) = all.partition { it is Attr.Words && it.id.snake == "derive" }
+        return derives + nonDerives
+    }
+
 val List<Attr>.asOuterAttr
     get() = if (this.isEmpty()) {
         ""
     } else {
-        this.joinToString("\n") { it.asOuterAttr }
+        this.coalesced.joinToString("\n") { it.asOuterAttr }
     }
 
 val List<Attr>.asInnerAttr
     get() = if (this.isEmpty()) {
         ""
     } else {
-        this.joinToString("\n") { it.asInnerAttr }
+        this.coalesced.joinToString("\n") { it.asInnerAttr }
     }
 
 val attrCfgTest = Attr.Words("cfg", "test")

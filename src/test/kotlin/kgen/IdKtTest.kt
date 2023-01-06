@@ -28,5 +28,7 @@ internal class IdKtTest {
             UnmodeledType("FooBar"),
             "FooBar".asType
         )
+
+        assertEquals("this_is_a_test".asId, "This Is A Test".asId)
     }
 }

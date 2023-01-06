@@ -14,7 +14,7 @@ data class StaticInit(
     override val asRust: String
         get() {
             val rustValue = when(value) {
-                null -> "(|| {\n${emptyCloseDelimitedBlock("static_init for $nameId")}\n})()"
+                null -> "{\n${emptyCloseDelimitedBlock("static_init for $nameId")}\n}"
                 else -> value
             }
             return listOf(

@@ -14,6 +14,8 @@ data class ClapBinary(
     val submodules: List<Module> = emptyList(),
     val hasLogLevel: Boolean = true,
     val mainRunBody: FnBody? = null,
+    val structs: List<Struct> = emptyList(),
+    val enums: List<Enum> = emptyList(),
     val functions: List<Fn> = emptyList(),
     val staticInits: List<StaticInit> = emptyList(),
     val uses: Set<Use> = emptySet(),
@@ -22,20 +24,14 @@ data class ClapBinary(
 
     private val logLevelArg
         get() = if (hasLogLevel) {
-            ClapArg(
-                "log_level",
-                "Log-level for the run.",
-                type = "LogLevel".asType,
-                defaultLiteralValue = "LogLevel::Warn",
-                longName = "ll",
-                isEnum = true
-            )
+            standardLogLevelArg
         } else {
             null
         }
 
-    private val initializeLogger get() = if(hasLogLevel) {
-        """
+    private val initializeLogger
+        get() = if (hasLogLevel) {
+            """
 tracing::subscriber::set_global_default(
     tracing_subscriber::fmt()
         .with_file(true)
@@ -51,9 +47,9 @@ tracing::subscriber::set_global_default(
 )
 .expect("Need to log");                 
         """.trimIndent()
-    } else {
-        "tracing_subscriber::fmt::init();"
-    }
+        } else {
+            "tracing_subscriber::fmt::init();"
+        }
 
     val module
         get() = Module(
@@ -86,7 +82,7 @@ Ok(())
                     visibility = Visibility.None
                 ),
             ),
-            enums = listOfNotNull(
+            enums = enums + listOfNotNull(
                 if (hasLogLevel) {
                     Enum(
                         "log_level",
@@ -101,11 +97,35 @@ Ok(())
                 } else {
                     null
                 },
+                if (subcommands.isNotEmpty()) {
+                    Enum(
+                        "command", "The supported commands.",
+                        subcommands.map { clapCommand ->
+                            EnumValue.Struct(clapCommand.nameId, clapCommand.doc,
+                                clapCommand.clapArgs.map { it.field }
+                            )
+                        },
+                        attrs = derive("Subcommand", "Debug"),
+                        uses = "clap::Subcommand".asUses
+                    )
+                } else {
+                    null
+                }
             ),
-            structs = listOf(
+            structs = structs + listOf(
                 Struct(
                     "cli", doc = "",
-                    fields = (clapArgs + listOfNotNull(logLevelArg)).map { it.field },
+                    fields = (clapArgs + listOfNotNull(logLevelArg)).map { it.field } + if (subcommands.isNotEmpty()) {
+                        listOf(
+                            Field(
+                                "command", "The supported commands.",
+                                "Command".asType,
+                                attrs = clapSubcommand.asAttrList
+                            )
+                        )
+                    } else {
+                        emptyList()
+                    },
                     attrs = derive("Parser", "Debug") + Attr.Dict(
                         "command",
                         listOfNotNull(

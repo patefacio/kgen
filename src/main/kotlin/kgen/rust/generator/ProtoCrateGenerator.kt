@@ -25,8 +25,6 @@ import kotlin.io.path.relativeTo
  * the struct.
  * @property additionalDerives Set mapping Rust Message/Enum name to list of
  * additional derives.
- * @property includeRequiredValidators If set a module for validating field
- * presence will be generated
  */
 data class ProtoCrateGenerator(
     val crateNameId: String,
@@ -36,7 +34,6 @@ data class ProtoCrateGenerator(
     val targetCratePath: Path,
     val customImplProtoPaths: Map<String, List<Fn>> = emptyMap(),
     val additionalDerives: Map<String, Set<String>> = emptyMap(),
-    val includeRequiredValidators: Boolean = false,
     val additionalTraitImpls: Map<Message, List<TraitImpl>> = emptyMap()
 ) : Identifier(crateNameId) {
 
@@ -45,49 +42,32 @@ data class ProtoCrateGenerator(
     }
 
     /**
-     * Definition of the rust module that will contain all messages requiring validation
-     * with their generated validation functions.
-     */
-    private val requiredFieldsPresentTrait = Trait(
-        "required_fields_present",
-        "Method to check fields that are required (which is not supported by proto3) are present",
-        Fn(
-            "required_fields_present",
-            "Checks all fields of type Message that are not specifically `optional` to ensure they are present.",
-            refSelf,
-            returnDoc = "True if all fields present (recursively).",
-            returnType = RustBoolean
-        ),
-        visibility = Visibility.Pub
-    )
-
-    /**
      * Messages referenced as field types in the proto file are specifed with NamedType:
      * e.g. (some_proto.SomeMessage). This function gets at the message type name. A current
      * limitation of this setup is scoping is not strong and within a set of protobuf files
      * having the same named message can be a problem.
      */
-    private fun typeName(n: String) = n.split(".").last()
+    fun typeName(n: String) = n.split(".").last()
 
     /**
      * Map of {NamedType -> Udt { a Message or Enum }}
      */
-    private val udtsByNamedType = protoFiles.udtsByNamedType
+    val udtsByNamedType = protoFiles.udtsByNamedType
 
     /**
      * Map of {MessageName -> Udt { A Message or Enum }}
      */
-    private val udtsByName = udtsByNamedType.entries.associate { typeName(it.key) to it.value }
+    val udtsByName = udtsByNamedType.entries.associate { typeName(it.key) to it.value }
 
     /**
      * Map of all messages requiring validation. Key is MessageName
      */
-    private val messagesRequiringValidation: MutableMap<String, Boolean> = mutableMapOf()
+    val messagesRequiringValidation: MutableMap<String, Boolean> = mutableMapOf()
 
     private fun messageShouldValidate(namedType: String): Boolean {
         val udtName = typeName(namedType)
-        val udt = udtsByName.get(udtName)!!
-        val result = messagesRequiringValidation.get(udtName) ?: (udt is Message) && (udt as Message)
+        val udt = udtsByName[udtName]!!
+        val result = messagesRequiringValidation[udtName] ?: (udt is Message) && (udt as Message)
             .fields
             .filterIsInstance<Field>()
             // Skip optional because those are intended
@@ -95,7 +75,7 @@ data class ProtoCrateGenerator(
             .any { field: Field ->
                 when (val type = field.type) {
                     is FieldType.NamedType -> {
-                        val fieldUdt = udtsByName.get(typeName(type.name))!!
+                        val fieldUdt = udtsByName[typeName(type.name)]!!
                         if (field.isRepeated) {
                             messageShouldValidate(type.name)
                         } else {
@@ -123,102 +103,14 @@ data class ProtoCrateGenerator(
      * that required data is present. So [includeRequiredValidators] will turn
      * that concept over and assume if it is not marked `optional` it is required.
      * Optional in Proto3 is there to give you an ability to check presence of a field.
-     *
-     * This function looks at the type of field and returns true if the *field type*
-     * requires validation. If the field itself is required - that is checked with
-     * `is_some()` and a further check on the found instance is run.
      */
-    private fun fieldTypeShouldValidate(field: MessageField) = field is Field && when (field.type) {
-        is FieldType.NamedType -> messagesRequiringValidation.contains(typeName(field.type.name))
+    fun fieldTypeShouldValidate(field: MessageField) = field is Field && when (field.type) {
+        is FieldType.NamedType -> {
+            val lookupName = typeName(field.type.name)
+            messagesRequiringValidation[lookupName] ?: true
+        }
         else -> false
     }
-
-    /**
-     * Defines the module with the required field validation code.
-     */
-    private val requiredValidatorsModule
-        get() = Module(
-            "required_fields_present",
-            """
-                Eases the pain of dealing with `proto3` choice to not support required fields.
-                
-                From a developer perspective it is nice to know the messages coming over have
-                the fields set. However, since `proto3` assumes all items are _optional_ the 
-                generated rust is littered with `Option<MessageType>` and there are lots of 
-                checks required. It is rust, so there is no way around doing all the checks
-                on access. But this supports the upfront check that all fields that are truly
-                _required_ are present. In `proto3` **all** non-primitive fields are _optional_.
-                But there was a problem in usage with that because some wanted really **optional**
-                fields with the support of knowing the _presence_ of a field. So, in `proto3`
-                a field with an _optional_ annotation is optional like all the others, but also
-                supports the concept of checking for presence. 
-                
-                To support this _required_fields_present_ we ignore the intent of `proto3` and
-                assume _all fields are **required** unless marked **optional**_. This does not
-                change the generated files but gives an up-front way to validate messages from 
-                the client.
-            """.trimIndent(),
-
-            traits = listOf(
-                requiredFieldsPresentTrait
-            ),
-            traitImpls = udtsByNamedType
-                .filter { (namedType, message) ->
-                    (message is Message) &&
-                            messagesRequiringValidation[typeName(namedType)] ?: false
-                }.mapNotNull { (namedType, udt) ->
-
-                    val message = udt as Message
-                    val rustName = namedType.replace(".", "::")
-                    val validatingFields = message.fields.filter { fieldTypeShouldValidate(it) }
-                    val body = validatingFields.mapNotNull { messageField ->
-                        val field = messageField as Field
-                        when {
-                            field.isOptional -> null
-                            else -> when (field.type) {
-                                is FieldType.NamedType -> {
-                                    val fieldTypeName = typeName(field.type.name)
-                                    val fieldTypeRequiresCheck =
-                                        messagesRequiringValidation.get(fieldTypeName) ?: false
-                                    val fieldUdt = udtsByName.get(fieldTypeName)!!
-
-                                    when {
-                                        // Enums need no check
-                                        fieldUdt is Enum -> null
-                                        field.isRepeated -> if (fieldTypeRequiresCheck) {
-                                            "self.${field.nameId}.iter().all(|${field.nameId}| ${field.nameId}.required_fields_present())"
-                                        } else {
-                                            null
-                                        }
-
-                                        else -> if (fieldTypeRequiresCheck) {
-                                            "self.${field.nameId}.as_ref().map(|${field.nameId}| ${field.nameId}.required_fields_present()).unwrap_or(false)"
-                                        } else {
-                                            "self.${field.nameId}.is_some()"
-                                        }
-                                    }
-                                }
-
-                                else -> null
-                            }
-                        }
-                    }.joinToString("&&\n")
-
-                    if (body.isNotEmpty()) {
-                        TraitImpl(
-                            message.id.capCamel.asType,
-                            requiredFieldsPresentTrait,
-                            uses = setOf(Use("crate::$rustName")),
-                            bodies = mapOf(
-                                "required_fields_present" to body
-                            )
-                        )
-                    } else {
-                        null
-                    }
-                },
-            visibility = Visibility.Pub
-        )
 
     fun generate(): List<MergeResult> {
         val generatedProtos = generateProtos()
@@ -249,12 +141,6 @@ data class ProtoCrateGenerator(
             emptyList()
         }
 
-        val validationModules = if (includeRequiredValidators) {
-            listOf(requiredValidatorsModule)
-        } else {
-            emptyList()
-        }
-
         val serdeSerializables =
             protoFiles.map { it.messages }.flatten().map { it.id.capCamel } + protoFiles.map { it.enums }.flatten()
                 .map { it.id.capCamel } + protoFiles.map { it.allOneOfs.map { it.nameId } }.flatten()
@@ -272,7 +158,7 @@ data class ProtoCrateGenerator(
                         moduleType = ModuleType.PlaceholderModule,
                         visibility = Visibility.Pub
                     )
-                } + customImplModules + validationModules + additionalTraitImpls.map { (message, traitImpls) ->
+                } + customImplModules + additionalTraitImpls.map { (message, traitImpls) ->
                     Module("${message.nameId}_traits", null, traitImpls = traitImpls)
                 },
                 macroUses = listOf("serde_derive")

@@ -16,13 +16,18 @@ fun runCommand(
     mergeStreams: Boolean = false,
     targetOut: Writer? = null,
     targetErr: Writer? = null,
-    echoOutputs: Boolean = true
+    outPrefix: String = "",
+    errPrefix: String = "",
+    echoOutputs: Boolean = true,
+    envVars: Map<String, String> = emptyMap()
 ) {
     try {
         kgenLogger.info { "Running (`$command`) from `$workingDir`" }
 
         val procBuilder = ProcessBuilder(command)
             .directory(workingDir)
+
+        procBuilder.environment().putAll(envVars)
 
         if (mergeStreams) {
             procBuilder.redirectErrorStream(true)
@@ -35,7 +40,8 @@ fun runCommand(
                 val withNewLine = "$line\n"
                 targetOut?.write(withNewLine)
                 if (echoOutputs) {
-                    print(withNewLine)
+                    print("$outPrefix:$withNewLine")
+                    System.out.flush()
                 }
             }
         }
@@ -45,7 +51,8 @@ fun runCommand(
                 val withNewLine = "$line\n"
                 targetErr?.write(withNewLine)
                 if (echoOutputs) {
-                    print(withNewLine)
+                    print("$errPrefix:$withNewLine")
+                    System.err.flush()
                 }
             }
         }
@@ -79,6 +86,7 @@ fun String.runSimpleCommand(
 ): String {
 
     val out = StringWriter()
+    val err = StringWriter()
 
     runCommand(
         workingDir,
@@ -88,10 +96,20 @@ fun String.runSimpleCommand(
         ignoreErrors,
         mergeStreams,
         targetOut = out,
-        //targetErr = targetErr,
-        echoOutputs = echoOutputs
-
+        targetErr = err,
+        echoOutputs = false
     )
+
+    fun writeOutput(text: String, prefix: String) {
+        if (text.isNotEmpty()) {
+            println(prefix + text.split("\n").joinToString("\n$prefix"))
+        }
+    }
+
+    if (echoOutputs) {
+        writeOutput(out.toString(), "OUT:")
+        writeOutput(err.toString(), "ERR:")
+    }
 
     return out.toString()
 }

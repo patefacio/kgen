@@ -9,6 +9,8 @@ data class Id(val snakeCaseName: String) {
     val shout get() = snakeCaseName.uppercase()
 
     val title get() = capCamel(snakeCaseName, " ")
+
+    override fun toString() = snake
 }
 
 fun id(snakeCaseName: String) = when (isSnake(snakeCaseName)) {

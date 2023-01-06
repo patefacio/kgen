@@ -47,7 +47,7 @@ pub enum Message {
             """
 /// A basic message
 pub enum Message {
-  /// TODO Document UnitStruct(quit)
+  /// TODO: Document Enum.UnitStruct(quit)
   Quit,
   /// Request to change color
   ChangeColor(i32, i32, i32),

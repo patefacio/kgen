@@ -23,7 +23,7 @@ internal class AttrTest {
         )
 
         assertEquals(
-            "#[foo(name=\"bar\", age=\"3\")]",
+            "#[foo(age=\"3\", name=\"bar\")]",
             Attr.Dict("foo", "name" to "bar", "age" to "3").asOuterAttr
         )
     }

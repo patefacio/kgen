@@ -8,13 +8,12 @@ data class Field(
     val doc: String = missingDoc(nameId, "Message Field"),
     val number: Int? = null,
     val isRepeated: Boolean = false,
-    val isOptional: Boolean = false,
     val optionalJustification: String? = null,
     val requiredJustification: String? = null
 ) : Identifier(nameId), AsProto, MessageField {
 
     init {
-        if(requiredJustification != null && isOptional) {
+        if(requiredJustification != null && optionalJustification != null) {
             throw Exception("Cannot be both `optional` and `required` due to $requiredJustification!")
         }
     }
@@ -37,9 +36,9 @@ data class Field(
         ""
     }
 
-    val optional get() = isOptional || optionalJustification != null
+    val isOptional get() = optionalJustification != null
 
-    private val optionalDecl = if (optional) {
+    private val optionalDecl = if (isOptional) {
         "optional "
     } else {
         ""

@@ -27,16 +27,17 @@ internal class FieldTest {
 
         assertEquals(
             """
-            /// The critical foo field
-            #[foo]
-            #[goo(a, b, c)]
-            #[foo(a="A", b="B")]
-            #[foo="bar"]
-            pub foo: String
+/// The critical foo field
+#[foo(a="A", b="B", c="C")]
+#[foo]
+#[goo(a, b, c)]
+#[foo="bar"]
+pub foo: String
         """.trimIndent(),
             Field(
                 "foo", "The critical foo field",
                 attrs = AttrList(
+                    Attr.Dict("foo", "c" to "C"),
                     Attr.Word("foo"),
                     Attr.Words("goo", "a", "b", "c"),
                     Attr.Dict("foo", "a" to "A", "b" to "B"),

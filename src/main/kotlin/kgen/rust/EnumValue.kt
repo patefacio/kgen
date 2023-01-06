@@ -1,59 +1,91 @@
 package kgen.rust
 
-import kgen.Identifier
-import kgen.commentTriple
-import kgen.indent
-import kgen.trailingText
+import kgen.*
 
-sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList = AttrList(emptyList())) : AsRust,
+sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList = AttrList()) : AsRust,
     Identifier(nameId) {
 
-    val docComment get() = trailingText(commentTriple(doc), "\n")
+    val docComment get() = commentTriple(doc)
 
-    class UnitStruct(nameId: String, doc: String = "TODO Document UnitStruct($nameId)", isDefault: Boolean = false) :
+    class UnitStruct(
+        nameId: String,
+        doc: String = missingDoc(nameId, "Enum.UnitStruct"),
+        isDefault: Boolean = false,
+        attrs: AttrList = AttrList()
+    ) :
         EnumValue(
-            nameId, doc, attrs = if (isDefault) {
+            nameId, doc, attrs = attrs + if (isDefault) {
                 Attr.Word("default").asAttrList
             } else {
-                AttrList(emptyList())
+                AttrList()
             }
         ) {
         override val asRust: String
             get() = listOfNotNull(
-                if (attrs.attrs.isNotEmpty()) {
-                    attrs.asOuterAttr
-                } else {
-                    null
-                }, "${docComment}${id.capCamel}"
-            ).joinToString("\n")
+                attrs.asOuterAttr,
+                docComment,
+                "${id.capCamel}"
+            ).joinNonEmpty()
     }
 
     class TupleStruct(
-        nameId: String, doc: String = "TODO Document TupleStruct($nameId)",
-        val types: List<Type>
+        nameId: String, doc: String = missingDoc(nameId, "Enum.TupleStruct"),
+        val types: List<Type>,
+        attrs: AttrList = AttrList()
     ) :
-        EnumValue(nameId, doc) {
+        EnumValue(nameId, doc, attrs) {
 
-        constructor(nameId: String, doc: String = "TODO Document TupleStruct($nameId)", vararg types: Type) : this(
+        constructor(
+            nameId: String,
+            doc: String = missingDoc(nameId, "Enum.TupleStruct"),
+            vararg types: Type,
+            attrs: AttrList = AttrList()
+        ) : this(
             nameId,
             doc,
-            types.toList()
+            types.toList(),
+            attrs
         )
 
         override val asRust: String
-            get() = "$docComment${id.capCamel}(${types.joinToString { it.asRust }})"
+            get() = listOfNotNull(
+                attrs.asOuterAttr,
+                docComment,
+                "${id.capCamel}(${types.joinToString { it.asRust }})"
+            )
+                .joinNonEmpty()
     }
 
-    class Struct(nameId: String, doc: String = "TODO Document Struct($nameId)", val fields: List<Field>) :
-        EnumValue(nameId, doc) {
+    class Struct(
+        nameId: String,
+        doc: String = missingDoc(nameId, "Enum.Struct"),
+        val fields: List<Field>,
+        attrs: AttrList = AttrList()
+    ) :
+        EnumValue(nameId, doc, attrs) {
 
-        constructor(nameId: String, doc: String = "TODO Document Struct($nameId)", vararg fields: Field) : this(
+        constructor(
+            nameId: String,
+            doc: String = missingDoc(nameId, "Enum.Struct"),
+            vararg fields: Field,
+            attrs: AttrList = AttrList()
+        ) : this(
             nameId,
             doc,
-            fields.toList()
+            fields.toList(),
+            attrs
         )
 
         override val asRust: String
-            get() = "$docComment${id.capCamel} {\n${indent(fields.joinToString(",\n") { it.copy(access = Access.None).asRust })}\n}"
+            get() = listOfNotNull(
+                attrs.asOuterAttr,
+                docComment,
+                "${id.capCamel} {",
+                indent(fields.joinToString(",\n") {
+                    it.copy(access = Access.None).asRust
+                }),
+                "}"
+            )
+                .joinNonEmpty()
     }
 }

@@ -1,5 +1,7 @@
 package kgen.rust
 
+import kgen.Id
+
 data class AttrList(val attrs: List<Attr> = emptyList()) : AsAttr {
 
     constructor(vararg attrs: Attr) : this(attrs.toList())
@@ -13,9 +15,14 @@ data class AttrList(val attrs: List<Attr> = emptyList()) : AsAttr {
 
     override val asInnerAttr: String
         get() = attrs.asInnerAttr
+
 }
 
 fun derive(vararg derives: String) = AttrList(
     Attr.Words("derive", *derives)
 )
+
+val commonDerives = derive("Debug", "Clone")
+
+val clapSubcommand = Attr.Words("command", "subcommand")
 

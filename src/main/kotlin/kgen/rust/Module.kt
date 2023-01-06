@@ -54,6 +54,14 @@ data class Module(
         }
     }
 
+    private val allTypeImpls = typeImpls + structs.mapNotNull { it.typeImpl }
+
+    private val allStaticInits = staticInits + structs
+        .fold(mutableListOf()) { acc, struct ->
+            acc.addAll(struct.staticInits)
+            acc
+        }
+
     private val typeSizesImpl
         get(): String {
 
@@ -168,9 +176,9 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             functions.map { it.uses }.flatten() +
             traitImpls.map { it.uses }.flatten() +
             typeImpls.map { it.allUses }.flatten() +
-            structs.map { it.uses }.flatten() +
+            structs.map { it.allUses }.flatten() +
             enums.map { it.uses }.flatten() +
-            if (staticInits.isNotEmpty()) {
+            if (allStaticInits.isNotEmpty()) {
                 setOf(Use("static_init::dynamic"))
             } else {
                 emptySet()
@@ -208,7 +216,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 announceSection("type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
                 announceSection("static inits",
-                    staticInits.joinToString("\n\n") { it.asRust }),
+                    allStaticInits.joinToString("\n\n") { it.asRust }),
                 announceSection("constants",
                     consts.joinToString("\n") { it.asRust }),
                 announceSection("enums",
@@ -226,7 +234,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                     "\n"
                 ),
                 announceSection("type impls",
-                    (typeImpls + structAccessorImpls).joinToString("\n\n") { it.asRust }
+                    (allTypeImpls + structAccessorImpls).joinToString("\n\n") { it.asRust }
                 ),
                 announceSection("trait impls",
                     traitImpls.joinToString("\n\n") { it.asRust }

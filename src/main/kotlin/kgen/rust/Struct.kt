@@ -10,15 +10,19 @@ data class Struct(
     val uses: Set<Use> = emptySet(),
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val attrs: AttrList = AttrList(),
-    val asTupleStruct: Boolean = false
+    val asTupleStruct: Boolean = false,
+    val typeImpl: TypeImpl? = null,
+    val staticInits: List<StaticInit> = emptyList()
 ) : Identifier(nameId), Type, AsRust {
 
     val structName = id.capCamel
 
-    val accessors get() = fields.fold(mutableListOf<Fn>()) { acc, field ->
-        acc.addAll(field.accessors)
-        acc
-    }.toList()
+    val allUses = uses + (typeImpl?.allUses ?: emptySet())
+    val accessors
+        get() = fields.fold(mutableListOf<Fn>()) { acc, field ->
+            acc.addAll(field.accessors)
+            acc
+        }.toList()
 
     override val asRustName: String
         get() = structName
@@ -31,11 +35,32 @@ data class Struct(
         uses: Set<Use> = emptySet(),
         genericParamSet: GenericParamSet = GenericParamSet(),
         attrs: AttrList = AttrList(),
-        asTupleStruct: Boolean = false
-    ) : this(nameId, doc, fields.toList(), visibility, uses, genericParamSet, attrs, asTupleStruct)
+        asTupleStruct: Boolean = false,
+        typeImpl: TypeImpl? = null,
+        staticInits: List<StaticInit> = emptyList()
+    ) : this(
+        nameId,
+        doc,
+        fields.toList(),
+        visibility,
+        uses,
+        genericParamSet,
+        attrs,
+        asTupleStruct,
+        typeImpl,
+        staticInits
+    )
 
-    private val openStruct = if(asTupleStruct) { "(" } else { " {" }
-    private val closeStruct = if(asTupleStruct) { ")" } else { "}" }
+    private val openStruct = if (asTupleStruct) {
+        "("
+    } else {
+        " {"
+    }
+    private val closeStruct = if (asTupleStruct) {
+        ")"
+    } else {
+        "}"
+    }
 
     private val header
         get() =
@@ -56,11 +81,13 @@ data class Struct(
                 ""
             } else {
                 indent(
-                    fields.joinToString(",\n") { if(asTupleStruct) {
-                        it.asTupleStructField
-                    } else {
-                        it.asRust
-                    } },
+                    fields.joinToString(",\n") {
+                        if (asTupleStruct) {
+                            it.asTupleStructField
+                        } else {
+                            it.asRust
+                        }
+                    },
                 ) ?: ""
             },
             closeStruct,

@@ -7,6 +7,7 @@ data class Enum(
     override val doc: String = missingDoc(nameId, "Enum"),
     val values: List<EnumValue>,
     val visibility: Visibility = Visibility.Pub,
+    val genericParamSet: GenericParamSet = GenericParamSet(),
     val attrs: AttrList = AttrList(),
     val uses: Set<Use> = emptySet()
 ) : Identifier(nameId), Type, AsRust {
@@ -16,13 +17,17 @@ data class Enum(
         doc: String = missingDoc(nameId, "Enum"),
         vararg values: EnumValue,
         visibility: Visibility = Visibility.Pub,
-        attrs: AttrList = AttrList()
+        genericParamSet: GenericParamSet = GenericParamSet(),
+        attrs: AttrList = AttrList(),
+        uses: Set<Use> = emptySet()
     ) : this(
         nameId,
         doc,
         values.toList(),
         visibility,
-        attrs
+        genericParamSet,
+        attrs,
+        uses
     )
 
     val enumName = id.capCamel
@@ -35,10 +40,14 @@ data class Enum(
 
     override val asRust: String
         get() = listOfNotNull(
+            commentTriple(doc),
             attrs.asOuterAttr,
-            "${commentTriple(doc)}\n${trailingText(visibility.asRust)}enum $asRustName {\n${
-                indent(values.joinToString(",\n") { it.asRust })
-            }\n}"
+            withWhereClause(
+                "${trailingText(visibility.asRust)}enum $asRustName${genericParamSet.asRust}",
+                genericParamSet
+            ) + " {",
+            indent(values.joinToString(",\n") { it.asRust }),
+            "}"
         ).joinNonEmpty()
 }
 
