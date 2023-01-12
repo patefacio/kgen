@@ -2,12 +2,10 @@ package kgen.rust.generator
 
 import kgen.*
 import kgen.proto.*
-import kgen.proto.Enum
 import kgen.proto.Field
 import kgen.rust.*
 import java.nio.file.Path
-import kotlin.io.path.pathString
-import kotlin.io.path.relativeTo
+import kotlin.io.path.*
 
 /** Generates rust package from list of protobuf files.
  *
@@ -19,12 +17,21 @@ import kotlin.io.path.relativeTo
  * @property protoFiles List of protobuf files models to be transformed to .proto files
  * @property targetProtoPath Where generated proto files should be generated
  * @property targetCratePath Where crate should be generated
+ * @property generatorDeletedPath Occasionally users may rename files and not
+ * remember to remove the old named generated proto-file. If this is set, any
+ * non-generated proto files will be moved to this path. Otherwise a warning
+ * message will show.
  * @property customImplProtoPaths List of proto paths of messages or enums in
  * the proto file that require custom impls. Attaching an impl directly to a
  * protobuf message's struct is a convenient way to attach functionality to
  * the struct.
  * @property additionalDerives Set mapping Rust Message/Enum name to list of
  * additional derives.
+ * @property additionalTraitImpls Map of message to list of trait impls. Suppose
+ * you want to add a trait implementation for `AddAssign` to a message. In rust
+ * you would have to wrap it, because the struct for the message will not be
+ * part of the client crate using the proto generated files. Instead, pass the
+ * traits you want to implement.
  */
 data class ProtoCrateGenerator(
     val crateNameId: String,
@@ -32,6 +39,7 @@ data class ProtoCrateGenerator(
     val protoFiles: List<ProtoFile>,
     val targetProtoPath: Path,
     val targetCratePath: Path,
+    val generatorDeletedPath: Path? = null,
     val customImplProtoPaths: Map<String, List<Fn>> = emptyMap(),
     val additionalDerives: Map<String, Set<String>> = emptyMap(),
     val additionalTraitImpls: Map<Message, List<TraitImpl>> = emptyMap()
@@ -41,6 +49,16 @@ data class ProtoCrateGenerator(
         it.generate(targetProtoPath)
     }
 
+    private fun checkDeleteUnwantedFile(path: Path) {
+        if (generatorDeletedPath != null) {
+            println("MOVING UNWANTED: $path to $generatorDeletedPath")
+            generatorDeletedPath.createDirectories()
+            path.moveTo(generatorDeletedPath.resolve(path.name))
+        } else {
+            println("WARNING: NON GENERATED proto FILE -> $path")
+        }
+    }
+
     /**
      * Messages referenced as field types in the proto file are specifed with NamedType:
      * e.g. (some_proto.SomeMessage). This function gets at the message type name. A current
@@ -48,6 +66,11 @@ data class ProtoCrateGenerator(
      * having the same named message can be a problem.
      */
     fun typeName(n: String) = n.split(".").last()
+
+    /** Names of all the proto files.
+     *
+     */
+    val protoFileNames = protoFiles.map { it.protoFileName }
 
     /**
      * Map of {NamedType -> Udt { a Message or Enum }}
@@ -63,6 +86,13 @@ data class ProtoCrateGenerator(
      * Map of all messages requiring validation. Key is MessageName
      */
     val messagesRequiringValidation: MutableMap<String, Boolean> = mutableMapOf()
+
+    /**
+     * Transform any trait impls to rust modules
+     */
+    val additionalTraitImplModules = additionalTraitImpls.map { (message, traitImpls) ->
+        Module("${message.nameId}_traits", null, traitImpls = traitImpls)
+    }
 
     private fun messageShouldValidate(namedType: String): Boolean {
         val udtName = typeName(namedType)
@@ -98,49 +128,38 @@ data class ProtoCrateGenerator(
     }
 
     /**
-     * Proto3 no longer supports required and by design all fields are optional.
+     * Proto3 no longer supports `required` and by design all fields are optional.
      * This can be painful for complex structures where you want assurances
-     * that required data is present. So [includeRequiredValidators] will turn
-     * that concept over and assume if it is not marked `optional` it is required.
-     * Optional in Proto3 is there to give you an ability to check presence of a field.
+     * that required data is present. This tracks such messages requiring validation.
      */
     fun fieldTypeShouldValidate(field: MessageField) = field is Field && when (field.type) {
         is FieldType.NamedType -> {
             val lookupName = typeName(field.type.name)
             messagesRequiringValidation[lookupName] ?: true
         }
+
         else -> false
+    }
+
+    private fun checkForNonGeneratedProtos(generatedProtos: List<MergeResult>) {
+        val generatedSet = generatedProtos.map { mergeResult ->
+            targetProtoPath.resolve(mergeResult.targetPath)
+        }.toSet()
+
+        val existingProtoFiles = targetProtoPath.toFile().walk().filter {
+            it.path.endsWith(".proto")
+        }.map { it.toPath() }
+
+        existingProtoFiles.forEach { path ->
+            if (!generatedSet.contains(path)) {
+                checkDeleteUnwantedFile(path)
+            }
+        }
     }
 
     fun generate(): List<MergeResult> {
         val generatedProtos = generateProtos()
-        val protoFileNames = protoFiles.map { it.protoFileName }
-        val customImplModules = if (customImplProtoPaths.isNotEmpty()) {
-
-            fun itemName(rustPath: String) = rustPath.split("::").last()
-
-            listOfNotNull(
-                Module("custom_impls",
-                    "Hand crafted impls for proto messages/enums",
-                    moduleType = ModuleType.Directory,
-                    modules = customImplProtoPaths.map { (itemPath, implFunctions) ->
-                        val itemNameAsSnake = itemName(itemPath).asSnake
-                        Module(
-                            "${itemNameAsSnake}_impl",
-                            "Hand-coded impl for $itemPath",
-                            uses = uses(itemPath) + implFunctions.map { it.uses }.flatten(),
-                            typeImpls = listOf(
-                                TypeImpl(
-                                    id(itemNameAsSnake).capCamel.asType, functions = implFunctions
-                                )
-                            )
-                        )
-                    }),
-            )
-        } else {
-            emptyList()
-        }
-
+        checkForNonGeneratedProtos(generatedProtos)
         val serdeSerializables =
             protoFiles.map { it.messages }.flatten().map { it.id.capCamel } + protoFiles.map { it.enums }.flatten()
                 .map { it.id.capCamel } + protoFiles.map { it.allOneOfs.map { it.nameId } }.flatten()
@@ -158,9 +177,7 @@ data class ProtoCrateGenerator(
                         moduleType = ModuleType.PlaceholderModule,
                         visibility = Visibility.Pub
                     )
-                } + customImplModules + additionalTraitImpls.map { (message, traitImpls) ->
-                    Module("${message.nameId}_traits", null, traitImpls = traitImpls)
-                },
+                } + additionalTraitImplModules,
                 macroUses = listOf("serde_derive")
             ),
             Module(
@@ -207,6 +224,10 @@ Ok(())
             )
         )
 
-        return generatedProtos + CrateGenerator(crate, targetCratePath.pathString).generate()
+        return generatedProtos + CrateGenerator(
+            // The majority rust files in the proto generated directory are not generated directly.
+            // Don't pass on the `generatorDeletedPath` to prevent deletion of tonic generated files.
+            crate, targetCratePath.pathString, noWarnNonGenerated = true
+        ).generate()
     }
 }

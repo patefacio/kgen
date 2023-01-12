@@ -1,8 +1,8 @@
 package kgen
 
-val doubleOpener = "// "
-val tripleOpener = "/// "
-val scriptOpener = "# "
+const val doubleOpener = "// "
+const val tripleOpener = "/// "
+const val scriptOpener = "# "
 
 private val verticalTrimRightRe = """[\r|\n]+$""".toRegex()
 
@@ -11,7 +11,11 @@ fun comment(text: String, opener: String = doubleOpener) = opener + text
     .split("\n")
     .joinToString("\n$opener")
 
-fun commentTriple(text: String) = comment(text, tripleOpener)
+fun commentTriple(text: String) = if (text.isEmpty()) {
+    text
+} else {
+    comment(text, tripleOpener)
+}
 
 fun commentScript(text: String) = comment(text, scriptOpener)
 
@@ -20,8 +24,9 @@ fun blockComment(text: String, indent: String = "  ", separator: String = "\n") 
 ).joinToString(separator)
 
 
-val String?.commentTriple get() = if(this != null) {
-    commentTriple(this)
-} else {
-    null
-}
+val String?.commentTriple
+    get() = if (this != null) {
+        commentTriple(this)
+    } else {
+        null
+    }

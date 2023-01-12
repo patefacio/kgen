@@ -45,6 +45,7 @@ pub fn foo_bar(
             /// Does foo and bar
             pub fn foo_bar() {
               // α <fn foo_bar>
+              todo!("Implement `foo_bar`")
               // ω <fn foo_bar>
             }
         """.trimIndent(),

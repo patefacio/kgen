@@ -32,6 +32,7 @@ data class Module(
     val isBinary: Boolean = false
 ) : Identifier(nameId), AsRust {
 
+    val rustFileName = "${nameId}.rs"
     val isInline get() = moduleType == ModuleType.Inline
     val isPrivate get() = visibility == Visibility.None
     private val sizesIncluded get() = includeTypeSizes && !isBinary
@@ -65,7 +66,14 @@ data class Module(
     private val typeSizesImpl
         get(): String {
 
-            val typedItems = structs.map { it.asRustName } + enums.map { it.asRustName }
+            val typedItems = structs.filter { struct ->
+                // If a type is generic and there are no default types for a generic parameter
+                // we are unable to get type (it is not fully specified)
+                struct.genericParamSet.typeParams.isEmpty() ||
+                        struct.genericParamSet.typeParams.all { typeParam ->
+                            typeParam.default != null
+                        }
+            }.map { it.asRustName } + enums.map { it.asRustName }
 
             val extensions = modules.map { submodule ->
                 val statementAttr = if (submodule.attrs.attrs.contains(attrCfgTest)) {
@@ -140,7 +148,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     }
 
     private val requiresUnitTest
-        get() = traitImpls.any { it.hasUnitTests } || typeImpls.any { it.hasTestModule } || functions.any {
+        get() = traitImpls.any { it.hasUnitTests } || allTypeImpls.any { it.hasTestModule } || functions.any {
             it.hasUnitTest ?: false
         }
 
@@ -150,7 +158,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 "unit_tests",
                 "Unit tests for `${nameId}`",
                 moduleType = ModuleType.Inline,
-                modules = traitImpls.mapNotNull { it.testModule } + typeImpls.mapNotNull { it.testModule },
+                modules = traitImpls.mapNotNull { it.testModule } + allTypeImpls.mapNotNull { it.testModule },
                 functions = functions.filter { it.hasUnitTest ?: false }.map {
                     Fn(
                         "test_${it.nameId}",
@@ -174,7 +182,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     private var allUses = uses +
             traits.map { it.allUses }.flatten() +
             functions.map { it.uses }.flatten() +
-            traitImpls.map { it.uses }.flatten() +
+            traitImpls.map { it.allUses }.flatten() +
             typeImpls.map { it.allUses }.flatten() +
             structs.map { it.allUses }.flatten() +
             enums.map { it.uses }.flatten() +

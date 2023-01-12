@@ -127,7 +127,8 @@ data class Fn(
         fnDoc,
         allAttrs.asOuterAttr,
         "$signature {",
-        indent(body?.asRust ?: emptyOpenDelimitedBlock(codeBlockName, emptyContents = emptyBlockContents)),
+        indent(body?.asRust ?: emptyOpenDelimitedBlock(
+            codeBlockName, emptyContents = emptyBlockContents ?: "todo!(\"Implement `$id`\")")),
         "}"
     )
         .joinNonEmpty()

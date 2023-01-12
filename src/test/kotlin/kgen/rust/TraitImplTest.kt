@@ -31,6 +31,7 @@ internal class TraitImplTest {
   /// TODO: Document Fn(do_goo)
   fn do_goo() {
     // α <fn Foo::do_goo for i32>
+    todo!("Implement `do_goo`")
     // ω <fn Foo::do_goo for i32>
   }
 }""",

@@ -28,6 +28,7 @@ data class ProtoFile(
 
     override val asProto: String
         get() = listOf(
+            blockComment(doc),
             "syntax = ${doubleQuote(version.asProto)};",
             imports.joinToString("\n") { "import ${doubleQuote(it)};" },
             "package $packageName;",

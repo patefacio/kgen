@@ -23,10 +23,22 @@ import kotlin.io.path.*
  * has changed and if a file has not changed it should not be touched (i.e. timestamp
  * should not change). Any approach that directly writes to the original files without
  * a temp location will always have all files at the latest.
+ *
+ * @property crate - The rust crate to generate
+ * @property cratePath - Where to generate
+ * @property generatorDeletedPath Occasionally users may rename modules and not
+ * remember to remove the old module. If this is set, any  non-generated rust modules,
+ * outside the `bin` directory will be moved to this path. `bin` is an exception
+ * because it is common to hand-write small example programs.
+ * Otherwise, a warning message will show.
+ * @property noWarnNonGenerated If generatorDeletedPath not provided checks for rust
+ * files not generated will still warn unless this is set to true.
  */
 data class CrateGenerator(
     val crate: Crate,
-    val cratePath: String
+    val cratePath: String,
+    val generatorDeletedPath: Path? = null,
+    val noWarnNonGenerated: Boolean = false
 ) {
     val srcPath = Paths.get(cratePath, "src").toAbsolutePath()
     val binPath = srcPath.resolve("../bin").toAbsolutePath()
@@ -55,6 +67,50 @@ data class CrateGenerator(
     } else {
         File(srcPathString).mkdirs()
         srcPath
+    }
+
+    private fun checkDeleteUnwantedFile(path: Path) {
+        if (generatorDeletedPath != null) {
+            println("MOVING UNWANTED: $path to $generatorDeletedPath")
+            generatorDeletedPath.createDirectories()
+            path.moveTo(generatorDeletedPath.resolve(path.name))
+        } else {
+            println("WARNING: NON GENERATED FILE -> $path")
+        }
+    }
+
+    private fun checkForUnwantedFiles(rustSrcPath: Path, moduleGenerationResults: List<MergeResult>) {
+        // At this point cargo fmt has succeeded. Find all rust files in package on disk that should not
+        // were not generated.
+        val generatedFiles = moduleGenerationResults
+            // Skip checks on files in bin
+            .filter {
+                val notInBinDirectory = Path(it.targetPath).parent.name != "bin"
+                notInBinDirectory
+            }
+            .associateBy { mergeResult ->
+                // Get mapping of all rust files keyed starting at src: e.g.
+                val key = mergeResult.targetPath.asPath.relativeTo(rustSrcPath.parent)
+                key
+            }
+
+        // Save all rust files on disk to remove any that were not generated
+        val potentiallyMoribundRustFiles = srcPath.toFile().walk().filter {
+            val isRustFile = it.path.endsWith(".rs")
+            val parentPathName = it.parentFile.name
+            isRustFile && (parentPathName != "bin")
+        }.associateBy { file ->
+            file.toPath().relativeTo(srcPath.parent)
+        }
+
+        // Go through potentially moribund and if was not generated, remove
+        potentiallyMoribundRustFiles.forEach { (relativePath, _) ->
+            val wasGenerated = generatedFiles[relativePath]
+            if (wasGenerated == null) {
+                println("$relativePath WAS NOT GENERATED?")
+                checkDeleteUnwantedFile(srcPath.parent.resolve(relativePath))
+            }
+        }
     }
 
     fun generate(announceUpdates: Boolean = true): List<MergeResult> {
@@ -104,12 +160,21 @@ data class CrateGenerator(
         }.flatten()
 
         val moduleGenerationResults =
-            generateTo(crate.rootModule, targetSrcPathString, announceUpdates = shouldAnnounce, crate.includeTypeSizes) +
+            generateTo(
+                crate.rootModule,
+                targetSrcPathString,
+                announceUpdates = shouldAnnounce,
+                crate.includeTypeSizes
+            ) +
                     binaryModuleResults + integrationTestsResults
 
         "cd $targetSrcPath; cargo fmt".runShellCommand()
 
-        return listOfNotNull(tomlMergeResult, buildModuleResult?.first()) +
+        if(!noWarnNonGenerated) {
+            checkForUnwantedFiles(targetSrcPath, moduleGenerationResults)
+        }
+
+        val updatedMergeResults = listOfNotNull(tomlMergeResult, buildModuleResult?.first()) +
                 if (targetSrcPath == srcPath) {
                     moduleGenerationResults
                 } else {
@@ -126,6 +191,8 @@ data class CrateGenerator(
                     tempCrateDir.toFile().deleteRecursively()
                     tempToSrcMergeResults
                 }
+
+        return updatedMergeResults
     }
 
     private fun generateTo(
@@ -140,7 +207,7 @@ data class CrateGenerator(
         val moduleFileName = when (module.moduleRootType) {
             ModuleRootType.LibraryRoot -> "lib.rs"
             ModuleRootType.BinaryRoot -> "main.rs"
-            ModuleRootType.NonRoot -> "${module.nameId}.rs"
+            ModuleRootType.NonRoot -> module.rustFileName
         }
 
         val outPath = when (module.moduleType) {
@@ -150,7 +217,7 @@ data class CrateGenerator(
                 if (module.classicModStructure) {
                     Paths.get(dir, "mod.rs")
                 } else {
-                    Paths.get(targetPath, "${module.nameId}.rs")
+                    Paths.get(targetPath, module.rustFileName)
                 }
             }
 

@@ -31,7 +31,9 @@ data class TypeImpl(
 
     private val unitTestFunctionIds
         get() = if (unitTestImplFunctions) {
-            functions.filter { !skipTestsSet.contains(it.id) }.map { it.id }
+            functions.filter {
+                !skipTestsSet.contains(it.id)  && it.hasUnitTest != false
+            }.map { it.id }
         } else {
             emptyList()
         } + functionUnitTests + functions.map { it.testNameIds.map { nameId -> nameId.asId } }.flatten()

@@ -129,7 +129,8 @@ data class ClosedBlockDelimiter(
     override fun emptyBlock(
         name: String,
         blockNameDelimiter: BlockNameDelimiter,
-        emptyContents: String?): String {
+        emptyContents: String?
+    ): String {
 
         val wrappedName = blockNameDelimiter.wrapName(name)
         val openDelim = open.replace(blockNamePlaceholder, wrappedName)
@@ -145,7 +146,6 @@ ${
 """.trimIndent()
     }
 }
-
 
 
 val alphaOmegaDelimiter = OpenBlockDelimiter(open = "// α", close = "// ω")
@@ -262,7 +262,7 @@ fun checkWriteFile(
             when (previousContent ?: file.readText()) {
                 content -> MergeFileStatus.NoChange
                 else -> {
-                    file.writeText(content)
+                    file.printWriter().use { it.write(content) }
                     MergeFileStatus.Updated
                 }
             }
@@ -273,7 +273,9 @@ fun checkWriteFile(
             if (!parentPath.exists() && !parentPath.toFile().mkdirs()) {
                 throw RuntimeException("Unable to create folder ${parentPath.pathString}")
             }
-            file.writeText(content)
+            file.printWriter().use {
+                it.write(content)
+            }
             MergeFileStatus.Created
         }
     }

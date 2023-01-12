@@ -42,6 +42,8 @@ data class TraitImpl(
     /** True if any/all functions have unit tests. */
     val hasUnitTests get() = unitTestTraitFunctions || functionUnitTests.isNotEmpty()
 
+    val allUses = uses + trait.allUses
+
     private val unitTestFunctionIds
         get() = if (unitTestTraitFunctions) {
             trait.functions.filter { it.hasUnitTest ?: true }.map { it.id }

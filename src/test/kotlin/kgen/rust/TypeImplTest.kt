@@ -26,6 +26,7 @@ internal class TypeImplTest {
   /// Do foo
   pub fn foo() {
     // α <fn A::foo>
+    todo!("Implement `foo`")
     // ω <fn A::foo>
   }
 }""",
