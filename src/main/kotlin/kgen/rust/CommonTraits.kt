@@ -73,3 +73,18 @@ val mulTrait = Trait(
     ),
     uses = listOf("std::ops::Mul").asUses
 )
+
+val iteratorTrait = Trait(
+    "iterator",
+    "The iterator trait",
+    Fn(
+        "next",
+        "The next item in the sequence.",
+        refMutSelf,
+        returnDoc = "The next item if available.",
+        returnType = "Option<Self::Item>".asType
+    ),
+    associatedTypes = listOf(
+        AssociatedType("item", "The item being iterated over.")
+    )
+)

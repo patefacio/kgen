@@ -10,7 +10,7 @@ internal class LifetimeKtTest {
     fun lifetimes() {
 
         assertEquals(
-            "'a, 'b, 'c",
+            "<'a, 'b, 'c>",
             lifetimes("a", "b", "c").asRust
         )
     }

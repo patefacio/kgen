@@ -33,3 +33,4 @@ data class GenericParamSet(
 }
 
 val tickA = GenericParamSet(lifetimes = listOf("a"))
+val String.asTickAType get() = "${this}<'a>".asType

@@ -27,12 +27,35 @@ data class TypeImpl(
 
     val allUses get() = uses + functions.map { it.uses }.flatten()
 
+    constructor(
+        type: Type,
+        vararg functions: Fn,
+        genericParamSet: GenericParamSet = GenericParamSet(),
+        genericArgSet: GenericArgSet = GenericArgSet(),
+        doc: String? = null,
+        unitTestImplFunctions: Boolean = true,
+        skipTestsSet: Set<Id> = emptySet(),
+        functionUnitTests: List<Id> = emptyList(),
+        uses: Set<Use> = emptySet()
+    ) : this(
+        type,
+        functions.toList(),
+        genericParamSet,
+        genericArgSet,
+        doc,
+        unitTestImplFunctions,
+        skipTestsSet,
+        functionUnitTests,
+        uses
+    )
+
+
     val hasTestModule get() = unitTestFunctionIds.isNotEmpty() || panicTestFunctionIds.isNotEmpty()
 
     private val unitTestFunctionIds
         get() = if (unitTestImplFunctions) {
             functions.filter {
-                !skipTestsSet.contains(it.id)  && it.hasUnitTest != false
+                !skipTestsSet.contains(it.id) && it.hasUnitTest != false
             }.map { it.id }
         } else {
             emptyList()

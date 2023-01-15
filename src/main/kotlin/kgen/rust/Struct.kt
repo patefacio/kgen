@@ -27,6 +27,13 @@ data class Struct(
     override val asRustName: String
         get() = structName
 
+    val asBorrowChecked: String
+        get() = if (genericParamSet.lifetimes.isNotEmpty()) {
+            "${asRustName}${genericParamSet.lifetimes.asRust}"
+        } else {
+            asRustName
+        }
+
     constructor(
         nameId: String,
         doc: String,
@@ -99,3 +106,6 @@ data class Struct(
         ).joinNonEmpty()
 
 }
+
+val Id.asStructName get() = capCamel
+val String.asStructName get() = asId.asStructName

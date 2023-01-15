@@ -21,6 +21,11 @@ fun lifetimes(vararg lifetime: String) = lifetime.map {
     )
 }
 
-val List<Lifetime>.asRust get() = this.map { it.asRust }.joinToString(", ")
+val List<Lifetime>.asRust
+    get() = if (this.isNotEmpty()) {
+        "<${this.joinToString(", ") { it.asRust }}>"
+    } else {
+        ""
+    }
 
 val static = Lifetime("static")
