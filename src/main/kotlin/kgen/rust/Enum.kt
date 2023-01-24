@@ -9,8 +9,10 @@ data class Enum(
     val visibility: Visibility = Visibility.Pub,
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val attrs: AttrList = AttrList(),
-    val uses: Set<Use> = emptySet()
-) : Identifier(nameId), Type, AsRust {
+    val uses: Set<Use> = emptySet(),
+    val typeImpl: TypeImpl? = null,
+    val implementedTraits: List<Trait> = emptyList()
+    ) : Identifier(nameId), Type, AsRust {
 
     constructor(
         nameId: String,
@@ -19,7 +21,9 @@ data class Enum(
         visibility: Visibility = Visibility.Pub,
         genericParamSet: GenericParamSet = GenericParamSet(),
         attrs: AttrList = AttrList(),
-        uses: Set<Use> = emptySet()
+        uses: Set<Use> = emptySet(),
+        typeImpl: TypeImpl? = null,
+        implementedTraits: List<Trait> = emptyList()
     ) : this(
         nameId,
         doc,
@@ -27,10 +31,17 @@ data class Enum(
         visibility,
         genericParamSet,
         attrs,
-        uses
+        uses,
+        typeImpl,
+        implementedTraits
     )
 
     val enumName = id.capCamel
+
+    val traitImpls
+        get() = implementedTraits.map { trait ->
+            TraitImpl(enumName.asType, trait, genericParamSet = genericParamSet)
+        }
 
     override val asRustName: String
         get() = enumName

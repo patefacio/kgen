@@ -92,7 +92,7 @@ data class TypeImpl(
                 functions.map {
                     if (it.nameId == it.blockName) {
                         it.copy(
-                            blockName = "${type.asRustName}::${it.nameId}"
+                            blockName = "${type.sanitizedSpecial}::${it.nameId}"
                         )
                     } else {
                         it

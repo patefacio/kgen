@@ -22,7 +22,9 @@ data class FnParam(
                 "Self" -> "self"
                 "& Self" -> "&self"
                 "& mut Self" -> "& mut self"
-                else -> throw Exception("Invalid self var.")
+                "&'a Self" -> "& 'a self"
+                "&'a mut Self" -> "& 'a mut self"
+                else -> throw Exception("Invalid self var `${type.asRust}`.")
             }
         } else {
             val typeAsRust = type.asRust

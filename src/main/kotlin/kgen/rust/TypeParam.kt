@@ -24,3 +24,6 @@ data class TypeParam(
 
 val T = TypeParam("t")
 val S = TypeParam("s")
+
+val String.asTypeParam get() = TypeParam(this)
+val String.asTypeParams get() = this.split(",").map { TypeParam(it.trim()) }

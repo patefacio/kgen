@@ -88,3 +88,38 @@ val iteratorTrait = Trait(
         AssociatedType("item", "The item being iterated over.")
     )
 )
+
+val intoIteratorTrait = Trait(
+    "into_iterator",
+    "The `into_iterator` trait for converting an object into something to iterate over.",
+    Fn(
+        "into_iter",
+        "Consume object and providing to new iterator over its contents.",
+        self,
+        returnDoc = "The iterator.",
+        returnType = "Self::IntoIter".asType
+    ),
+    associatedTypes = listOf(
+        AssociatedType("item", "Type of item being iterated over."),
+        AssociatedType("into_iter", "The iterator instance.", Bounds("Iterator<Item = Self::Item>"))
+    )
+)
+
+val displayTrait = Trait(
+    "display",
+    "Format trait for empty format.",
+    Fn(
+        "fmt",
+        "Format the instance.",
+        //fn fmt(&self, f: &mut Formatter<'_>) -> Result;
+        refSelf,
+        FnParam(
+            "f",
+            "&mut Formatter<'_>".asType,
+            "Formatter to push formatted item to."
+        ),
+        returnDoc = "Formatted instance",
+        returnType = "core::fmt::Result".asType,
+        uses = listOf("core::fmt::Display", "core::fmt::Formatter").asUses
+    )
+)

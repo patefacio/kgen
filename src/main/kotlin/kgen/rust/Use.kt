@@ -42,6 +42,7 @@ data class Use(
 fun uses(vararg pathNames: String) = pathNames.map { Use(it) }.toSet()
 
 val List<String>.asUses get() = this.map { Use(it) }.toSet()
+
 val Use.asUses get() = setOf(this)
 val String.asUses get() = listOf(this).asUses
 
@@ -59,3 +60,7 @@ val List<String>.asPubUses get() = this.map { Use(it, visibility = kgen.rust.Vis
 
 val useHashMap = Use("std::collections::HashMap")
 val useCow = Use("std::borrow::Cow")
+val useBox = Use("std::boxed::Box")
+val useRange = Use("std::ops::Range")
+val useMap = Use("std::iter::Map")
+val useEnumerate = Use("std::iter::Enumerate")

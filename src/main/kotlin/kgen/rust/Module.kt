@@ -55,7 +55,13 @@ data class Module(
         }
     }
 
-    private val allTypeImpls = typeImpls + structs.mapNotNull { it.typeImpl }
+    private val allTraitImpls = traitImpls +
+            structs.map { it.traitImpls }.flatten() +
+            enums.map { it.traitImpls }.flatten()
+
+    private val allTypeImpls = typeImpls +
+            structs.mapNotNull { it.augmentedTypeImpl } +
+            enums.mapNotNull { it.typeImpl }
 
     private val allStaticInits = staticInits + structs
         .fold(mutableListOf()) { acc, struct ->
@@ -148,7 +154,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     }
 
     private val requiresUnitTest
-        get() = traitImpls.any { it.hasUnitTests } || allTypeImpls.any { it.hasTestModule } || functions.any {
+        get() = allTraitImpls.any { it.hasUnitTests } || allTypeImpls.any { it.hasTestModule } || functions.any {
             it.hasUnitTest ?: false
         }
 
@@ -158,7 +164,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 "unit_tests",
                 "Unit tests for `${nameId}`",
                 moduleType = ModuleType.Inline,
-                modules = traitImpls.mapNotNull { it.testModule } + allTypeImpls.mapNotNull { it.testModule },
+                modules = allTraitImpls.mapNotNull { it.testModule } + allTypeImpls.mapNotNull { it.testModule },
                 functions = functions.filter { it.hasUnitTest ?: false }.map {
                     Fn(
                         "test_${it.nameId}",
@@ -182,8 +188,8 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     private var allUses = uses +
             traits.map { it.allUses }.flatten() +
             functions.map { it.uses }.flatten() +
-            traitImpls.map { it.allUses }.flatten() +
-            typeImpls.map { it.allUses }.flatten() +
+            allTraitImpls.map { it.allUses }.flatten() +
+            allTypeImpls.map { it.allUses }.flatten() +
             structs.map { it.allUses }.flatten() +
             enums.map { it.uses }.flatten() +
             if (allStaticInits.isNotEmpty()) {
@@ -245,7 +251,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                     (allTypeImpls + structAccessorImpls).joinToString("\n\n") { it.asRust }
                 ),
                 announceSection("trait impls",
-                    traitImpls.joinToString("\n\n") { it.asRust }
+                    allTraitImpls.joinToString("\n\n") { it.asRust }
                 ),
                 testModule?.asRust ?: "",
                 codeBlock ?: "",

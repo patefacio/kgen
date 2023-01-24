@@ -2,6 +2,14 @@ package kgen.rust
 
 import kgen.*
 
+/**
+ *
+ *  @property implementedTraits - Traits to include an implementation for. Often
+ *  structs are modeled and then in the module a trait is implemented for the
+ *  struct with `TraitImpl(someTrait, "SomeStruct".type, ...)`. This is a
+ *  alternative convenience - simply add a trait like `defaultTrait` and
+ *  a stubbed impl will be included.
+ */
 data class Struct(
     val nameId: String,
     override val doc: String = missingDoc(nameId, "Struct"),
@@ -12,12 +20,73 @@ data class Struct(
     val attrs: AttrList = AttrList(),
     val asTupleStruct: Boolean = false,
     val typeImpl: TypeImpl? = null,
-    val staticInits: List<StaticInit> = emptyList()
+    val implementedTraits: List<Trait> = emptyList(),
+    val staticInits: List<StaticInit> = emptyList(),
+    val includeNew: Boolean = false,
+    val includeCustomNew: Boolean = false,
+    val inlineNew: Boolean = false
 ) : Identifier(nameId), Type, AsRust {
 
     val structName = id.capCamel
 
-    val allUses = uses + (typeImpl?.allUses ?: emptySet())
+    val structNameGeneric get() = "${structName}${genericParamSet.asRust}"
+
+    val allUses get() = uses + (typeImpl?.allUses ?: emptySet())
+
+    private fun newFnFromFields(fields: List<Field>): Fn {
+        val returnType = structNameGeneric.asType
+        val includedFields = fields.filter { !it.excludeFromNew }
+        fun wrapNewBody(body: String) = if(asTupleStruct) {
+            "(\n$body\n)"
+        } else {
+            "{\n$body\n}"
+        }
+
+        // If all fields are included, generate a forwarding body
+        val body = if (!includeCustomNew) {
+            FnBody(
+                listOf(
+                    asRustName,
+                    wrapNewBody(indent(fields.joinToString(",\n") { it.inStructInitializer })!!),
+                ).joinToString("\n")
+            )
+        } else {
+            null
+        }
+
+        return Fn(
+            "new",
+            "Create new instance of $asRustName",
+            includedFields.map { it.asFnParam },
+            returnDoc = "The new instance",
+            returnType = returnType,
+            body = body,
+            hasUnitTest = false,
+            attrs = if (inlineNew) {
+                attrInline.asAttrList
+            } else {
+                AttrList()
+            }
+        )
+    }
+
+    val traitImpls
+        get() = implementedTraits.map { trait ->
+            TraitImpl(structNameGeneric.asType, trait, genericParamSet = genericParamSet)
+        }
+
+    val augmentedTypeImpl
+        get() = if (includeNew || includeCustomNew) {
+            val newFn = newFnFromFields(fields)
+            typeImpl?.copy(functions = typeImpl.functions + newFn) ?: TypeImpl(
+                newFn.returnType!!,
+                newFn,
+                genericParamSet = genericParamSet
+            )
+        } else {
+            typeImpl
+        }
+
     val accessors
         get() = fields.fold(mutableListOf<Fn>()) { acc, field ->
             acc.addAll(field.accessors)
@@ -44,7 +113,11 @@ data class Struct(
         attrs: AttrList = AttrList(),
         asTupleStruct: Boolean = false,
         typeImpl: TypeImpl? = null,
-        staticInits: List<StaticInit> = emptyList()
+        implementedTraits: List<Trait> = emptyList(),
+        staticInits: List<StaticInit> = emptyList(),
+        includeNew: Boolean = false,
+        includeCustomNew: Boolean = false,
+        inlineNew: Boolean = false
     ) : this(
         nameId,
         doc,
@@ -55,7 +128,11 @@ data class Struct(
         attrs,
         asTupleStruct,
         typeImpl,
-        staticInits
+        implementedTraits,
+        staticInits,
+        includeNew,
+        includeCustomNew,
+        inlineNew
     )
 
     private val openStruct = if (asTupleStruct) {
@@ -72,7 +149,7 @@ data class Struct(
     private val header
         get() =
             withWhereClause(
-                "${trailingText(visibility.asRust)}struct ${structName}${genericParamSet.asRust}",
+                "${trailingText(visibility.asRust)}struct $structNameGeneric",
                 genericParamSet
             ) + openStruct
 
@@ -109,3 +186,4 @@ data class Struct(
 
 val Id.asStructName get() = capCamel
 val String.asStructName get() = asId.asStructName
+

@@ -30,6 +30,8 @@ data class GenericParamSet(
     val whereClause
         get() = typeParams.mapNotNull { it.boundsDecl }.joinNonEmpty(", ").nullIfEmpty
 
+    fun genericTypeOf(t: Type) = "${t.asRust}${asRust}"
+
 }
 
 val tickA = GenericParamSet(lifetimes = listOf("a"))
