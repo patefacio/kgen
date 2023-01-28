@@ -30,7 +30,10 @@ data class GenericParamSet(
     val whereClause
         get() = typeParams.mapNotNull { it.boundsDecl }.joinNonEmpty(", ").nullIfEmpty
 
-    fun genericTypeOf(t: Type) = "${t.asRust}${asRust}"
+    fun genericTypeOf(t: Type) = "${t.asRust}${asRust}".asType
+    fun genericTypeOf(typeName: String) = "${typeName.asType.asRust}${asRust}".asType
+
+    val withoutDefaults get() = GenericParamSet(lifetimes, typeParams.map { it.copy(default = null) })
 
 }
 

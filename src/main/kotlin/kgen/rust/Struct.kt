@@ -31,12 +31,14 @@ data class Struct(
 
     val structNameGeneric get() = "${structName}${genericParamSet.asRust}"
 
+    val structNameGenericWithoutDefaults get() = "${structName}${genericParamSet.withoutDefaults.asRust}"
+
     val allUses get() = uses + (typeImpl?.allUses ?: emptySet())
 
     private fun newFnFromFields(fields: List<Field>): Fn {
-        val returnType = structNameGeneric.asType
+        val returnType = structNameGenericWithoutDefaults.asType
         val includedFields = fields.filter { !it.excludeFromNew }
-        fun wrapNewBody(body: String) = if(asTupleStruct) {
+        fun wrapNewBody(body: String) = if (asTupleStruct) {
             "(\n$body\n)"
         } else {
             "{\n$body\n}"
@@ -57,7 +59,7 @@ data class Struct(
         return Fn(
             "new",
             "Create new instance of $asRustName",
-            includedFields.map { it.asFnParam },
+            includedFields.filter { it.defaultValue == null }.map { it.asFnParam },
             returnDoc = "The new instance",
             returnType = returnType,
             body = body,
@@ -78,10 +80,13 @@ data class Struct(
     val augmentedTypeImpl
         get() = if (includeNew || includeCustomNew) {
             val newFn = newFnFromFields(fields)
-            typeImpl?.copy(functions = typeImpl.functions + newFn) ?: TypeImpl(
+            typeImpl?.copy(
+                functions = typeImpl.functions + newFn,
+                genericParamSet = genericParamSet.withoutDefaults
+            ) ?: TypeImpl(
                 newFn.returnType!!,
                 newFn,
-                genericParamSet = genericParamSet
+                genericParamSet = genericParamSet.withoutDefaults
             )
         } else {
             typeImpl

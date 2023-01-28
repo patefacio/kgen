@@ -27,10 +27,10 @@ data class Field(
 
     val tupleStructDecl get() = "${trailingText(access.asRust)}${type.type}"
 
-    val inStructInitializer get() = if(defaultValue != null) {
-        "$nameId: $defaultValue"
-    } else {
-        nameId
+    val inStructInitializer get() = when {
+        defaultValue != null -> "$nameId: $defaultValue"
+        excludeFromNew -> "$nameId: ${type.asRust}::default()"
+        else -> nameId
     }
 
     val accessors

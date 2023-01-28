@@ -40,15 +40,12 @@ data class Module(
     private val structAccessorImpls = structs.mapNotNull { struct ->
         val accessors = struct.accessors
         if (accessors.isNotEmpty()) {
+            val implGeneric = struct.genericParamSet.withoutDefaults
             TypeImpl(
-                if (struct.genericParamSet.isEmpty) {
-                    struct.asRustName.asType
-                } else {
-                    "${struct.asRustName}${struct.genericParamSet.asRust}".asType
-                },
+                implGeneric.genericTypeOf(struct.asRustName.asType),
                 functions = accessors,
                 doc = "Accessors for [${struct.structName}] fields",
-                genericParamSet = struct.genericParamSet
+                genericParamSet = implGeneric
             )
         } else {
             null
