@@ -23,6 +23,9 @@ interface Type : AsRust {
     val hasRef get() = false
     val isRef get() = false
 
+    fun asRef(lifetime: Lifetime? = null) = Ref(this, lifetime)
+    fun asRef(lifetime: String? = null) = Ref(this, lifetime?.asLifetime)
+
     val doc: String? get() = null
 
     /** Removes special characters `<`, `>` and non word characters.

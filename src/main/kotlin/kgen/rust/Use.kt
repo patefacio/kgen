@@ -61,6 +61,8 @@ val List<String>.asPubUses get() = this.map { Use(it, visibility = kgen.rust.Vis
 val useHashMap = Use("std::collections::HashMap")
 val useCow = Use("std::borrow::Cow")
 val useBox = Use("std::boxed::Box")
+val useArc = Use("std::sync::Arc")
 val useRange = Use("std::ops::Range")
 val useMap = Use("std::iter::Map")
 val useEnumerate = Use("std::iter::Enumerate")
+val useDynClone = Use("dyn_clone::DynClone")

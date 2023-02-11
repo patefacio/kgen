@@ -123,3 +123,26 @@ val displayTrait = Trait(
         uses = listOf("core::fmt::Display", "core::fmt::Formatter").asUses
     )
 )
+
+val cloneTrait = Trait(
+    "clone",
+    "A common trait for the ability to explicity duplicate an object.",
+    Fn(
+        "clone",
+        "Clone the instance",
+        refSelf,
+        returnDoc = "The cloned instance",
+        returnType = "Self".asType
+    ),
+    Fn(
+        "clone_from",
+        "Clone the instance from source",
+        refSelf,
+        FnParam("source", "&Self".asType, "The source to clone."),
+        returnDoc = "The cloned instance",
+        returnType = "Self".asType
+    )
+)
+
+val sendTrait = Trait("send", "The send marker trait")
+val syncTrait = Trait("sync", "The sync marker trait")

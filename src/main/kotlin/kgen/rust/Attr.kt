@@ -141,6 +141,8 @@ val attrIterIntersperse = Attr.Words("feature", "iter_intersperse")
 val attrUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
 val attrVariantCount = Attr.Words("feature", "variant_count")
 
+val attrNoEscapeTemplate = Attr.Dict("template", "escape" to "none")
+
 
 val Attr.asAttrList get() = AttrList(this)
 val List<Attr>.asAttrList get() = AttrList(attrs = this)
