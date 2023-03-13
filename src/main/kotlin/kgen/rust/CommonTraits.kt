@@ -74,6 +74,24 @@ val mulTrait = Trait(
     uses = listOf("std::ops::Mul").asUses
 )
 
+val negTrait = Trait(
+    "neg",
+    "The unary negation operator `-`",
+    functions = listOf(
+        Fn(
+            "neg",
+            "Return negated `self`.",
+            self,
+            returnDoc = "The new negated `Self`",
+            returnType = "Self::Output".asType
+        )
+    ),
+    associatedTypes = listOf(
+        AssociatedType("output", "The output type of the operation.")
+    ),
+    uses = listOf("std::ops::Neg").asUses
+)
+
 val iteratorTrait = Trait(
     "iterator",
     "The iterator trait",

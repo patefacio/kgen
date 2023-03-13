@@ -7,6 +7,27 @@ sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList 
 
     val docComment get() = commentTriple(doc)
 
+    class Numeric(
+        nameId: String,
+        doc: String = missingDoc(nameId, "Enum.Numeric"),
+        val value: Int,
+        isDefault: Boolean = false,
+        attrs: AttrList = AttrList()
+    ) : EnumValue(
+        nameId, doc, attrs = attrs + if (isDefault) {
+            Attr.Word("default").asAttrList
+        } else {
+            AttrList()
+        }
+    ) {
+        override val asRust: String
+            get() = listOfNotNull(
+                attrs.asOuterAttr,
+                docComment,
+                "${id.capCamel} = $value"
+            ).joinNonEmpty()
+    }
+
     class UnitStruct(
         nameId: String,
         doc: String = missingDoc(nameId, "Enum.UnitStruct"),
@@ -24,26 +45,36 @@ sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList 
             get() = listOfNotNull(
                 attrs.asOuterAttr,
                 docComment,
-                "${id.capCamel}"
+                id.capCamel
             ).joinNonEmpty()
     }
 
     class TupleStruct(
-        nameId: String, doc: String = missingDoc(nameId, "Enum.TupleStruct"),
+        nameId: String,
+        doc: String = missingDoc(nameId, "Enum.TupleStruct"),
         val types: List<Type>,
+        isDefault: Boolean = false,
         attrs: AttrList = AttrList()
     ) :
-        EnumValue(nameId, doc, attrs) {
+        EnumValue(
+            nameId, doc, attrs = attrs + if (isDefault) {
+                Attr.Word("default").asAttrList
+            } else {
+                AttrList()
+            }
+        ) {
 
         constructor(
             nameId: String,
             doc: String = missingDoc(nameId, "Enum.TupleStruct"),
             vararg types: Type,
+            isDefault: Boolean = false,
             attrs: AttrList = AttrList()
         ) : this(
             nameId,
             doc,
             types.toList(),
+            isDefault,
             attrs
         )
 

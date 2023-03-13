@@ -73,7 +73,7 @@ data class CrateGenerator(
         if (generatorDeletedPath != null) {
             println("MOVING UNWANTED: $path to $generatorDeletedPath")
             generatorDeletedPath.createDirectories()
-            path.moveTo(generatorDeletedPath.resolve(path.name))
+            path.moveTo(generatorDeletedPath.resolve(path.name), overwrite = true)
         } else {
             println("WARNING: NON GENERATED FILE -> $path")
         }
