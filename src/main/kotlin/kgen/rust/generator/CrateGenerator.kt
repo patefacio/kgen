@@ -71,9 +71,14 @@ data class CrateGenerator(
 
     private fun checkDeleteUnwantedFile(path: Path) {
         if (generatorDeletedPath != null) {
-            println("MOVING UNWANTED: $path to $generatorDeletedPath")
-            generatorDeletedPath.createDirectories()
-            path.moveTo(generatorDeletedPath.resolve(path.name), overwrite = true)
+            val checkProtectedFile = path.relativeTo(srcPath)
+            if (crate.handCodedSet.contains(checkProtectedFile)) {
+                println("Leaving `$checkProtectedFile` alone")
+            } else {
+                println("MOVING UNWANTED: $path to $generatorDeletedPath")
+                generatorDeletedPath.createDirectories()
+                path.moveTo(generatorDeletedPath.resolve(path.name), overwrite = true)
+            }
         } else {
             println("WARNING: NON GENERATED FILE -> $path")
         }
@@ -170,7 +175,7 @@ data class CrateGenerator(
 
         "cd $targetSrcPath; cargo fmt".runShellCommand()
 
-        if(!noWarnNonGenerated) {
+        if (!noWarnNonGenerated) {
             checkForUnwantedFiles(targetSrcPath, moduleGenerationResults)
         }
 

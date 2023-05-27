@@ -3,6 +3,7 @@ package kgen.rust
 import kgen.Identifier
 import kgen.missingDoc
 import kgen.rust.clap_binary.ClapBinary
+import java.nio.file.Path
 
 /** Represents a rust crate.
  *
@@ -21,7 +22,8 @@ data class Crate(
     val cargoToml: CargoToml = CargoToml(nameId),
     val binaries: List<ClapBinary> = emptyList(),
     val includeTypeSizes: Boolean = false,
-    val integrationTestModules: List<Module> = emptyList()
+    val integrationTestModules: List<Module> = emptyList(),
+    val handCodedSet: Set<Path> = emptySet(),
 ) : Identifier(nameId) {
 
     init {

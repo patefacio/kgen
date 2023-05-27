@@ -18,6 +18,7 @@ data class Module(
     val uses: Set<Use> = emptySet(),
     val typeAliases: List<TypeAlias> = emptyList(),
     val staticInits: List<StaticInit> = emptyList(),
+    val lazies: List<Lazy> = emptyList(),
     val consts: List<Const> = emptyList(),
     val attrs: AttrList = AttrList(),
     val macroUses: List<String> = emptyList(),
@@ -29,7 +30,8 @@ data class Module(
     val publishPublicTypes: Boolean = true,
     val classicModStructure: Boolean = true,
     val includeTypeSizes: Boolean = false,
-    val isBinary: Boolean = false
+    val isBinary: Boolean = false,
+    val disabled: Boolean = false
 ) : Identifier(nameId), AsRust {
 
     val rustFileName = "${nameId}.rs"
@@ -65,6 +67,13 @@ data class Module(
             acc.addAll(struct.staticInits)
             acc
         }
+
+    private val allLazies = lazies + structs
+        .fold(mutableListOf()) { acc, struct ->
+            acc.addAll(struct.lazies)
+            acc
+        }
+
 
     private val typeSizesImpl
         get(): String {
@@ -193,7 +202,13 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 setOf(Use("static_init::dynamic"))
             } else {
                 emptySet()
+            } +
+            if (allLazies.isNotEmpty()) {
+                setOf(Use("once_cell::sync::Lazy"))
+            } else {
+                emptySet()
             }
+
 
     private val pubUses = allUses.filter { it.visibility == Visibility.Pub }
 
@@ -221,13 +236,15 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                     allUses.filter { it.visibility != Visibility.Pub }.joinToString("\n") { it.asRust }),
                 announceSection("mod decls",
                     (modules
-                        .filter { it.moduleType != ModuleType.Inline }
+                        .filter { (it.moduleType != ModuleType.Inline) && !it.disabled }
                         .map { "${it.asModDecl};" }).joinToString("\n")
                 ),
                 announceSection("type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
                 announceSection("static inits",
                     allStaticInits.joinToString("\n\n") { it.asRust }),
+                announceSection("lazy inits",
+                    allLazies.joinToString("\n\n") { it.asRust }),
                 announceSection("constants",
                     consts.joinToString("\n") { it.asRust }),
                 announceSection("enums",

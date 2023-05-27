@@ -25,13 +25,16 @@ class CargoToml(
             description = ${tripleQuote(description)}
             license = ${doubleQuote(license)}
             keywords = ${keywords.map { doubleQuote(it) }}
-        """.trimIndent(),
+            
+            """.trimIndent(),
             if (authors.isEmpty()) {
                 null
             } else {
                 "authors: ${authors.joinToString()}"
             },
             listOfNotNull(
+                "\n[lib]",
+                emptyOpenDelimitedBlock("lib", scriptDelimiter),
                 "\n[dependencies]",
                 if (dependencies.isEmpty()) {
                     null
@@ -40,13 +43,16 @@ class CargoToml(
                 },
                 emptyOpenDelimitedBlock("dependencies", scriptDelimiter),
                 "\n[build-dependencies]",
-                if(buildDependencies.isEmpty()) {
+                if (buildDependencies.isEmpty()) {
                     null
                 } else {
-                  trailingText(buildDependencies.joinToString("\n"))
+                    trailingText(buildDependencies.joinToString("\n"))
                 },
-                emptyOpenDelimitedBlock("build-dependencies", scriptDelimiter)
-            ).joinToString("\n")
+                emptyOpenDelimitedBlock("build-dependencies", scriptDelimiter),
+                "\n[features]",
+                emptyOpenDelimitedBlock("features", scriptDelimiter),
+            ).joinToString("\n"),
+            emptyOpenDelimitedBlock("additional", scriptDelimiter),
         ).joinToString("\n")
 
 }

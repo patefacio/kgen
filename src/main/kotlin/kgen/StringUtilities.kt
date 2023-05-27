@@ -32,6 +32,9 @@ fun indent(text: CharSequence?, indent: String = "  ") = text
     ?.split("\n")
     ?.joinToString("\n") { "$indent$it" }
 
+fun String.cgIndent(indent: String = "  "): String = indent(this, indent)!!
+val String.indented get() = this.cgIndent()
+
 fun bracketText(text: String, open: String = "{", close: String = "}") =
     if (text.isEmpty()) {
         "$open$close"

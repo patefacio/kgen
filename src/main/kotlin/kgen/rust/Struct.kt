@@ -22,6 +22,7 @@ data class Struct(
     val typeImpl: TypeImpl? = null,
     val implementedTraits: List<Trait> = emptyList(),
     val staticInits: List<StaticInit> = emptyList(),
+    val lazies: List<Lazy> = emptyList(),
     val includeNew: Boolean = false,
     val includeCustomNew: Boolean = false,
     val inlineNew: Boolean = false
@@ -120,6 +121,7 @@ data class Struct(
         typeImpl: TypeImpl? = null,
         implementedTraits: List<Trait> = emptyList(),
         staticInits: List<StaticInit> = emptyList(),
+        lazies: List<Lazy> = emptyList(),
         includeNew: Boolean = false,
         includeCustomNew: Boolean = false,
         inlineNew: Boolean = false
@@ -135,6 +137,7 @@ data class Struct(
         typeImpl,
         implementedTraits,
         staticInits,
+        lazies,
         includeNew,
         includeCustomNew,
         inlineNew

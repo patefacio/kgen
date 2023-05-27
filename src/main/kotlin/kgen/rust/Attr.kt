@@ -131,6 +131,7 @@ val List<Attr>.asInnerAttr
 val attrCfgTest = Attr.Words("cfg", "test")
 val attrInline = Attr.Word("inline")
 val attrDynamic = Attr.Word("dynamic")
+val attrComponent = Attr.Word("component")
 
 val aggrSerdeSerialize = Attr.Words("derive", "Serialize", "Deserialize")
 val attrDebugBuild = Attr.Words("cfg", "debug_assertions")
@@ -139,6 +140,7 @@ val attrTestFn = Attr.Word("test")
 
 val attrIterIntersperse = Attr.Words("feature", "iter_intersperse")
 val attrUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
+val attrAllowUnused = Attr.Words("allow", "unused")
 val attrVariantCount = Attr.Words("feature", "variant_count")
 
 val attrNoEscapeTemplate = Attr.Dict("template", "escape" to "none")

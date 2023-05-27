@@ -20,6 +20,8 @@ data class Fn(
     val uses: Set<Use> = emptySet(),
     val testNameIds: List<String> = emptyList(),
     val panicTestNameIds: List<String> = emptyList(),
+    val nameCapCamel: Boolean = false,
+    val inlineParamDoc: Boolean = false
 ) : Identifier(nameId), AsRust {
 
 
@@ -40,11 +42,14 @@ data class Fn(
         emptyBlockContents: String? = null,
         uses: Set<Use> = emptySet(),
         testNameIds: List<String> = emptyList(),
-        panicTestNameIds: List<String> = emptyList()
+        panicTestNameIds: List<String> = emptyList(),
+        nameCapCamel: Boolean = false,
+        inlineParamDoc: Boolean = false
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
         genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
-        blockName, emptyBlockContents, uses, testNameIds, panicTestNameIds
+        blockName, emptyBlockContents, uses, testNameIds, panicTestNameIds,
+        nameCapCamel, inlineParamDoc
     )
 
     private val allAttrs = listOfNotNull(
@@ -66,7 +71,13 @@ data class Fn(
     } else {
         listOf(
             "(",
-            indent(params.joinToString(",\n") { it.asRust }),
+            indent(params.joinToString(",\n") {
+                if(inlineParamDoc) {
+                    listOf(commentTriple(it.doc), it.asRust).joinToString("\n")
+                } else {
+                    it.asRust
+                }
+            }),
             ")"
         ).joinToString("\n")
     }
@@ -84,9 +95,15 @@ data class Fn(
         ""
     }
 
+    val rustFunctionName get() = if(nameCapCamel) {
+        nameId.asId.capCamel
+    } else {
+        nameId
+    }
+
     val signature
         get() = withWhereClause(
-            "${trailingText(visibilityDecl)}fn $nameId${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
+            "${trailingText(visibilityDecl)}fn $rustFunctionName${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
             genericParamSet
         )
 

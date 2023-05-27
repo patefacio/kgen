@@ -18,6 +18,7 @@ data class ClapBinary(
     val enums: List<Enum> = emptyList(),
     val functions: List<Fn> = emptyList(),
     val staticInits: List<StaticInit> = emptyList(),
+    val lazies: List<Lazy> = emptyList(),
     val uses: Set<Use> = emptySet(),
     val inSeparateDirectory: Boolean = false
 ) : Identifier(nameId) {
@@ -57,10 +58,11 @@ tracing::subscriber::set_global_default(
             brief,
             modules = submodules,
             staticInits = staticInits,
+            lazies = lazies,
             functions = functions + listOf(
                 Fn(
                     "main_run", "Bulk of work for main - placed in fn for consistent error handling.",
-                    FnParam("cli", "Cli".asType, "Command line options."),
+                    FnParam("cli", "Cli".asType, "Command line options.", allowUnused = true),
                     returnDoc = "An application error converted from a std compatible error",
                     returnType = "anyhow::Result<()>".asType,
                     body = mainRunBody

@@ -86,6 +86,9 @@ object USize : Type {
     override val type get() = "usize"
 }
 
+object ISize : Type {
+    override val type get() = "isize"
+}
 
 object F64 : Type {
     override val type: String get() = "f64"
@@ -115,4 +118,4 @@ object RefMutSelf : Type {
     override val type: String get() = "& mut Self"
 }
 
-
+val Type.asRefMut get() = Ref(this, null, isMutable = true)

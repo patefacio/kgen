@@ -7,9 +7,10 @@ data class FnParam(
     val nameId: String,
     val type: Type = RustString,
     val doc: String = "TODO Document Param($nameId)",
-    val isMutable: Boolean = false
+    val isMutable: Boolean = false,
+    val allowUnused: Boolean = false,
+    val attrs: AttrList = AttrList()
 ) : Identifier(nameId), AsRust {
-
 
     constructor(nameId: String, type: String, doc: String) : this(nameId, UnmodeledType(type), doc)
 
@@ -29,12 +30,17 @@ data class FnParam(
         } else {
             val typeAsRust = type.asRust
             val lifetimeMatch = selfWithLifetime.find(typeAsRust)
+            val attrs = if (allowUnused) {
+                (attrs.attrs + attrAllowUnused).asAttrList
+            } else {
+                attrs
+            }
 
             if (lifetimeMatch != null) {
                 val lifetime = lifetimeMatch.groupValues[1]
-                "& '$lifetime ${id.snakeCaseName}"
+                "& '$lifetime ${trailingText(mutable(isMutable))}${id.snakeCaseName}"
             } else {
-                "${trailingText(mutable(isMutable))}${id.snakeCaseName}: ${type.asRust}"
+                "${trailingText(mutable(isMutable))}${trailingText(attrs.asOuterAttr)}${id.snakeCaseName}: ${type.asRust}"
             }
         }
 }

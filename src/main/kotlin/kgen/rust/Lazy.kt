@@ -1,0 +1,28 @@
+package kgen.rust
+
+import kgen.*
+
+data class Lazy(
+    val nameId: String,
+    val doc: String,
+    val type: Type,
+    val value: String? = null,
+    val attrs: AttrList = AttrList(),
+    val visibility: Visibility = Visibility.Pub
+) : Identifier(nameId), AsRust {
+
+    override val asRust: String
+        get() {
+            val rustValue = when(value) {
+                null -> "{\n${emptyCloseDelimitedBlock("lazy init for $nameId", 
+                    emptyContents = "todo!(\"Write $nameId initializer\")")}\n}"
+                else -> value
+            }
+            return listOf(
+                commentTriple(doc),
+                attrs.attrs.asOuterAttr,
+                "${trailingText(visibility.asRust)}static ${id.shout}: Lazy<${type.asRust}> = Lazy::new(|| { $rustValue });"
+            ).joinNonEmpty()
+        }
+
+}

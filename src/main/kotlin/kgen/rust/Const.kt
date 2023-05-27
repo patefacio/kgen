@@ -4,7 +4,7 @@ import kgen.*
 
 data class Const(
     val nameId: String,
-    val doc: String,
+    val doc: String?,
     val type: Type,
     val value: Any,
     val attrs: AttrList = AttrList(),
@@ -18,7 +18,11 @@ data class Const(
                 else -> value.toString()
             }
             return listOf(
-                commentTriple(doc),
+                if (doc != null) {
+                    commentTriple(doc)
+                } else {
+                    ""
+                },
                 attrs.asOuterAttr,
                 "${trailingText(visibility.asRust)}const ${id.shout}: ${type.asRust} = $rustValue;"
             ).joinNonEmpty()

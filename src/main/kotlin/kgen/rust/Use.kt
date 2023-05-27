@@ -75,3 +75,5 @@ val useRange = Use("std::ops::Range")
 val useMap = Use("std::iter::Map")
 val useEnumerate = Use("std::iter::Enumerate")
 val useDynClone = Use("dyn_clone::DynClone")
+
+val Use.asUnused get() = this.copy(allowUnusedImports = true)
