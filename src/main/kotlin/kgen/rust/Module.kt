@@ -216,7 +216,8 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
         .filter { it.visibility == Visibility.PubExport }
         .map { it.structName } +
             enums.filter { it.visibility == Visibility.PubExport }.map { it.enumName } +
-            traits.filter { it.visibility == Visibility.PubExport }.map { it.asRustName }
+            traits.filter { it.visibility == Visibility.PubExport }.map { it.asRustName } +
+            functions.filter { it.visibility == Visibility.PubExport }.map { it.rustFunctionName }
 
     private val allExportedItemNames: Set<String>
         get() = modules.fold(exportedItemNames.toMutableSet()) { acc, module ->

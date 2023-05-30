@@ -94,6 +94,10 @@ object F64 : Type {
     override val type: String get() = "f64"
 }
 
+object RustChar : Type {
+    override val type: String get() = "char"
+}
+
 object RustString : Type {
     override val type get() = "String"
 }
@@ -117,5 +121,6 @@ object RefSelf : Type {
 object RefMutSelf : Type {
     override val type: String get() = "& mut Self"
 }
+
 
 val Type.asRefMut get() = Ref(this, null, isMutable = true)

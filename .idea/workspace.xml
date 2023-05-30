@@ -4,13 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c5fe73fe-89b0-47ba-80b4-cf772bd765c4" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="47ef816f-420d-4af1-a6c4-e6a1b38be52d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CommonTraits.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/CommonTraits.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Module.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Type.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Use.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Visibility.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/Visibility.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/CargoTomlTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/kotlin/kgen/rust/CargoTomlTest.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/ProtoCrateGenerator.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/kgen/rust/generator/ProtoCrateGenerator.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,19 +55,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "last_opened_file_path": "/Users/dbdavidson/dev/open_source/kgen",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/dbdavidson/dev/open_source/kgen&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="Tests in 'kgen.test'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
@@ -88,7 +88,6 @@
       <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
       <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
       <DebugAllEnabled>false</DebugAllEnabled>
-      <ForceTestExec>false</ForceTestExec>
       <method v="2" />
     </configuration>
     <recent_temporary>
@@ -100,7 +99,7 @@
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="c5fe73fe-89b0-47ba-80b4-cf772bd765c4" name="Changes" comment="" />
+      <changelist id="47ef816f-420d-4af1-a6c4-e6a1b38be52d" name="Changes" comment="" />
       <created>1667225753762</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -116,6 +115,10 @@
       <workItem from="1683737742961" duration="1487000" />
       <workItem from="1684413790743" duration="15062000" />
       <workItem from="1685403647143" duration="6129000" />
+      <workItem from="1685532855508" duration="3922000" />
+      <workItem from="1686346921162" duration="11000" />
+      <workItem from="1686494092242" duration="1224000" />
+      <workItem from="1687521433904" duration="5861000" />
     </task>
     <servers />
   </component>

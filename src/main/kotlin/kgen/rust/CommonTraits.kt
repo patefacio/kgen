@@ -164,3 +164,13 @@ val cloneTrait = Trait(
 
 val sendTrait = Trait("send", "The send marker trait")
 val syncTrait = Trait("sync", "The sync marker trait")
+
+val dropTrait = Trait(
+    "drop",
+    "Called when value is dropped",
+    Fn(
+        "drop",
+        "Custom code within the destructor",
+        refMutSelf
+    )
+)

@@ -42,7 +42,9 @@ data class ProtoCrateGenerator(
     val generatorDeletedPath: Path? = null,
     val customImplProtoPaths: Map<String, List<Fn>> = emptyMap(),
     val additionalDerives: Map<String, Set<String>> = emptyMap(),
-    val additionalTraitImpls: Map<Message, List<TraitImpl>> = emptyMap()
+    val additionalTraitImpls: Map<Message, List<TraitImpl>> = emptyMap(),
+    val uses: Set<Use> = emptySet(),
+    val exportTypes: Boolean = false
 ) : Identifier(crateNameId) {
 
     private fun generateProtos() = protoFiles.map {
@@ -160,9 +162,21 @@ data class ProtoCrateGenerator(
     fun generate(): List<MergeResult> {
         val generatedProtos = generateProtos()
         checkForNonGeneratedProtos(generatedProtos)
+
+        val enumSerializables = protoFiles.map { it.enums }.flatten()
+            .map { it.id.capCamel }
+            .toSet()
+
         val serdeSerializables =
-            protoFiles.map { it.messages }.flatten().map { it.id.capCamel } + protoFiles.map { it.enums }.flatten()
-                .map { it.id.capCamel } + protoFiles.map { it.allOneOfs.map { it.nameId } }.flatten()
+            protoFiles.map { it.messages }.flatten()
+                .map { it.id.capCamel } + enumSerializables + protoFiles.map { it.allOneOfs.map { it.nameId } }
+                .flatten()
+
+        val exportUsings = if(exportTypes) {
+            udtsByNamedType.map { (k,_) -> "crate::$k".replace(".", "::").asPubUse }
+        } else {
+            emptyList()
+        }
 
         val crate = Crate(crateNameId,
             doc,
@@ -178,7 +192,8 @@ data class ProtoCrateGenerator(
                         visibility = Visibility.Pub
                     )
                 } + additionalTraitImplModules,
-                macroUses = listOf("serde_derive")
+                macroUses = listOf("serde_derive", "strum_macros"),
+                uses = uses + exportUsings
             ),
             Module(
                 "build", "Build proto files.", functions = listOf(
@@ -195,11 +210,18 @@ tonic_build::configure()
     .out_dir("src/")
 ${
                                     indent(
-                                        serdeSerializables.joinToString("\n") {
-                                            val derives = (setOf(
-                                                "Serialize", "Deserialize"
-                                            ) + (additionalDerives[it] ?: emptySet())).joinToString()
-                                            ".type_attribute(${doubleQuote(it)}, \"#[derive($derives)]\")"
+                                        serdeSerializables.joinToString("\n") { typeName ->
+
+                                            val derives = mutableSetOf("Serialize", "Deserialize")
+                                            derives.addAll(additionalDerives[typeName] ?: emptySet())
+
+                                            if (enumSerializables.contains(typeName)) {
+                                                derives.addAll(listOf("EnumVariantNames", "EnumIter"))
+                                            }
+
+                                            val joinedDerives = derives.joinToString()
+
+                                            ".type_attribute(${doubleQuote(typeName)}, \"#[derive($joinedDerives)]\")"
                                         }, "    "
                                     )
                                 } 
