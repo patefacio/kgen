@@ -215,11 +215,9 @@ Ok(())
             ),
             cargoToml = CargoToml(
                 crateNameId, dependencies = listOf(
-                    "tonic = \"0.8\"",
                     "prost = \"0.11\"",
                     "serde = \"^1.0.27\"",
                     "serde_derive = \"^1.0.27\"",
-                    """tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }""",
                 ), buildDependencies = listOf("""tonic-build = "0.8"""")
             )
         )
