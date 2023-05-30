@@ -20,6 +20,11 @@ description = ""${'"'}Project foo bar""${'"'}
 license = "MIT"
 keywords = []
 
+
+[lib]
+# α <lib>
+# ω <lib>
+
 [dependencies]
 # α <dependencies>
 # ω <dependencies>
@@ -27,6 +32,12 @@ keywords = []
 [build-dependencies]
 # α <build-dependencies>
 # ω <build-dependencies>
+
+[features]
+# α <features>
+# ω <features>
+# α <additional>
+# ω <additional>
 """.trimIndent(),
             CargoToml("foo_bar", "Project foo bar").toml
         )

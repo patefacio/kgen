@@ -64,6 +64,7 @@ val List<String>.asAllowUnusedUses
 
 fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }
 
+val String.asPubUse get() = Use(this, visibility = Visibility.Pub)
 val List<String>.asPubUses get() = this.map { Use(it, visibility = kgen.rust.Visibility.Pub) }.toSet()
 
 val useHashMap = Use("std::collections::HashMap")

@@ -212,6 +212,27 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
 
     private val pubUses = allUses.filter { it.visibility == Visibility.Pub }
 
+    private val exportedItemNames = structs
+        .filter { it.visibility == Visibility.PubExport }
+        .map { it.structName } +
+            enums.filter { it.visibility == Visibility.PubExport }.map { it.enumName } +
+            traits.filter { it.visibility == Visibility.PubExport }.map { it.asRustName }
+
+    private val allExportedItemNames: Set<String>
+        get() = modules.fold(exportedItemNames.toMutableSet()) { acc, module ->
+            acc.addAll(module.allExportedItemNames.map {
+                "${module.nameId}::$it"
+            })
+            acc
+        }
+
+    private val exportUses
+        get() = if (moduleRootType == ModuleRootType.LibraryRoot) {
+            allExportedItemNames.map { it.asPubUse }.toSet()
+        } else {
+            emptySet()
+        }
+
     override
     val asRust: String
         get() = wrapIfInline(
@@ -231,7 +252,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                     testMacroUses.map { "#[cfg(test)]\n#[macro_use]\nextern crate $it;" }
                 ),
                 announceSection("pub module uses",
-                    pubUses.joinToString("\n") { it.asRust }),
+                    (pubUses + exportUses).joinToString("\n") { it.asRust }),
                 announceSection("module uses",
                     allUses.filter { it.visibility != Visibility.Pub }.joinToString("\n") { it.asRust }),
                 announceSection("mod decls",

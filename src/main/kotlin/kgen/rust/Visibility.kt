@@ -6,10 +6,13 @@ sealed class Visibility : AsRust {
     object PubSelf : Visibility()
     object PubSuper : Visibility()
     class PubIn(val inPackage: String): Visibility()
+
+    object PubExport : Visibility()
+
     object None : Visibility()
 
     override val asRust get() = when(this) {
-        Pub -> "pub"
+        Pub, PubExport  -> "pub"
         PubCrate -> "pub(crate)"
         PubSelf -> "pub(self)"
         PubSuper -> "pub(super)"
