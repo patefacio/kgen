@@ -36,6 +36,7 @@ internal class OneOfTest {
         """.trimIndent(),
             OneOf(
                 "primary_color",
+                "parent",
                 Field("red", ProtoInt32, "Red value"),
                 Field("green", ProtoInt32, "Green value"),
                 Field("blue", ProtoInt32, "Red value")

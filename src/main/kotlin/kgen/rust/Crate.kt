@@ -19,7 +19,7 @@ data class Crate(
     val doc: String = missingDoc(nameId, "Crate"),
     val rootModule: Module = Module("lib", moduleRootType = ModuleRootType.LibraryRoot),
     val buildModule: Module? = null,
-    val cargoToml: CargoToml = CargoToml(nameId),
+    val cargoToml: CargoToml = CargoToml(nameId, description = doc),
     val binaries: List<ClapBinary> = emptyList(),
     val includeTypeSizes: Boolean = false,
     val integrationTestModules: List<Module> = emptyList(),

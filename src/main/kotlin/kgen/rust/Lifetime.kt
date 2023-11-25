@@ -9,16 +9,12 @@ data class Lifetime(
 
 val String.asLifetime get() = Lifetime(this)
 
-val String.asLifetimes get() = this.split(",").map { Lifetime(it.trim()) }
+fun lifetime(lifetime: String) = Lifetime(lifetime.removePrefix("'").trim())
+
+val String.asLifetimes get() = this.split(",").map { lifetime(it) }
 
 fun lifetimes(vararg lifetime: String) = lifetime.map {
-    Lifetime(
-        if (it.startsWith("'")) {
-            it.substring(1)
-        } else {
-            it
-        }
-    )
+    lifetime(it)
 }
 
 val List<Lifetime>.asRust

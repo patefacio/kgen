@@ -11,6 +11,7 @@ internal class AccessTest {
         fun acceptAccess(access: Access) = when(access) {
             ReadOnly -> "RO"
             ReadWrite -> "RW"
+            ReadOnlyCloned -> "ROC"
             ReadOnlyRef -> "ROR"
             ReadWriteRef -> "RWR"
             Inaccessible -> "IA"
@@ -24,6 +25,7 @@ internal class AccessTest {
 
         assertEquals("RO", acceptAccess(ReadOnly))
         assertEquals("RW", acceptAccess(ReadWrite))
+        assertEquals("ROC", acceptAccess(ReadOnlyCloned))
         assertEquals("ROR", acceptAccess(ReadOnlyRef))
         assertEquals("RWR", acceptAccess(ReadWriteRef))
         assertEquals("IA", acceptAccess(Inaccessible))

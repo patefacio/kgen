@@ -7,6 +7,7 @@ import kgen.indent
 
 data class OneOf(
     val nameId: String,
+    val parentNameId: String,
     val fields: List<Field>,
     val doc: String? = null
 ) : Identifier(nameId), Udt, AsProto, MessageField {
@@ -21,7 +22,12 @@ data class OneOf(
         copy(fields = fields.withIndex().map { (id, field) -> field.copy(number = number + id) })
 
 
-    constructor(nameId: String, vararg fields: Field, doc: String? = null) : this(nameId, fields.toList(), doc)
+    constructor(nameId: String, parentNameId: String, vararg fields: Field, doc: String? = null) : this(
+        nameId,
+        parentNameId,
+        fields.toList(),
+        doc
+    )
 
     val autoNumbered
         get() = this.copy(

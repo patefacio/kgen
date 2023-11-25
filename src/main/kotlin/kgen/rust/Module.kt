@@ -1,6 +1,7 @@
 package kgen.rust
 
 import kgen.*
+import kgen.rust.decl_macro.DeclMacro
 import kgen.utility.panicTest
 import kgen.utility.unitTest
 
@@ -18,6 +19,7 @@ data class Module(
     val uses: Set<Use> = emptySet(),
     val typeAliases: List<TypeAlias> = emptyList(),
     val staticInits: List<StaticInit> = emptyList(),
+    val declMacros: List<DeclMacro> = emptyList(),
     val lazies: List<Lazy> = emptyList(),
     val consts: List<Const> = emptyList(),
     val attrs: AttrList = AttrList(),
@@ -55,8 +57,8 @@ data class Module(
     }
 
     private val allTraitImpls = traitImpls +
-            structs.map { it.traitImpls }.flatten() +
-            enums.map { it.traitImpls }.flatten()
+            structs.map { it.allTraitImpls }.flatten() +
+            enums.map { it.allTraitImpls }.flatten()
 
     private val allTypeImpls = typeImpls +
             structs.mapNotNull { it.augmentedTypeImpl } +
@@ -193,7 +195,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
 
     private var allUses = uses +
             traits.map { it.allUses }.flatten() +
-            functions.map { it.uses }.flatten() +
+            functions.map { it.allUses }.flatten() +
             allTraitImpls.map { it.allUses }.flatten() +
             allTypeImpls.map { it.allUses }.flatten() +
             structs.map { it.allUses }.flatten() +
@@ -213,23 +215,30 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     private val pubUses = allUses.filter { it.visibility == Visibility.Pub }
 
     private val exportedItemNames = structs
-        .filter { it.visibility == Visibility.PubExport }
-        .map { it.structName } +
-            enums.filter { it.visibility == Visibility.PubExport }.map { it.enumName } +
-            traits.filter { it.visibility == Visibility.PubExport }.map { it.asRustName } +
-            functions.filter { it.visibility == Visibility.PubExport }.map { it.rustFunctionName }
+        .filter { it.visibility.isExport }
+        .map { Pair(it.structName, it.visibility) } +
+            enums.filter { it.visibility.isExport }.map { Pair(it.enumName, it.visibility) } +
+            traits.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
+            functions.filter { it.visibility.isExport }.map { Pair(it.rustFunctionName, it.visibility) } +
+            typeAliases.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
+            consts.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
+            lazies.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
+            declMacros.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility)}
 
-    private val allExportedItemNames: Set<String>
+
+    private val allExportedItemNames: Set<Pair<String, Visibility>>
         get() = modules.fold(exportedItemNames.toMutableSet()) { acc, module ->
-            acc.addAll(module.allExportedItemNames.map {
-                "${module.nameId}::$it"
+            acc.addAll(module.allExportedItemNames.map { (itemName, visibility) ->
+                Pair("${module.nameId}::$itemName", visibility)
             })
             acc
         }
 
     private val exportUses
         get() = if (moduleRootType == ModuleRootType.LibraryRoot) {
-            allExportedItemNames.map { it.asPubUse }.toSet()
+            allExportedItemNames.map { (itemName, visibility) ->
+                visibility.makeUse(itemName)
+            }.toSet()
         } else {
             emptySet()
         }
@@ -261,6 +270,8 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                         .filter { (it.moduleType != ModuleType.Inline) && !it.disabled }
                         .map { "${it.asModDecl};" }).joinToString("\n")
                 ),
+                announceSection("declarative macros",
+                    declMacros.joinToString("\n") { it.asRust }),
                 announceSection("type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
                 announceSection("static inits",

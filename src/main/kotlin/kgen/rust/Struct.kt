@@ -20,12 +20,15 @@ data class Struct(
     val attrs: AttrList = AttrList(),
     val asTupleStruct: Boolean = false,
     val typeImpl: TypeImpl? = null,
+    val traitImpls: List<TraitImpl> = emptyList(),
     val implementedTraits: List<Trait> = emptyList(),
     val staticInits: List<StaticInit> = emptyList(),
     val lazies: List<Lazy> = emptyList(),
     val includeNew: Boolean = false,
     val includeCustomNew: Boolean = false,
-    val inlineNew: Boolean = false
+    val inlineNew: Boolean = false,
+    val additionalNewParams: List<FnParam> = emptyList(),
+    val ctors: List<Ctor> = emptyList()
 ) : Identifier(nameId), Type, AsRust {
 
     val structName = id.capCamel
@@ -36,7 +39,7 @@ data class Struct(
 
     val allUses get() = uses + (typeImpl?.allUses ?: emptySet())
 
-    private fun newFnFromFields(fields: List<Field>): Fn {
+    private fun newFnFromFields(fields: List<Field>, additionalNewParams: List<FnParam>): Fn {
         val returnType = structNameGenericWithoutDefaults.asType
         val includedFields = fields.filter { !it.excludeFromNew }
         fun wrapNewBody(body: String) = if (asTupleStruct) {
@@ -60,7 +63,7 @@ data class Struct(
         return Fn(
             "new",
             "Create new instance of $asRustName",
-            includedFields.filter { it.defaultValue == null }.map { it.asFnParam },
+            includedFields.filter { it.defaultValue == null }.map { it.asFnParam } + additionalNewParams,
             returnDoc = "The new instance",
             returnType = returnType,
             body = body,
@@ -73,20 +76,31 @@ data class Struct(
         )
     }
 
-    val traitImpls
-        get() = implementedTraits.map { trait ->
+    val allTraitImpls
+        get() = traitImpls + implementedTraits.map { trait ->
             TraitImpl(structNameGeneric.asType, trait, genericParamSet = genericParamSet)
         }
 
+    private val allCtorFns = ctors.map { it.asFn(fields) } + listOfNotNull(
+        when {
+            includeNew || includeCustomNew -> {
+                newFnFromFields(fields, additionalNewParams)
+            }
+
+            else -> null
+        }
+    )
+
+    private val hasCtor = includeNew || includeCustomNew || allCtorFns.isNotEmpty()
+
     val augmentedTypeImpl
-        get() = if (includeNew || includeCustomNew) {
-            val newFn = newFnFromFields(fields)
+        get() = if (hasCtor) {
             typeImpl?.copy(
-                functions = typeImpl.functions + newFn,
+                functions = typeImpl.functions + allCtorFns,
                 genericParamSet = genericParamSet.withoutDefaults
             ) ?: TypeImpl(
-                newFn.returnType!!,
-                newFn,
+                structNameGenericWithoutDefaults.asType,
+                allCtorFns,
                 genericParamSet = genericParamSet.withoutDefaults
             )
         } else {
@@ -119,12 +133,15 @@ data class Struct(
         attrs: AttrList = AttrList(),
         asTupleStruct: Boolean = false,
         typeImpl: TypeImpl? = null,
+        traitImpls: List<TraitImpl> = emptyList(),
         implementedTraits: List<Trait> = emptyList(),
         staticInits: List<StaticInit> = emptyList(),
         lazies: List<Lazy> = emptyList(),
         includeNew: Boolean = false,
         includeCustomNew: Boolean = false,
-        inlineNew: Boolean = false
+        inlineNew: Boolean = false,
+        additionalNewParams: List<FnParam> = emptyList(),
+        ctors: List<Ctor> = emptyList()
     ) : this(
         nameId,
         doc,
@@ -135,12 +152,15 @@ data class Struct(
         attrs,
         asTupleStruct,
         typeImpl,
+        traitImpls,
         implementedTraits,
         staticInits,
         lazies,
         includeNew,
         includeCustomNew,
-        inlineNew
+        inlineNew,
+        additionalNewParams,
+        ctors
     )
 
     private val openStruct = if (asTupleStruct) {

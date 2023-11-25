@@ -134,17 +134,18 @@ val displayTrait = Trait(
         FnParam(
             "f",
             "&mut Formatter<'_>".asType,
-            "Formatter to push formatted item to."
+            "Formatter to push formatted item to.",
+            attrs = attrAllowUnused.asAttrList
         ),
         returnDoc = "Formatted instance",
-        returnType = "core::fmt::Result".asType,
-        uses = listOf("core::fmt::Display", "core::fmt::Formatter").asUses
+        returnType = "::core::fmt::Result".asType,
+        uses = listOf("::core::fmt::Display", "::core::fmt::Formatter").asUses
     )
 )
 
 val cloneTrait = Trait(
     "clone",
-    "A common trait for the ability to explicity duplicate an object.",
+    "A common trait for the ability to explicit duplicate an object.",
     Fn(
         "clone",
         "Clone the instance",

@@ -6,7 +6,7 @@ sealed class TraitBound(val default: String? = null) : AsRust {
             get() = withDefault(trait.asRust, default)
     }
 
-    class Unmodeled(val traitName: String, default: String? = null) : TraitBound(default) {
+    class Unmodeled(private val traitName: String, default: String? = null) : TraitBound(default) {
         override val asRust: String
             get() = withDefault(traitName, default)
     }

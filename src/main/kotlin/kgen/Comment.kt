@@ -30,3 +30,10 @@ val String?.commentTriple
     } else {
         null
     }
+
+val String?.comment
+    get() = if (this != null) {
+        comment(this)
+    } else {
+        null
+    }

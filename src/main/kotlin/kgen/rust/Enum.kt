@@ -11,6 +11,7 @@ data class Enum(
     val attrs: AttrList = AttrList(),
     val uses: Set<Use> = emptySet(),
     val typeImpl: TypeImpl? = null,
+    val traitImpls: List<TraitImpl> = emptyList(),
     val implementedTraits: List<Trait> = emptyList()
     ) : Identifier(nameId), Type, AsRust {
 
@@ -23,6 +24,7 @@ data class Enum(
         attrs: AttrList = AttrList(),
         uses: Set<Use> = emptySet(),
         typeImpl: TypeImpl? = null,
+        traitImpls: List<TraitImpl> = emptyList(),
         implementedTraits: List<Trait> = emptyList()
     ) : this(
         nameId,
@@ -33,13 +35,14 @@ data class Enum(
         attrs,
         uses,
         typeImpl,
+        traitImpls,
         implementedTraits
     )
 
     val enumName = id.capCamel
 
-    val traitImpls
-        get() = implementedTraits.map { trait ->
+    val allTraitImpls
+        get() = traitImpls + implementedTraits.map { trait ->
             TraitImpl(enumName.asType, trait, genericParamSet = genericParamSet)
         }
 

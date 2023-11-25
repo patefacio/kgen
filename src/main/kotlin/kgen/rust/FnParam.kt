@@ -9,7 +9,8 @@ data class FnParam(
     val doc: String = "TODO Document Param($nameId)",
     val isMutable: Boolean = false,
     val allowUnused: Boolean = false,
-    val attrs: AttrList = AttrList()
+    val attrs: AttrList = AttrList(),
+    val uses: Set<Use> = emptySet()
 ) : Identifier(nameId), AsRust {
 
     constructor(nameId: String, type: String, doc: String) : this(nameId, UnmodeledType(type), doc)

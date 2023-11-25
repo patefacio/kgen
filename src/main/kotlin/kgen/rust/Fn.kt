@@ -2,6 +2,10 @@ package kgen.rust
 
 import kgen.*
 
+/** Models a rust function.
+ * @property uses The uses required for the function - pulled in at top of module
+ * @property localUses The uses required internal to function - pulled at top of fn
+ */
 data class Fn(
     val nameId: String,
     val doc: String? = missingDoc(nameId, "Fn"),
@@ -18,10 +22,14 @@ data class Fn(
     val blockName: String = nameId,
     val emptyBlockContents: String? = null,
     val uses: Set<Use> = emptySet(),
+    val localUses: Set<Use> = emptySet(),
     val testNameIds: List<String> = emptyList(),
     val panicTestNameIds: List<String> = emptyList(),
     val nameCapCamel: Boolean = false,
-    val inlineParamDoc: Boolean = false
+    val inlineParamDoc: Boolean = false,
+    val consts: List<Const> = emptyList(),
+    val lets: List<Let> = emptyList(),
+    val isAsync: Boolean = false
 ) : Identifier(nameId), AsRust {
 
 
@@ -41,16 +49,22 @@ data class Fn(
         blockName: String = nameId,
         emptyBlockContents: String? = null,
         uses: Set<Use> = emptySet(),
+        localUses: Set<Use> = emptySet(),
         testNameIds: List<String> = emptyList(),
         panicTestNameIds: List<String> = emptyList(),
         nameCapCamel: Boolean = false,
-        inlineParamDoc: Boolean = false
+        inlineParamDoc: Boolean = false,
+        consts: List<Const> = emptyList(),
+        lets: List<Let> = emptyList(),
+        isAsync: Boolean = false,
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
         genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
-        blockName, emptyBlockContents, uses, testNameIds, panicTestNameIds,
-        nameCapCamel, inlineParamDoc
+        blockName, emptyBlockContents, uses, localUses, testNameIds, panicTestNameIds,
+        nameCapCamel, inlineParamDoc, consts, lets, isAsync
     )
+
+    val allUses get() = uses + params.map { it.uses }.flatten().toSet()
 
     private val allAttrs = listOfNotNull(
         attrs,
@@ -72,7 +86,7 @@ data class Fn(
         listOf(
             "(",
             indent(params.joinToString(",\n") {
-                if(inlineParamDoc) {
+                if (inlineParamDoc) {
                     listOf(commentTriple(it.doc), it.asRust).joinToString("\n")
                 } else {
                     it.asRust
@@ -89,23 +103,31 @@ data class Fn(
             ""
         }
 
-    val visibilityDecl get() = if(!isTest) {
-        visibility.asRust
-    } else {
-        ""
-    }
+    val visibilityDecl
+        get() = if (!isTest) {
+            visibility.asRust
+        } else {
+            ""
+        }
 
-    val rustFunctionName get() = if(nameCapCamel) {
-        nameId.asId.capCamel
-    } else {
-        nameId
-    }
+    val rustFunctionName
+        get() = if (nameCapCamel) {
+            nameId.asId.capCamel
+        } else {
+            nameId
+        }
 
     val signature
         get() = withWhereClause(
-            "${trailingText(visibilityDecl)}fn $rustFunctionName${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
+            "${trailingText(visibilityDecl)}${asyncKeyword}fn $rustFunctionName${genericParamSet?.asRust.emptyIfNull}$paramText$sigReturnType",
             genericParamSet
         )
+
+    private val asyncKeyword = if(isAsync) {
+        "async "
+    } else {
+        ""
+    }
 
     val asTraitFn
         get() = listOfNotNull(
@@ -139,13 +161,18 @@ data class Fn(
         null
     }
 
-
     fun asRust(codeBlockName: String) = listOfNotNull(
         fnDoc,
         allAttrs.asOuterAttr,
         "$signature {",
-        indent(body?.asRust ?: emptyOpenDelimitedBlock(
-            codeBlockName, emptyContents = emptyBlockContents ?: "todo!(\"Implement `$id`\")")),
+        localUses.map { it.asRust }.joinNonEmpty("\n"),
+        consts.map { it.asRust }.joinNonEmpty("\n"),
+        lets.map { it.asRust }.joinNonEmpty("\n"),
+        indent(
+            body?.asRust ?: emptyOpenDelimitedBlock(
+                codeBlockName, emptyContents = emptyBlockContents ?: "todo!(\"Implement `$id`\")"
+            )
+        ),
         "}"
     )
         .joinNonEmpty()

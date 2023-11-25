@@ -23,6 +23,7 @@ import kgen.*
  * @property uses List of uses for the trait impl
  * @property noFunctionComments If set the comments will not be included - for
  *           simple type trait impls no need to duplicate large doc comments.
+ * @property attrs Properties for the impl, eg `#[cfg(debug_assertions]` for debugOnly
  */
 data class TraitImpl(
     val type: Type,
@@ -36,13 +37,21 @@ data class TraitImpl(
     val unitTestTraitFunctions: Boolean = false,
     val functionUnitTests: List<Id> = emptyList(),
     val uses: Set<Use> = emptySet(),
-    val noFunctionComments: Boolean = false
+    val noFunctionComments: Boolean = false,
+    val attrs: AttrList = AttrList(),
+    val debugOnly: Boolean = false,
 ) : AsRust {
 
     /** True if any/all functions have unit tests. */
     val hasUnitTests get() = unitTestTraitFunctions || functionUnitTests.isNotEmpty()
 
     val allUses = uses + trait.allUses
+
+    val allAttrs get() = if(debugOnly) {
+        attrs + attrDebugBuild
+    } else {
+        attrs
+    }
 
     private val unitTestFunctionIds
         get() = if (unitTestTraitFunctions) {
@@ -77,7 +86,7 @@ data class TraitImpl(
     override val asRust: String
         get() = listOf(
             withWhereClause(
-                "impl ${trailingText(genericParamSet.asRust)}${trait.asRustName}${genericArgSet.asRust} for ${type.asRust}",
+                "${attrs.asOuterAttr}impl ${trailingText(genericParamSet.asRust)}${trait.asRustName}${genericArgSet.asRust} for ${type.asRust}",
                 if (selfBounds.isEmpty()) {
                     genericParamSet
                 } else {

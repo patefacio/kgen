@@ -128,10 +128,16 @@ val List<Attr>.asInnerAttr
         this.coalesced.joinToString("\n") { it.asInnerAttr }
     }
 
+val attrSsr = Attr.Dict("cfg", "feature" to "ssr")
 val attrCfgTest = Attr.Words("cfg", "test")
 val attrInline = Attr.Word("inline")
 val attrDynamic = Attr.Word("dynamic")
 val attrComponent = Attr.Word("component")
+
+val attrDeriveDebug = derive("Debug")
+val attrDeriveDefault = derive("Default")
+val attrDeriveClone = derive("Clone")
+val attrDeriveCopy = derive("Copy")
 
 val aggrSerdeSerialize = Attr.Words("derive", "Serialize", "Deserialize")
 val attrDebugBuild = Attr.Words("cfg", "debug_assertions")
@@ -142,6 +148,9 @@ val attrIterIntersperse = Attr.Words("feature", "iter_intersperse")
 val attrUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
 val attrAllowUnused = Attr.Words("allow", "unused")
 val attrVariantCount = Attr.Words("feature", "variant_count")
+val attrIsSorted = Attr.Words("feature", "is_sorted")
+val attrDenyMissingDoc = Attr.Words("deny", "missing_docs")
+val attrMacroExport = Attr.Word("macro_export")
 
 val attrNoEscapeTemplate = Attr.Dict("template", "escape" to "none")
 

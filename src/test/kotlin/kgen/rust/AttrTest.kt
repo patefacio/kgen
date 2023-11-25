@@ -1,6 +1,5 @@
 package kgen.rust
 
-import kgen.id
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

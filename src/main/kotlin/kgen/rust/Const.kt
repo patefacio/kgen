@@ -4,12 +4,14 @@ import kgen.*
 
 data class Const(
     val nameId: String,
-    val doc: String?,
+    val doc: String? = missingDoc(nameId, "Constant"),
     val type: Type,
     val value: Any,
     val attrs: AttrList = AttrList(),
     val visibility: Visibility = Visibility.Pub
 ) : Identifier(nameId), AsRust {
+
+    val asRustName  get() = id.shout
 
     override val asRust: String
         get() {

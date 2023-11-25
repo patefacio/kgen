@@ -65,13 +65,21 @@ val List<String>.asAllowUnusedUses
 fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }
 
 val String.asPubUse get() = Use(this, visibility = Visibility.Pub)
-val List<String>.asPubUses get() = this.map { Use(it, visibility = kgen.rust.Visibility.Pub) }.toSet()
+val List<String>.asPubUses get() = this.map { Use(it, visibility = Visibility.Pub) }.toSet()
+
+val List<String>.asPubCrateUses get() = this.map { Use(it, visibility = Visibility.PubCrate) }.toSet()
+val List<String>.asPubExportUses get() = this.map { Use(it, visibility = Visibility.PubExport) }.toSet()
 
 val useHashMap = Use("std::collections::HashMap")
 val useBTreeMap = Use("std::collections::BTreeMap")
 val useCow = Use("std::borrow::Cow")
 val useBox = Use("std::boxed::Box")
+val useRc = Use("std::rc::Rc")
+val useRef = Use("std::cell::Ref")
+val useRefMut = Use("std::cell::RefMut")
+val useRefCell = Use("std::cell::RefCell")
 val useArc = Use("std::sync::Arc")
+val useMutex = Use("std::sync::Mutex")
 val useRange = Use("std::ops::Range")
 val useRangeInclusive = Use("std::ops::RangeInclusive")
 val useMap = Use("std::iter::Map")

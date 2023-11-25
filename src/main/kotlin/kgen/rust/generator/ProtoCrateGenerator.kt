@@ -2,6 +2,7 @@ package kgen.rust.generator
 
 import kgen.*
 import kgen.proto.*
+import kgen.proto.Enum
 import kgen.proto.Field
 import kgen.rust.*
 import java.nio.file.Path
@@ -43,8 +44,12 @@ data class ProtoCrateGenerator(
     val customImplProtoPaths: Map<String, List<Fn>> = emptyMap(),
     val additionalDerives: Map<String, Set<String>> = emptyMap(),
     val additionalTraitImpls: Map<Message, List<TraitImpl>> = emptyMap(),
+    val additionalMessageImpls: Map<Message, TypeImpl> = emptyMap(),
+    val additionalEnumImpls: Map<Enum, TypeImpl> = emptyMap(),
     val uses: Set<Use> = emptySet(),
-    val exportTypes: Boolean = false
+    val exportTypes: Boolean = false,
+    val includeDisplayImpls: Boolean = false,
+    val additionalModules: List<Module> = emptyList()
 ) : Identifier(crateNameId) {
 
     private fun generateProtos() = protoFiles.map {
@@ -62,7 +67,7 @@ data class ProtoCrateGenerator(
     }
 
     /**
-     * Messages referenced as field types in the proto file are specifed with NamedType:
+     * Messages referenced as field types in the proto file are specified with NamedType:
      * e.g. (some_proto.SomeMessage). This function gets at the message type name. A current
      * limitation of this setup is scoping is not strong and within a set of protobuf files
      * having the same named message can be a problem.
@@ -92,9 +97,36 @@ data class ProtoCrateGenerator(
     /**
      * Transform any trait impls to rust modules
      */
-    val additionalTraitImplModules = additionalTraitImpls.map { (message, traitImpls) ->
+    private val additionalTraitImplModules = additionalTraitImpls.map { (message, traitImpls) ->
         Module("${message.nameId}_traits", null, traitImpls = traitImpls)
     }
+
+    /**
+     * Transform any message impl to a rust module
+     */
+    private val additionalMessageImplModules = additionalMessageImpls.map { (message, impl) ->
+        Module(
+            "${message.id}_impl",
+            "An impl for message ${message.id}",
+            typeImpls = listOf(impl)
+        )
+    }
+
+    /**
+     * Transform any message impl to a rust module
+     */
+    private val additionalEnumImplModules = additionalEnumImpls.map { (enum, impl) ->
+        Module(
+            "${enum.id}_impl",
+            "An impl for enum ${enum.id}",
+            typeImpls = listOf(impl)
+        )
+    }
+
+    val allAdditionalModules = additionalModules +
+            additionalTraitImplModules +
+            additionalEnumImplModules +
+            additionalMessageImplModules
 
     private fun messageShouldValidate(namedType: String): Boolean {
         val udtName = typeName(namedType)
@@ -172,26 +204,45 @@ data class ProtoCrateGenerator(
                 .map { it.id.capCamel } + enumSerializables + protoFiles.map { it.allOneOfs.map { it.nameId } }
                 .flatten()
 
-        val exportUsings = if(exportTypes) {
-            udtsByNamedType.map { (k,_) -> "crate::$k".replace(".", "::").asPubUse }
+        val exportUsings = if (exportTypes) {
+            udtsByNamedType.map { (k, _) -> "crate::$k".replace(".", "::").asPubUse }
         } else {
             emptyList()
         }
 
-        val crate = Crate(crateNameId,
+
+        val crate = Crate(
+            crateNameId,
             doc,
             Module(
                 "lib",
                 "Top library module for crate $crateNameId\n\n$doc",
                 moduleRootType = ModuleRootType.LibraryRoot,
-                modules = protoFiles.map {
-                    Module(
-                        it.nameId,
-                        "Placeholder for ${it.nameId} proto",
-                        moduleType = ModuleType.PlaceholderModule,
-                        visibility = Visibility.Pub
+                modules = protoFiles.map { protoFile ->
+                    listOfNotNull(
+                        Module(
+                            protoFile.nameId,
+                            "Placeholder for ${protoFile.nameId} proto",
+                            moduleType = ModuleType.PlaceholderModule,
+                            visibility = Visibility.Pub
+                        ),
+                        if (includeDisplayImpls && protoFile.messages.isNotEmpty()) {
+                            Module(
+                                "${protoFile.nameId}_display",
+                                "Display implementations",
+                                traitImpls = protoFile.messages.map { message ->
+                                    TraitImpl(
+                                        message.id.capCamel.asType,
+                                        displayTrait,
+                                        uses = listOf("crate::${message.id.capCamel}").asUses
+                                    )
+                                },
+                            )
+                        } else {
+                            null
+                        }
                     )
-                } + additionalTraitImplModules,
+                }.flatten() + allAdditionalModules,
                 macroUses = listOf("serde_derive", "strum_macros"),
                 uses = uses + exportUsings
             ),
@@ -236,7 +287,9 @@ Ok(())
                 )
             ),
             cargoToml = CargoToml(
-                crateNameId, dependencies = listOf(
+                crateNameId,
+                description = doc,
+                dependencies = listOf(
                     "prost = \"0.11\"",
                     "serde = \"^1.0.27\"",
                     "serde_derive = \"^1.0.27\"",

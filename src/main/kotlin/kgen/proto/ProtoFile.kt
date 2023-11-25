@@ -64,6 +64,11 @@ val List<ProtoFile>.allFileMessages
         }.flatten()
     }.flatten()
 
+val List<ProtoFile>.allFileOneOfs
+    get() = this.map { protoFile ->
+        protoFile.allOneOfs.map { oneOf -> Pair(protoFile, oneOf) }
+    }.flatten()
+
 val List<ProtoFile>.allFileEnums
     get() = this.map { protoFile ->
         protoFile.enums.map { enum -> Pair(protoFile, enum) }
@@ -74,6 +79,8 @@ val List<ProtoFile>.udtsByNamedType
         "${protoFile.nameId}.${message.id.capCamel}" to message as Udt
     } + allFileEnums.associate { (protoFile, enum) ->
         "${protoFile.nameId}.${enum.id.capCamel}" to enum as Udt
+    } + allFileOneOfs.associate { (protoFile, oneOf) ->
+        "${protoFile.nameId}.${oneOf.parentNameId.asId.snake}.${oneOf.id.capCamel}" to oneOf as Udt
     }
 
 

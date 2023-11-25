@@ -11,6 +11,7 @@ data class Lazy(
     val visibility: Visibility = Visibility.Pub
 ) : Identifier(nameId), AsRust {
 
+    val asRustName = id.shout
     override val asRust: String
         get() {
             val rustValue = when(value) {
@@ -21,7 +22,7 @@ data class Lazy(
             return listOf(
                 commentTriple(doc),
                 attrs.attrs.asOuterAttr,
-                "${trailingText(visibility.asRust)}static ${id.shout}: Lazy<${type.asRust}> = Lazy::new(|| { $rustValue });"
+                "${trailingText(visibility.asRust)}static $asRustName: Lazy<${type.asRust}> = Lazy::new(|| { $rustValue });"
             ).joinNonEmpty()
         }
 

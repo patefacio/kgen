@@ -25,7 +25,7 @@ data class TypeImpl(
     val uses: Set<Use> = emptySet()
 ) : AsRust {
 
-    val allUses get() = uses + functions.map { it.uses }.flatten()
+    val allUses get() = uses + functions.map { it.allUses }.flatten()
 
     constructor(
         type: Type,

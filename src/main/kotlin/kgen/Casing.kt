@@ -30,6 +30,8 @@ private val snakeRe = """^[a-z]+[a-z\d]*(?:_[a-z\d]+)*$""".toRegex()
 
 fun isSnake(text: String) = snakeRe.matchEntire(text) != null
 
-fun emacs(text: String) = words(text).joinToString("=")
+fun emacs(text: String) = words(text).joinToString("-")
+
+fun abbrev(text: String) = words(text).map { it.first() }.joinToString("")
 
 
