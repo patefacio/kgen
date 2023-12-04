@@ -1,5 +1,8 @@
 package kgen.rust
 
+/** Enumerates rust Access by combining rust access values (`pub`, `pub(crate)`, )
+ * plus some higher level access concepts (`ReadOnly`, `ReadOnlyCloned`, ).
+ */
 sealed class Access : AsRust {
     data object ReadOnly : Access()
     data object ReadOnlyCloned : Access()
@@ -15,6 +18,9 @@ sealed class Access : AsRust {
     class PubIn(val inPackage: String) : Access()
     data object None : Access()
 
+    /** This accessibility as a rust declaration.
+     *
+     */
     override val asRust
         get() = when (this) {
             None, ReadOnly, ReadOnlyCloned, ReadOnlyRef, ReadWrite, ReadWriteRef, Inaccessible -> ""
@@ -25,6 +31,7 @@ sealed class Access : AsRust {
             is PubIn -> "pub(in $inPackage)"
         }
 
+    /** True if access requires read */
     val requiresReader
         get() = when (this) {
             ReadOnly, ReadWrite -> true

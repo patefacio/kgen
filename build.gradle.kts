@@ -24,6 +24,9 @@ dependencies {
         version = "1.2.9"
     )
 
+    implementation("org.jetbrains.kotlin-wrappers:kotlin-css:1.0.0-pre.636")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
+
     testImplementation(kotlin("test"))
 }
 

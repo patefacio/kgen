@@ -2,11 +2,13 @@ package kgen.rust
 
 import kgen.*
 
+/** An element as a rust attribute */
 interface AsAttr {
     val asInnerAttr: String
     val asOuterAttr: String
 }
 
+/** A [rust attribute](https://doc.rust-lang.org/reference/attributes.html) */
 sealed class Attr(id: Id) : Identifier(id), AsAttr {
     class Word(nameId: String) : Attr(id(nameId)) {
 
@@ -64,6 +66,11 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
     }
 }
 
+/** Models an attribute dictionary value.
+ * Enumerates String dictionary values which are double-quoted
+ * and literal dictionary values which are taken directly.
+ *
+ */
 sealed class DictValue {
     class StringValue(val value: String) : DictValue()
     class LiteralValue(val value: String) : DictValue()
@@ -114,6 +121,10 @@ val List<Attr>.coalesced
         return derives + nonDerives
     }
 
+/** An attribute's text as an `outer` attribute. Outer attributes decorate the
+ * following rust item, such as function, let binding, statement, function parameter,
+ * etc.
+ */
 val List<Attr>.asOuterAttr
     get() = if (this.isEmpty()) {
         ""
@@ -121,6 +132,10 @@ val List<Attr>.asOuterAttr
         this.coalesced.joinToString("\n") { it.asOuterAttr }
     }
 
+/** An attribute's text as an `inner` attribute. Inner attributes are rust's way to
+ * associate an attribute from inside an element. Most commonly a way to set module
+ * specific attributes from within the module.
+ */
 val List<Attr>.asInnerAttr
     get() = if (this.isEmpty()) {
         ""
@@ -128,34 +143,110 @@ val List<Attr>.asInnerAttr
         this.coalesced.joinToString("\n") { it.asInnerAttr }
     }
 
+/** `cfg(feature=\"ssr\")` attribute */
 val attrSsr = Attr.Dict("cfg", "feature" to "ssr")
-val attrCfgTest = Attr.Words("cfg", "test")
-val attrInline = Attr.Word("inline")
-val attrDynamic = Attr.Word("dynamic")
+
+/** `component` leptos attribute decorating a
+ * [leptos component](https://book.leptos.dev/view/03_components.html?highlight=component#documenting-components) */
 val attrComponent = Attr.Word("component")
 
+/** `cfg(test)` attribute marking item, typically a function or module, as test build specific */
+val attrCfgTest = Attr.Words("cfg", "test")
+
+/** `inline` attribute for making functions inline */
+val attrInline = Attr.Word("inline")
+
+/** `dynamic` attribute */
+val attrDynamic = Attr.Word("dynamic")
+
+/** `derive(Debug)` attribute */
 val attrDeriveDebug = derive("Debug")
+
+/** `derive(Default)` attribute */
 val attrDeriveDefault = derive("Default")
+
+/** `derive(Clone)` attribute */
 val attrDeriveClone = derive("Clone")
+
+/** `derive(Copy)` attribute */
 val attrDeriveCopy = derive("Copy")
 
-val aggrSerdeSerialize = Attr.Words("derive", "Serialize", "Deserialize")
+/** Both `derive(Serialize)` and `derive(Deserialize)` */
+val attrSerdeSerialization = Attr.Words("derive", "Serialize", "Deserialize")
+
+/** `cfg(debug_assertions)` mark item/code as debug build only */
 val attrDebugBuild = Attr.Words("cfg", "debug_assertions")
+
+/** `cfg(not(debug_assertions))` mark item/code as not debug build */
 val attrNotDebugBuild = Attr.Words("cfg", "not(debug_assertions)")
+
+/** Mark a function as a `test` item as in
+ *
+ * ```rust
+ * #[test]
+ * fn test_foo_method() {
+ *  ...
+ * }
+ * ```
+ */
 val attrTestFn = Attr.Word("test")
 
+/** `feature(iter_intersperse)` */
 val attrIterIntersperse = Attr.Words("feature", "iter_intersperse")
-val attrUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
+
+/** Allows **all** unused variables in debug mode - not a good attribute long term but can
+ * clean up your bacon/build in many early stage code generation scenarios.
+ * `cfg_attr(debug_assertions, allow(unused_variables))`
+ */
+val attrDebugUnusedVariables = Attr.Words("cfg_attr", "debug_assertions, allow(unused_variables)")
+
+/** `#[allow(unused)]` to suppress errors of unused variables/items */
 val attrAllowUnused = Attr.Words("allow", "unused")
+
+/** `feature(variant_count)` add support for variant count:
+ *
+ * ```rust
+ *  (0..std::mem::variant_count::<Currency>())
+ * ```
+ */
 val attrVariantCount = Attr.Words("feature", "variant_count")
+
+/**
+ * Allow gated `is_sorted_by` function, eg
+ *
+ * ```rust
+ *         debug_assert!(
+ *             sorted_values
+ *                 .clone()
+ *                 .is_sorted_by(|a, b| a.value.partial_cmp(&b.value)),
+ *             "New values added must be sorted"
+ *         );
+ * ```
+ */
 val attrIsSorted = Attr.Words("feature", "is_sorted")
+
+/** Require doc comments to compile: `deny(missing_docs)` */
 val attrDenyMissingDoc = Attr.Words("deny", "missing_docs")
+
+/** Attribute indicating following procedural macro should be exported, e.g:
+ *
+ * ```rust
+ * #[macro_export]
+ * macro_rules! log_component {
+ *  ...
+ * }
+ * ```
+ */
 val attrMacroExport = Attr.Word("macro_export")
 
+/** For askama templates, prevents escape handling in template `template(escape="none")`. */
 val attrNoEscapeTemplate = Attr.Dict("template", "escape" to "none")
 
 
+/** Convert a single [Attr] into a list of attrs ([AttrList]). */
 val Attr.asAttrList get() = AttrList(this)
+
+/** Convert a [List] of [Attr] into an [AttrList] */
 val List<Attr>.asAttrList get() = AttrList(attrs = this)
 
 
