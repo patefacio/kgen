@@ -97,7 +97,9 @@ data class Component(
         }
     private val preBlock: String?
         get() = """
-        crate::log_component!("`${name.asId.capCamel}`");
+        let component_id = crate::component_id!("`${name.asId.capCamel}`");
+        #[cfg(debug_assertions)]
+        crate::log_component!(crate::COMPONENT_LOG_LEVEL, component_id);
     """.trimIndent()
 
     private val viewStyle = if (styleLambda != null) {

@@ -3,8 +3,37 @@ package kgen.rust
 import kgen.*
 
 /** Models a rust function.
- * @property uses The uses required for the function - pulled in at top of module
- * @property localUses The uses required internal to function - pulled at top of fn
+ * @property nameId The snake case name of the function
+ * @property doc The comment for the function
+ * @property params The list of function parameters
+ * @property returnType The return type for the function
+ * @property returnDoc The comment associated with the returned value
+ * @property inlineDecl Specify the inline aspect of the function
+ * @property genericParamSet Set of generic parameters of the function
+ * @property visibility Rust visibility of the function
+ * @property body The function body
+ * @property isTest If true treats function as test by adding test attribute
+ * @property hasUnitTest If true include unit test in same module
+ * @property attrs Rust attributes associated with the function
+ * @property blockName Name of block for rust code of the function. Reasonable default
+ *                     based on [nameId] provided, but can override.
+ * @property emptyBlockContents Contents of empty block. Defaults to a `todo!(...)` so
+ *           code will build and run and panic until implemented
+ * @property uses Import requirements for the function
+ * @property localUses Import requirements for the function's implementation. Resolves to
+ *           additional using statements after the signature before the block
+ * @property testNameIds For more complex functions, a list of names that will generate
+ *           test functions.
+ * @property panicTestNameIds For more complex functions, a list of names that will generate
+ *           test functions that are expected to panic.
+ * @property nameCapCamel The function name in _cap camel_
+ * @property inlineParamDoc If true will generate parameter comments inline. Generally rust
+ *           has no support for parameter doc comments. However, leptos components provide
+ *           a macro that transforms leptos functions into a builder pattern so the comments
+ *           can be used directly. This is special doc formatting for such rare cases.
+ * @property consts List of constants defined at the start of the function
+ * @property lets List of let bindings defined at the start of the function
+ * @property isAsync If true function is defined `async`
  */
 data class Fn(
     val nameId: String,
@@ -103,7 +132,7 @@ data class Fn(
             ""
         }
 
-    val visibilityDecl
+    private val visibilityDecl
         get() = if (!isTest) {
             visibility.asRust
         } else {

@@ -13,6 +13,11 @@ import java.nio.file.Path
  * @property buildModule An optional `build.rs` module used for crates requiring
  *           extra build step, like generating rust from protobuf files.
  * @property cargoToml Modeled toml for the crate.
+ * @property binaries List of binaries, models as clap binaries, in the crate
+ * @property includeTypeSizes If set will include sizes for structs and enums
+ * @property integrationTestModules Modules for integration testing
+ * @property handCodedSet Set of paths that were hand coded and should not be considered
+ *                        orphaned code and hence not cleaned up
  */
 data class Crate(
     val nameId: String,

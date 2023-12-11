@@ -2,7 +2,7 @@ package kgen.rust
 
 import kgen.*
 
-sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList = AttrList()) : AsRust,
+sealed class Variant(val nameId: String, val doc: String, val attrs: AttrList = AttrList()) : AsRust,
     Identifier(nameId) {
 
     val docComment get() = commentTriple(doc)
@@ -13,7 +13,7 @@ sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList 
         val value: Int,
         isDefault: Boolean = false,
         attrs: AttrList = AttrList()
-    ) : EnumValue(
+    ) : Variant(
         nameId, doc, attrs = attrs + if (isDefault) {
             Attr.Word("default").asAttrList
         } else {
@@ -34,7 +34,7 @@ sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList 
         isDefault: Boolean = false,
         attrs: AttrList = AttrList()
     ) :
-        EnumValue(
+        Variant(
             nameId, doc, attrs = attrs + if (isDefault) {
                 Attr.Word("default").asAttrList
             } else {
@@ -56,7 +56,7 @@ sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList 
         isDefault: Boolean = false,
         attrs: AttrList = AttrList()
     ) :
-        EnumValue(
+        Variant(
             nameId, doc, attrs = attrs + if (isDefault) {
                 Attr.Word("default").asAttrList
             } else {
@@ -93,7 +93,7 @@ sealed class EnumValue(val nameId: String, val doc: String, val attrs: AttrList 
         val fields: List<Field>,
         attrs: AttrList = AttrList()
     ) :
-        EnumValue(nameId, doc, attrs) {
+        Variant(nameId, doc, attrs) {
 
         constructor(
             nameId: String,

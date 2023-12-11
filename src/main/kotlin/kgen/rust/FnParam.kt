@@ -3,6 +3,16 @@ package kgen.rust
 import kgen.Identifier
 import kgen.trailingText
 
+/** A rust function parameter.
+ *
+ * @property nameId Snake case name for the parameter
+ * @property type The rust type of the parameter
+ * @property doc The rust doc comment for the parameter
+ * @property isMutable If true parameter is `mutable`
+ * @property allowUnused If true `#[allow(unused)]` attribute associated with parameter
+ * @property attrs Rust attributes associated with the parameter
+ * @property uses Imports associated with type of parameter
+ */
 data class FnParam(
     val nameId: String,
     val type: Type = RustString,

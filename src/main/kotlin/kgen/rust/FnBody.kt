@@ -22,6 +22,7 @@ data class FnBody(
     val emptyBlockName: String? = null
 ) : AsRust {
 
+    /** The function body as rust code */
     override val asRust: String
         get() = listOfNotNull(
             preBlock,

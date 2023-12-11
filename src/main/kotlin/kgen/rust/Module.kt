@@ -217,7 +217,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
     private val exportedItemNames = structs
         .filter { it.visibility.isExport }
         .map { Pair(it.structName, it.visibility) } +
-            enums.filter { it.visibility.isExport }.map { Pair(it.enumName, it.visibility) } +
+            enums.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             traits.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             functions.filter { it.visibility.isExport }.map { Pair(it.rustFunctionName, it.visibility) } +
             typeAliases.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +

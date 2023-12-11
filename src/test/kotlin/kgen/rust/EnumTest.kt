@@ -30,15 +30,15 @@ pub enum Message {
 
             Enum(
                 "message",
-                values = listOf(
-                    EnumValue.UnitStruct("quit", "Means quit the process"),
-                    EnumValue.TupleStruct("change_color", "Request to change color", I32, I32, I32),
-                    EnumValue.Struct(
+                variants = listOf(
+                    Variant.UnitStruct("quit", "Means quit the process"),
+                    Variant.TupleStruct("change_color", "Request to change color", I32, I32, I32),
+                    Variant.Struct(
                         "move",
                         "Request to move object",
                         Field("x", type = I32), Field("y", type = I32)
                     ),
-                    EnumValue.TupleStruct("write", "Request to write object", RustString)
+                    Variant.TupleStruct("write", "Request to write object", RustString)
                 )
             ).asRust
         )
@@ -65,14 +65,14 @@ pub enum Message {
 
             Enum(
                 "message", "A basic message",
-                EnumValue.UnitStruct("quit"),
-                EnumValue.TupleStruct("change_color", "Request to change color", I32, I32, I32),
-                EnumValue.Struct(
+                Variant.UnitStruct("quit"),
+                Variant.TupleStruct("change_color", "Request to change color", I32, I32, I32),
+                Variant.Struct(
                     "move",
                     "Request to move object",
                     Field("x", type = I32), Field("y", type = I32)
                 ),
-                EnumValue.TupleStruct("write", "Request to write object", RustString)
+                Variant.TupleStruct("write", "Request to write object", RustString)
             ).asRust
         )
     }

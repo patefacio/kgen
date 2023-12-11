@@ -89,11 +89,11 @@ Ok(())
                     Enum(
                         "log_level",
                         "For setting log level to include specified level (Mappings to `tracing::Level`) and more grave.",
-                        EnumValue.UnitStruct("error", "An error"),
-                        EnumValue.UnitStruct("warn", "A warning"),
-                        EnumValue.UnitStruct("info", "An info message"),
-                        EnumValue.UnitStruct("debug", "Debug messages"),
-                        EnumValue.UnitStruct("trace", "Trace messages"),
+                        Variant.UnitStruct("error", "An error"),
+                        Variant.UnitStruct("warn", "A warning"),
+                        Variant.UnitStruct("info", "An info message"),
+                        Variant.UnitStruct("debug", "Debug messages"),
+                        Variant.UnitStruct("trace", "Trace messages"),
                         attrs = derive("Debug", "Copy", "Clone", "ValueEnum")
                     )
                 } else {
@@ -103,7 +103,7 @@ Ok(())
                     Enum(
                         "command", "The supported commands.",
                         subcommands.map { clapCommand ->
-                            EnumValue.Struct(clapCommand.nameId, clapCommand.doc,
+                            Variant.Struct(clapCommand.nameId, clapCommand.doc,
                                 clapCommand.clapArgs.map { it.field }
                             )
                         },

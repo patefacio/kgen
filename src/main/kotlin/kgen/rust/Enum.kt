@@ -2,10 +2,23 @@ package kgen.rust
 
 import kgen.*
 
+/** A [rust enumeration](https://doc.rust-lang.org/reference/items/enumerations.html)
+ *
+ * @property nameId Snake case name for enum
+ * @property doc The comment for the enum
+ * @property variants The enum variants
+ * @property visibility The visibility for the enum
+ * @property attrs Rust attributes associated with the enum
+ * @property uses Additional import requirements by types referenced directly by the enum
+ * @property typeImpl The rust impl for this enum
+ * @property traitImpls This enum's implementations for various [Trait]s
+ * @property implementedTraits Rust traits implemented by this enum
+ *
+ */
 data class Enum(
     val nameId: String,
     override val doc: String = missingDoc(nameId, "Enum"),
-    val values: List<EnumValue>,
+    val variants: List<Variant>,
     val visibility: Visibility = Visibility.Pub,
     val genericParamSet: GenericParamSet = GenericParamSet(),
     val attrs: AttrList = AttrList(),
@@ -18,7 +31,7 @@ data class Enum(
     constructor(
         nameId: String,
         doc: String = missingDoc(nameId, "Enum"),
-        vararg values: EnumValue,
+        vararg values: Variant,
         visibility: Visibility = Visibility.Pub,
         genericParamSet: GenericParamSet = GenericParamSet(),
         attrs: AttrList = AttrList(),
@@ -39,19 +52,22 @@ data class Enum(
         implementedTraits
     )
 
-    val enumName = id.capCamel
+    /** Name of enum as Rust Name (Cap Camel) */
+    override val asRustName: String
+        get() = id.capCamel
 
+    /** The enum as rust type name */
+    override val type: String
+        get() = asRustName
+
+    /** List of all trait implementations */
     val allTraitImpls
         get() = traitImpls + implementedTraits.map { trait ->
-            TraitImpl(enumName.asType, trait, genericParamSet = genericParamSet)
+            TraitImpl(id.capCamel.asType, trait, genericParamSet = genericParamSet)
         }
 
-    override val asRustName: String
-        get() = enumName
 
-    override val type: String
-        get() = enumName
-
+    /** The enum as rust code */
     override val asRust: String
         get() = listOfNotNull(
             commentTriple(doc),
@@ -60,7 +76,7 @@ data class Enum(
                 "${trailingText(visibility.asRust)}enum $asRustName${genericParamSet.asRust}",
                 genericParamSet
             ) + " {",
-            indent(values.joinToString(",\n") { it.asRust }),
+            indent(variants.joinToString(",\n") { it.asRust }),
             "}"
         ).joinNonEmpty()
 }

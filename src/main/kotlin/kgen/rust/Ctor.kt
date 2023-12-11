@@ -54,6 +54,7 @@ data class Ctor(
         else -> fields
     }.filterNot { it.customCtorInit }
 
+    /** The [Ctor] transformed to a rust [Fn] */
     fun asFn(fields: List<Field>, isTupleStruct: Boolean = false): Fn {
         val hasCustomInitFields = fields.any { it.customCtorInit }
         val customBlock = if (hasCustomInitFields || includeCustomBlock) {
