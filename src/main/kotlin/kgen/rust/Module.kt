@@ -87,7 +87,13 @@ data class Module(
                         struct.genericParamSet.typeParams.all { typeParam ->
                             typeParam.default != null
                         }
-            }.map { it.asRustName } + enums.map { it.asRustName }
+            }.map { it.asRustName } + enums.filter { enum ->
+                enum.genericParamSet.typeParams.isEmpty() ||
+                        enum.genericParamSet.typeParams.all { typeParam ->
+                            typeParam.default != null
+                        }
+            }.map { it.asRustName }
+
 
             val extensions = modules.map { submodule ->
                 val statementAttr = if (submodule.attrs.attrs.contains(attrCfgTest)) {
@@ -223,7 +229,8 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             typeAliases.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             consts.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             lazies.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
-            declMacros.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility)}
+            declMacros.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
+            functions.filter { it.visibility.isExport }.map { Pair(it.nameId, it.visibility) }
 
 
     private val allExportedItemNames: Set<Pair<String, Visibility>>

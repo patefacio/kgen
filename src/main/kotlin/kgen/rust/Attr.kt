@@ -171,6 +171,12 @@ val attrDeriveClone = derive("Clone")
 /** `derive(Copy)` attribute */
 val attrDeriveCopy = derive("Copy")
 
+/** `derive(Eq)` attribute */
+val attrDeriveEq = derive("Eq")
+
+/** `derive(PartialEq)` attribute */
+val attrDerivePartialEq = derive("PartialEq")
+
 /** Both `derive(Serialize)` and `derive(Deserialize)` */
 val attrSerdeSerialization = Attr.Words("derive", "Serialize", "Deserialize")
 
@@ -179,6 +185,12 @@ val attrDebugBuild = Attr.Words("cfg", "debug_assertions")
 
 /** `cfg(not(debug_assertions))` mark item/code as not debug build */
 val attrNotDebugBuild = Attr.Words("cfg", "not(debug_assertions)")
+
+/** `derive(EnumVariantNames)` requires _strum_macros_ */
+val attrEnumVariantNames = derive("EnumVariantNames")
+
+/** `derive(EnumIter)` requires _strum_macros_ */
+val attrEnumIter = derive("EnumIter")
 
 /** Mark a function as a `test` item as in
  *

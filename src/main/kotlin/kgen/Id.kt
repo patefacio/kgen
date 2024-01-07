@@ -1,7 +1,5 @@
 package kgen
 
-import kgen.capCamel
-
 data class Id(val snakeCaseName: String) {
     val capCamel get() = capCamel(snakeCaseName)
     val snake get() = snakeCaseName
@@ -9,6 +7,8 @@ data class Id(val snakeCaseName: String) {
     val shout get() = snakeCaseName.uppercase()
 
     val title get() = capCamel(snakeCaseName, " ")
+
+    val shoutAbbrev get() = abbrev(snakeCaseName).uppercase()
 
     override fun toString() = snake
 }

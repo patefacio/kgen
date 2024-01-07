@@ -85,7 +85,7 @@ data class TypeImpl(
         get() = listOfNotNull(
             doc.commentTriple,
             withWhereClause(
-                "impl${genericParamSet.asRust} ${type.asRustName}",
+                "impl${genericParamSet.asRust} ${type.asRustName}${genericArgSet.asRust}",
                 genericParamSet
             ) + " {",
             indent(

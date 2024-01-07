@@ -37,10 +37,15 @@ internal class AttrTest {
         assertEquals("#[derive(Default)]", attrDeriveDefault.asOuterAttr)
         assertEquals("#[derive(Clone)]", attrDeriveClone.asOuterAttr)
         assertEquals("#[derive(Copy)]", attrDeriveCopy.asOuterAttr)
+        assertEquals("#[derive(PartialEq)]", attrDerivePartialEq.asOuterAttr)
+        assertEquals("#[derive(Eq)]", attrDeriveEq.asOuterAttr)
 
         assertEquals("#[derive(Serialize, Deserialize)]", attrSerdeSerialization.asOuterAttr)
         assertEquals("#[cfg(debug_assertions)]", attrDebugBuild.asOuterAttr)
         assertEquals("#[cfg(not(debug_assertions))]", attrNotDebugBuild.asOuterAttr)
+        assertEquals("#[derive(EnumIter)]", attrEnumIter.asOuterAttr)
+        assertEquals("#[derive(EnumVariantNames)]", attrEnumVariantNames.asOuterAttr)
+
         assertEquals("#[test]", attrTestFn.asOuterAttr)
 
         assertEquals("#[allow(unused)]", attrAllowUnused.asOuterAttr)

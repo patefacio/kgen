@@ -15,7 +15,6 @@ import kgen.joinNonEmpty
  * @property additionalFnParams List of params not represented by fields
  * @property isInline Adds the inline attribute
  * @property attrs Attributes for the function, `inline` being one potential attr
- * @property includeCustomBlock If true a custom block provided
  * @property excludeInitializer If true will not finish ctor with initialized value. Useful
  *    for forwarding ctor calls
  * @property hasUnitTest Include a unit test
@@ -32,7 +31,6 @@ data class Ctor(
     val additionalFnParams: List<FnParam> = emptyList(),
     val isInline: Boolean = false,
     val attrs: AttrList = AttrList(),
-    val includeCustomBlock: Boolean = true,
     val excludeInitializer: Boolean = false,
     val hasUnitTest: Boolean = false,
     val useLetAssignments: Boolean = false
@@ -55,10 +53,12 @@ data class Ctor(
     }.filterNot { it.customCtorInit }
 
     /** The [Ctor] transformed to a rust [Fn] */
-    fun asFn(fields: List<Field>, isTupleStruct: Boolean = false): Fn {
-        val hasCustomInitFields = fields.any { it.customCtorInit }
-        val customBlock = if (hasCustomInitFields || includeCustomBlock) {
-            emptyOpenDelimitedBlock("$name initialization")
+    fun asFn(fields: List<Field>, typeName: String, isTupleStruct: Boolean = false): Fn {
+        val hasCustomInitFields =
+            fields.any { it.customCtorInit } || excluded.isNotEmpty() || excludedFilter != null ||
+                    included.isNotEmpty() || includedFilter != null
+        val customBlock = if (hasCustomInitFields) {
+            emptyOpenDelimitedBlock("$typeName::$name initialization")
         } else {
             null
         }

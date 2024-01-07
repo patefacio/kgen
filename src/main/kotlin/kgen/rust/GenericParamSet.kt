@@ -22,7 +22,7 @@ data class GenericParamSet(
         } else {
             "<${
                 (lifetimes.map { it.asRust } + typeParams.map {
-                    it.asRust
+                    it.asRustGenericDecl
                 }).joinToString(", ")
             }>"
         }

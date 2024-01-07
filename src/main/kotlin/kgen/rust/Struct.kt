@@ -81,7 +81,7 @@ data class Struct(
             TraitImpl(structNameGeneric.asType, trait, genericParamSet = genericParamSet)
         }
 
-    private val allCtorFns = ctors.map { it.asFn(fields) } + listOfNotNull(
+    private val allCtorFns = ctors.map { it.asFn(fields, structName) } + listOfNotNull(
         when {
             includeNew || includeCustomNew -> {
                 newFnFromFields(fields, additionalNewParams)

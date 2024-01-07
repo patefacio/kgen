@@ -7,6 +7,14 @@ sealed class Variant(val nameId: String, val doc: String, val attrs: AttrList = 
 
     val docComment get() = commentTriple(doc)
 
+    companion object {
+        fun attributes(isDefault: Boolean) = if (isDefault) {
+            Attr.Word("default").asAttrList
+        } else {
+            AttrList()
+        }
+    }
+
     class Numeric(
         nameId: String,
         doc: String = missingDoc(nameId, "Enum.Numeric"),
@@ -14,11 +22,7 @@ sealed class Variant(val nameId: String, val doc: String, val attrs: AttrList = 
         isDefault: Boolean = false,
         attrs: AttrList = AttrList()
     ) : Variant(
-        nameId, doc, attrs = attrs + if (isDefault) {
-            Attr.Word("default").asAttrList
-        } else {
-            AttrList()
-        }
+        nameId, doc, attrs = attrs + attributes(isDefault)
     ) {
         override val asRust: String
             get() = listOfNotNull(
@@ -35,11 +39,7 @@ sealed class Variant(val nameId: String, val doc: String, val attrs: AttrList = 
         attrs: AttrList = AttrList()
     ) :
         Variant(
-            nameId, doc, attrs = attrs + if (isDefault) {
-                Attr.Word("default").asAttrList
-            } else {
-                AttrList()
-            }
+            nameId, doc, attrs = attrs + attributes(isDefault)
         ) {
         override val asRust: String
             get() = listOfNotNull(
@@ -57,11 +57,7 @@ sealed class Variant(val nameId: String, val doc: String, val attrs: AttrList = 
         attrs: AttrList = AttrList()
     ) :
         Variant(
-            nameId, doc, attrs = attrs + if (isDefault) {
-                Attr.Word("default").asAttrList
-            } else {
-                AttrList()
-            }
+            nameId, doc, attrs = attrs + attributes(isDefault)
         ) {
 
         constructor(
@@ -91,19 +87,22 @@ sealed class Variant(val nameId: String, val doc: String, val attrs: AttrList = 
         nameId: String,
         doc: String = missingDoc(nameId, "Enum.Struct"),
         val fields: List<Field>,
+        isDefault: Boolean = false,
         attrs: AttrList = AttrList()
     ) :
-        Variant(nameId, doc, attrs) {
+        Variant(nameId, doc, attrs = attrs + attributes(isDefault)) {
 
         constructor(
             nameId: String,
             doc: String = missingDoc(nameId, "Enum.Struct"),
             vararg fields: Field,
+            isDefault: Boolean = false,
             attrs: AttrList = AttrList()
         ) : this(
             nameId,
             doc,
             fields.toList(),
+            isDefault,
             attrs
         )
 

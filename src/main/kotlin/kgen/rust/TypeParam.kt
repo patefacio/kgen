@@ -1,6 +1,7 @@
 package kgen.rust
 
 import kgen.Identifier
+import kgen.asId
 
 data class TypeParam(
     val nameId: String,
@@ -8,6 +9,9 @@ data class TypeParam(
     val bounds: Bounds = Bounds()
 ) : Identifier(nameId), AsRust {
     override val asRust: String
+        get() = nameId.asId.shoutAbbrev
+
+    val asRustGenericDecl: String
         get() = if (default == null) {
             id.capCamel
         } else {
@@ -27,3 +31,5 @@ val S = TypeParam("s")
 
 val String.asTypeParam get() = TypeParam(this)
 val String.asTypeParams get() = this.split(",").map { TypeParam(it.trim()) }
+
+val TypeParam.asTypeParams get() = listOf(this)

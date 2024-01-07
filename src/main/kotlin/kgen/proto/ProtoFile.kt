@@ -83,6 +83,10 @@ val List<ProtoFile>.udtsByNamedType
         "${protoFile.nameId}.${oneOf.parentNameId.asId.snake}.${oneOf.id.capCamel}" to oneOf as Udt
     }
 
+fun qualifiedUdtNames(rootName: String, protoFiles: List<ProtoFile>) = protoFiles.udtsByNamedType.map {
+    "$rootName::${it.key.replace(".", "::")}"
+}
+
 
 val List<ProtoFile>.unusedMessages
     get(): List<Message> {

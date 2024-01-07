@@ -62,7 +62,8 @@ data class Component(
     val styleLambda: String? = null,
     val cssMaxWidth: String = "var(--plus-max-width)",
     val innerHtml: String? = null,
-    val cssClasses: List<String> = emptyList()
+    val cssClasses: List<String> = emptyList(),
+    val lazies: List<Lazy> = emptyList()
 ) {
 
     val id = name.asId
@@ -130,7 +131,7 @@ ${indent(emptyOpenDelimitedBlock("$selfClass-view", emptyContents = emptyContent
     } else {
         Let(
             "lang_selector",
-            rhs = "use_context::<AppContext>().unwrap().lang_selector"
+            rhs = "expect_context::<Rc<AppContext>>().lang_selector"
         )
     }
 
@@ -145,7 +146,7 @@ ${indent(emptyOpenDelimitedBlock("$selfClass-view", emptyContents = emptyContent
             genericParamSet = genericParamSet,
             inlineParamDoc = true,
             attrs = attrComponent.asAttrList,
-            visibility = Visibility.PubExport,
+            visibility = Visibility.Pub,
             body = FnBody(emptyBlockName = "fn $name", preBlock = preBlock, postBlock = view),
             uses = listOfNotNull(
                 if (includeView) {
@@ -158,9 +159,9 @@ ${indent(emptyOpenDelimitedBlock("$selfClass-view", emptyContents = emptyContent
                 } else {
                     listOf(
                         "crate::AppContext",
-                        "leptos::use_context",
+                        "leptos::expect_context",
                         "leptos::SignalGet"
-                    ).asUses
+                    ).asUses + useRc
                 }
             ).flatten().toSet() + uses,
             consts = listOfNotNull(selfClassConst) + consts,
@@ -197,6 +198,7 @@ ${indent(emptyOpenDelimitedBlock("$selfClass-view", emptyContents = emptyContent
             uses = allUses,
             typeAliases = typeAliases,
             traits = traits,
-            traitImpls = traitImpls
+            traitImpls = traitImpls,
+            lazies = lazies
         )
 }

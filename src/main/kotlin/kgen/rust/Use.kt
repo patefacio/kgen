@@ -62,7 +62,8 @@ val List<String>.asAllowUnusedUses
         )
     }
 
-fun pubUses(vararg pathNames: String) = pathNames.map { Use(it, visibility = Visibility.Pub) }
+fun pubUses(vararg pathNames: String, allowUnusedImports: Boolean = false) =
+    pathNames.map { Use(it, visibility = Visibility.Pub, allowUnusedImports = allowUnusedImports) }
 
 val String.asPubUse get() = Use(this, visibility = Visibility.Pub)
 val List<String>.asPubUses get() = this.map { Use(it, visibility = Visibility.Pub) }.toSet()
