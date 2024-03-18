@@ -1,38 +1,39 @@
 package kgen
 
 import org.junit.jupiter.api.Test
-
 import org.junit.jupiter.api.Assertions.*
 import java.io.File
-import kgen.markdownDelimiter
 
 internal class ClosedMergeKtTest {
 
-    val blockName1 = "block_name<foo>"
-    val blockName2 = "block_name<bar>"
-    val blockName3 = "foobar"
+    private val blockName1 = "block_name<foo>"
+    private val blockName2 = "block_name<bar>"
+    private val blockName3 = "foobar"
 
-    fun wrapOpen(n: String) = "<!--- α <$n> -->"
-    fun wrapClose(n: String) = "<!--- ω <$n> -->"
+    private fun wrapOpen(n: String) = "<!--- α <$n> -->"
+    private fun wrapClose(n: String) = "<!--- ω <$n> -->"
 
-    val block1 = """
+    private val block1 = """
         ${wrapOpen(blockName1)}
+        
         hand written text to preserve
+        
+        
         ${wrapClose(blockName1)}""".trimIndent()
 
-    val block2 = """
+    private val block2 = """
         ${wrapOpen(blockName2)}
         more hand written text to preserve
         ${wrapClose(blockName2)}""".trimIndent()
 
-    val block3 = """
+    private val block3 = """
         <!--- α `$blockName3` -->
         hand written with different naming
         <!--- ω `$blockName3` -->""".trimIndent()
 
-    val defunctBlock = markdownDelimiter.emptyBlock("defunct")
+    private val defunctBlock = markdownDelimiter.emptyBlock("defunct")
 
-    val emptyGenerated = """
+    private val emptyGenerated = """
 generated prefix text
 ${markdownDelimiter.emptyBlock(blockName1)}
 preserved
@@ -43,7 +44,7 @@ generated postfix text
 $defunctBlock
         """
 
-    val sampleText = """
+    private val sampleText = """
 generated prefix text
 $block1
 preserved
@@ -54,7 +55,7 @@ generated postfix text
 $defunctBlock
         """
 
-    val newGeneratedText = """
+    private val newGeneratedText = """
 generated prefix text *updated1*
 ${markdownDelimiter.emptyBlock(blockName1)}
 preserved *updated2*
@@ -64,7 +65,7 @@ ${markdownDelimiter.emptyBlock(blockName3, blockNameDelimiter = BlockNameDelimit
 generated postfix text *updated4*
         """
 
-    val expectedAfterMerge = """
+    private val expectedAfterMerge = """
 generated prefix text *updated1*
 $block1
 preserved *updated2*
@@ -76,17 +77,19 @@ generated postfix text *updated4*
 
     @Test
     fun pullBlocks() {
-        val results = markdownDelimiter.pullBlocks(sampleText)
 
-        assertEquals(
-            mapOf(
-                "block_name<foo>" to block1,
-                "block_name<bar>" to block2,
-                "foobar" to block3,
-                "defunct" to defunctBlock
-            ),
-            results
-        )
+        assertEquals(block1, markdownDelimiter.pullBlocks(block1).values.first().toString())
+
+
+        val results = markdownDelimiter.pullBlocks(sampleText)
+        mapOf(
+            "block_name<foo>" to block1,
+            "block_name<bar>" to block2,
+            "foobar" to block3,
+            "defunct" to defunctBlock
+        ).forEach { (blockName, expectedBlock) ->
+            assertEquals(expectedBlock, results[blockName].toString())
+        }
     }
 
     @Test

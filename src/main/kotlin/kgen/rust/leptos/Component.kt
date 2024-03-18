@@ -38,6 +38,8 @@ import kotlinx.css.*
  *                        block to put markup into.
  * @property innerHtml  If set, the view provided with a single div and inner html - no
  *                      protect block provided.
+ * @property excludeWrapDiv If set the wrapping div is excluded. Useful for cases where the
+ *                      component is a `<tr .../tr>` and must not be wrapped in a div.
  */
 data class Component(
     val name: String,
@@ -62,6 +64,7 @@ data class Component(
     val styleLambda: String? = null,
     val cssMaxWidth: String = "var(--plus-max-width)",
     val innerHtml: String? = null,
+    val excludeWrapDiv: Boolean = false,
     val cssClasses: List<String> = emptyList(),
     val lazies: List<Lazy> = emptyList()
 ) {
@@ -110,18 +113,31 @@ data class Component(
     }
 
     private val emptyContents get() = "\n<h5>\"TODO\"</h5>\n"
+    private val innerContent
+        get() = indent(
+            emptyOpenDelimitedBlock("$selfClass-view", emptyContents = emptyContents),
+            "        "
+        )
 
     val view: String?
         get() = when {
             innerHtml != null -> "view! { <div class=SELF_CLASS$viewStyle inner_html=$innerHtml></div> }"
 
-            includeView -> """
+            includeView -> if (excludeWrapDiv) {
+                """
+view! {
+$innerContent
+}        
+        """.trimIndent()
+            } else {
+                """
 view! {
     <div class=SELF_CLASS$viewStyle>
-${indent(emptyOpenDelimitedBlock("$selfClass-view", emptyContents = emptyContents), "        ")}
+$innerContent
     </div>
 }        
         """.trimIndent()
+            }
 
             else -> null
         }

@@ -210,6 +210,23 @@ data class ProtoCrateGenerator(
             emptyList()
         }
 
+        fun makeTraitsModule(messages: List<Message>, trait: Trait, moduleName: String) =
+            messages.filter { message -> message.implementedTraits.contains(trait) }
+                .takeIf { it.isNotEmpty() }
+                ?.map { message ->
+                    TraitImpl(
+                        message.id.capCamel.asType,
+                        trait,
+                        uses = listOf("crate::${message.id.capCamel}").asUses
+                    )
+                }
+                ?.let {
+                    Module(
+                        moduleName,
+                        "Implementation for ${trait.nameId.asId.capCamel} trait",
+                        traitImpls = it,
+                    )
+                }
 
         val crate = Crate(
             crateNameId,
@@ -226,21 +243,7 @@ data class ProtoCrateGenerator(
                             moduleType = ModuleType.PlaceholderModule,
                             visibility = Visibility.Pub
                         ),
-                        if (includeDisplayImpls && protoFile.messages.isNotEmpty()) {
-                            Module(
-                                "${protoFile.nameId}_display",
-                                "Display implementations",
-                                traitImpls = protoFile.messages.map { message ->
-                                    TraitImpl(
-                                        message.id.capCamel.asType,
-                                        displayTrait,
-                                        uses = listOf("crate::${message.id.capCamel}").asUses
-                                    )
-                                },
-                            )
-                        } else {
-                            null
-                        }
+                        makeTraitsModule(protoFile.messages, displayTrait, "${protoFile.nameId}_display"),
                     )
                 }.flatten() + allAdditionalModules,
                 macroUses = listOf("serde_derive", "strum_macros"),

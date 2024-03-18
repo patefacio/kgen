@@ -2,6 +2,11 @@ package kgen
 
 import java.nio.file.Paths
 
+/** Append `trailing` string to `text` if `text` has content.
+ * If text is null or empty the trailer is not added.
+ * @param text Text to add trailing text to
+ * @param trailing _Trailing_ text to add
+ */
 fun trailingText(text: CharSequence?, trailing: String = " ") = if (text.isNullOrEmpty()) {
     text
 } else {

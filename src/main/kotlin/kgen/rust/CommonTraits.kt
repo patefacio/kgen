@@ -92,6 +92,25 @@ val negTrait = Trait(
     uses = listOf("std::ops::Neg").asUses
 )
 
+
+val notTrait = Trait(
+    "not",
+    "The unary negation operator `-`",
+    functions = listOf(
+        Fn(
+            "not",
+            "The unary logical negation operator !.",
+            self,
+            returnDoc = "The new negated `Self`",
+            returnType = "Self::Output".asType
+        )
+    ),
+    associatedTypes = listOf(
+        AssociatedType("output", "The output type of the operation.")
+    ),
+    uses = listOf("std::ops::Not").asUses
+)
+
 val iteratorTrait = Trait(
     "iterator",
     "The iterator trait",
@@ -173,5 +192,53 @@ val dropTrait = Trait(
         "drop",
         "Custom code within the destructor",
         refMutSelf
+    )
+)
+
+private val glooWorkerScopeParam = FnParam(
+    "scope",
+    "& WorkerScope<Self>".asType,
+    "The scope of the worker"
+)
+
+val glooWorkerTrait = Trait(
+    "worker",
+    "Support for web worker",
+    Fn(
+        "create",
+        "Create the worker",
+        glooWorkerScopeParam,
+        returnType = "Self".asType,
+        returnDoc = "The created worker"
+    ),
+    Fn(
+        "update",
+        "Worker receives an update",
+        refMutSelf,
+        glooWorkerScopeParam,
+        FnParam(
+            "msg",
+            "Self::Message".asType
+        )
+    ),
+    Fn(
+        "received",
+        "Receives an input from a connected bridge",
+        refMutSelf,
+        glooWorkerScopeParam,
+        FnParam(
+            "msg",
+            "Self::Input".asType
+        ),
+        FnParam(
+            "id",
+            "HandlerId".asType,
+            "The handler id"
+        )
+    ),
+    associatedTypes = listOf(
+        AssociatedType("message"),
+        AssociatedType("input"),
+        AssociatedType("output")
     )
 )

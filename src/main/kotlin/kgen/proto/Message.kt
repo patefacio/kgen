@@ -1,6 +1,7 @@
 package kgen.proto
 
 import kgen.*
+import kgen.rust.Trait
 
 /** A modeled message.
  *
@@ -15,7 +16,8 @@ data class Message(
     val doc: String = missingDoc(nameId, "Proto Message"),
     val fields: List<MessageField> = emptyList(),
     val messages: List<Message> = emptyList(),
-    val enums: List<Enum> = emptyList()
+    val enums: List<Enum> = emptyList(),
+    val implementedTraits: Set<Trait> = emptySet()
 ) : Identifier(nameId), Udt, AsProto {
 
     constructor(
@@ -23,8 +25,9 @@ data class Message(
         doc: String,
         vararg fields: MessageField,
         messages: List<Message> = emptyList(),
-        enums: List<Enum> = emptyList()
-    ) : this(nameId, doc, fields.toList(), messages, enums)
+        enums: List<Enum> = emptyList(),
+        implementedTraits: Set<Trait> = emptySet()
+    ) : this(nameId, doc, fields.toList(), messages, enums, implementedTraits)
 
 
     private val numberedFields

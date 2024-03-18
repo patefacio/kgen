@@ -7,28 +7,28 @@ import java.io.File
 
 internal class OpenMergeKtTest {
 
-    val blockName1 = "block_name<foo>"
-    val blockName2 = "block_name<bar>"
-    val blockName3 = "foobar"
+    private val blockName1 = "block_name<foo>"
+    private val blockName2 = "block_name<bar>"
+    private val blockName3 = "foobar"
 
-    val block1 = """
+    private val block1 = """
         // α <$blockName1>
         hand written text to preserve
         // ω <$blockName1>""".trimIndent()
 
-    val block2 = """
+    private val block2 = """
         // α <$blockName2>
         more hand written text to preserve
         // ω <$blockName2>""".trimIndent()
 
-    val block3 = """
+    private val block3 = """
         // α `$blockName3`
         hand written with different naming
         // ω `$blockName3`""".trimIndent()
 
-    val defunctBlock = emptyOpenDelimitedBlock("defunct")
+    private val defunctBlock = emptyOpenDelimitedBlock("defunct")
 
-    val emptyGenerated = """
+    private val emptyGenerated = """
 generated prefix text
 ${emptyOpenDelimitedBlock(blockName1)}
 preserved
@@ -39,7 +39,7 @@ generated postfix text
 $defunctBlock
         """
 
-    val sampleText = """
+    private val sampleText = """
 generated prefix text
 $block1
 preserved
@@ -50,7 +50,7 @@ generated postfix text
 $defunctBlock
         """
 
-    val newGeneratedText = """
+    private val newGeneratedText = """
 generated prefix text *updated1*
 ${emptyOpenDelimitedBlock(blockName1)}
 preserved *updated2*
@@ -60,7 +60,7 @@ ${emptyOpenDelimitedBlock(blockName3, blockNameDelimiter = BlockNameDelimiter.Ba
 generated postfix text *updated4*
         """
 
-    val expectedAfterMerge = """
+    private val expectedAfterMerge = """
 generated prefix text *updated1*
 $block1
 preserved *updated2*
@@ -72,6 +72,12 @@ generated postfix text *updated4*
 
     @Test
     fun pullBlocks() {
+
+        assertEquals(
+            block1,
+            alphaOmegaDelimiter.pullBlocks(block1).values.first().toString()
+        )
+
         val results = alphaOmegaDelimiter.pullBlocks(sampleText)
 
         assertEquals(
@@ -81,13 +87,43 @@ generated postfix text *updated4*
                 "foobar" to block3,
                 "defunct" to defunctBlock
             ),
-            results
+            results.mapValues { it.value.toString() }
         )
     }
 
     @Test
     fun mergeBlocksTest() {
         val merged = mergeBlocks(generated = newGeneratedText, prior = sampleText)
+        assertEquals(expectedAfterMerge, merged)
+    }
+
+    @Test
+    fun mergeBlocksWithStartContent() {
+
+        val alpha = "// α"
+        val omega = "// ω"
+
+        //val r = """$alpha\s+[<`](?<blockName>[^\n]*)[>`]\s*(?<body>.*?)\s*$omega\s*\1"""
+        val r = """$alpha\s+(?<blockLabel>[<`](?<blockName>[^\n]+)[>`])\s*(?<body>.*?)\s*$omega\s+\1"""
+            .toRegex(options = setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL))
+
+        r
+            .findAll("// α <blockName> this is the body \nfoo\n// ω <blockName>")
+            .forEach { matchResult ->
+                println("blockLabel -> ${matchResult.groups["blockLabel"]}")
+                println("blockName -> ${matchResult.groups["blockName"]}")
+                println("body -> ${matchResult.groups["body"]}")
+                println("$matchResult")
+            }
+
+        // val r = """(?<opener>$alpha)(?<blockName>([<`]([^\\n]*)[>`])[ \\t]*)(?<body>.*?)(?<closer>$omega)""".toRegex()
+
+
+        val merged = mergeBlocks(
+            generated = newGeneratedText,
+            prior = sampleText,
+            // TODO  blockDelimiter = alphaOmegaDelimiter(startContent = "Some Start Content")
+        )
         assertEquals(expectedAfterMerge, merged)
     }
 

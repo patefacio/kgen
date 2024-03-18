@@ -28,6 +28,7 @@ data class Struct(
     val includeCustomNew: Boolean = false,
     val inlineNew: Boolean = false,
     val additionalNewParams: List<FnParam> = emptyList(),
+    val deriveBuilder: Boolean = false,
     val ctors: List<Ctor> = emptyList()
 ) : Identifier(nameId), Type, AsRust {
 
@@ -37,7 +38,17 @@ data class Struct(
 
     val structNameGenericWithoutDefaults get() = "${structName}${genericParamSet.withoutDefaults.asRust}"
 
-    val allUses get() = uses + (typeImpl?.allUses ?: emptySet())
+    val allUses get() = uses + (typeImpl?.allUses ?: emptySet()) + if(deriveBuilder) {
+        listOf("derive_builder::Builder").asUses
+    } else {
+        emptySet()
+    }
+
+    val allAttrs get() = attrs + if(deriveBuilder) {
+        attrDeriveBuilder
+    } else {
+        AttrList()
+    }
 
     private fun newFnFromFields(fields: List<Field>, additionalNewParams: List<FnParam>): Fn {
         val returnType = structNameGenericWithoutDefaults.asType
@@ -141,6 +152,7 @@ data class Struct(
         includeCustomNew: Boolean = false,
         inlineNew: Boolean = false,
         additionalNewParams: List<FnParam> = emptyList(),
+        deriveBuilder: Boolean = false,
         ctors: List<Ctor> = emptyList()
     ) : this(
         nameId,
@@ -160,6 +172,7 @@ data class Struct(
         includeCustomNew,
         inlineNew,
         additionalNewParams,
+        deriveBuilder,
         ctors
     )
 
@@ -187,7 +200,7 @@ data class Struct(
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
-            attrs.asOuterAttr,
+            allAttrs.asOuterAttr,
             header,
             if (fields.isEmpty()) {
                 ""

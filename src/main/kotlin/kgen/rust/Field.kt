@@ -81,7 +81,23 @@ data class Field(
 
                 else -> null
             }
+        ) + listOfNotNull(
+            when {
+                access.requiresRefWriter -> {
+                    Fn(
+                        "get_${id.snake}_mut",
+                        null,
+                        refMutSelf,
+                        body = FnBody("& mut self.${id.snake}"),
+                        returnType = "&mut ${type.asRust}".asType,
+                        returnDoc = "Mutable reference to data",
+                        visibility = Visibility.Pub,
+                        attrs = attrInline.asAttrList
+                    )
+                }
 
+                else -> null
+            }
         )
 
 

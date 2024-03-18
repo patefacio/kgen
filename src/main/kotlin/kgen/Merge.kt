@@ -5,6 +5,40 @@ import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
 /**
+ * A **Block**, containing an _opener_, a _closer_ and _content_
+ */
+data class Block(
+    val name: String,
+    val opener: String,
+    val startContent: String? = null,
+    val body: String?,
+    val endContent: String? = null,
+    val closer: String,
+    val source: String? = null
+) {
+
+    constructor(
+        name: String,
+        blockDelimiter: BlockDelimiter,
+        startContent: String? = null,
+        body: String? = null,
+        endContent: String? = null,
+    ) : this(
+        name,
+        blockDelimiter.open,
+        startContent,
+        body,
+        endContent,
+        blockDelimiter.close,
+        null
+    )
+
+    override fun toString() = "$opener\n$body$closer"
+
+    fun replaceBodyWith(otherBlock: Block) = copy(body = otherBlock.body)
+}
+
+/**
  * A **Block** is a section of text that is intended to be protected during the code
  * generation process. The [BlockDelimiter] provides a way to signify where the
  * protected text blocks are among code in the file that is intended to be generated.
@@ -49,7 +83,7 @@ interface BlockDelimiter {
     val open: String
     val close: String
 
-    fun pullBlocks(text: String): Map<String, String>
+    fun pullBlocks(text: String): Map<String, Block>
 
     /** Create an empty block.
      * @param name Name used in protection block delimiter
@@ -70,24 +104,33 @@ interface BlockDelimiter {
  * corresponding [close] (e.g. `// ω`)
  */
 data class OpenBlockDelimiter(override val open: String, override val close: String) : BlockDelimiter {
-    override fun pullBlocks(text: String): Map<String, String> {
-
-        // The block name is within angle brackets or back ticks and the name is *captured/grouped*
-        val blockNameMatch = """([<`]([^\n]*)[>`])[ \t]*"""
-        val block = """.*?"""
+    override fun pullBlocks(text: String): Map<String, Block> {
+        val regexText = """$open\s+(?<blockLabel>[<`](?<blockName>[^\n]*)[>`])[ \t]*\n(?<body>.*?)$close\s+\1"""
 
         // The regex ties the named block in open tag to close tag
-        val splitterRe = """$open\s+$blockNameMatch$block$close\s+\1"""
+        val splitterRe = regexText
             .toRegex(options = setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL))
 
-        return splitterRe.findAll(text).associate {
-            Pair(it.groupValues[2], it.value)
+        return splitterRe.findAll(text).associate { matchResult ->
+            val blockText = matchResult.value
+            val blockName = matchResult.groups["blockName"]!!.value
+            val blockLabel = matchResult.groups["blockLabel"]!!.value
+            val body = matchResult.groups["body"]!!.value
+            val block =
+                Block(
+                    name = blockName,
+                    opener = "$open $blockLabel",
+                    body = body,
+                    closer = "$close $blockLabel",
+                    source = blockText
+                )
+            Pair(blockName, block)
         }
     }
 
     override fun emptyBlock(
         name: String, blockNameDelimiter: BlockNameDelimiter, emptyContents: String?
-    ) = """${open} ${blockNameDelimiter.open}$name${blockNameDelimiter.close}
+    ) = """$open ${blockNameDelimiter.open}$name${blockNameDelimiter.close}
 ${
         trailingText(
             emptyContents,
@@ -107,22 +150,40 @@ data class ClosedBlockDelimiter(
     override val close: String,
     val blockNamePlaceholder: String = "NAME"
 ) : BlockDelimiter {
-    override fun pullBlocks(text: String): Map<String, String> {
+    override fun pullBlocks(text: String): Map<String, Block> {
         // The block name is within angle brackets or back ticks and the name is *captured/grouped*
         val escapeChars = """([<>!])""".toRegex()
-        val blockNameMatch = """([<`]([^\n]*)[>`])[ \t]*"""
+
+        // Escape the special characters in the `open` and `close`
         val escapedOpen = open.replace(escapeChars, """\\$1""")
         val escapedClose = close.replace(escapeChars, """\\$1""")
+
+        // Create regexes for open and close with the escaped special characters
+        val blockNameMatch = """(?<delimitedBlockName>[<`](?<blockName>[^\n]*)[>`])[ \t]*"""
         val wrappedOpen = escapedOpen.replace(blockNamePlaceholder, blockNameMatch)
-        val wrappedClose = escapedClose.replace(blockNamePlaceholder, blockNameMatch)
-        val block = """.*?"""
+        val wrappedClose = escapedClose.replace(blockNamePlaceholder, """\2""")
+
+        val blockMatcher = """.*"""
+        val regexText = """(?<openMatch>$wrappedOpen)\n(?<body>$blockMatcher)(?<closeMatch>$wrappedClose)"""
 
         // The regex ties the named block in open tag to close tag
-        val splitterRe = """$wrappedOpen\s+$block$wrappedClose"""
+        val splitterRe = regexText
             .toRegex(options = setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL))
 
-        return splitterRe.findAll(text).associate {
-            Pair(it.groupValues[2], it.value)
+        return splitterRe.findAll(text).associate { matchResult ->
+            val blockText = matchResult.value
+            val openMatch = matchResult.groups["openMatch"]!!.value
+            val closeMatch = matchResult.groups["closeMatch"]!!.value
+            val blockName = matchResult.groups["blockName"]!!.value
+            val body = matchResult.groups["body"]!!.value
+            val block = Block(
+                name = blockName,
+                opener = openMatch,
+                body = body,
+                closer = closeMatch,
+                source = blockText
+            )
+            Pair(blockName, block)
         }
     }
 
@@ -223,7 +284,12 @@ fun mergeBlocks(
     priorBlocks.entries.forEach { (blockName, block) ->
         val generatedBlock = generatedBlocks[blockName]
         if (generatedBlock != null) {
-            result = result.replace(generatedBlock, block)
+            if (block.source != null) {
+                result = result.replace(
+                    generatedBlock.source!!,
+                    block.toString()
+                )
+            }
         } else {
             kgenLogger.warn { "Missing generated protect block `$blockName` removed!" }
         }

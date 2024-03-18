@@ -177,6 +177,9 @@ val attrDeriveEq = derive("Eq")
 /** `derive(PartialEq)` attribute */
 val attrDerivePartialEq = derive("PartialEq")
 
+/** `derive(PartialEq)` attribute */
+val attrDeriveBuilder = derive("Builder")
+
 /** Both `derive(Serialize)` and `derive(Deserialize)` */
 val attrSerdeSerialization = Attr.Words("derive", "Serialize", "Deserialize")
 
