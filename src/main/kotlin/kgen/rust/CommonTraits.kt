@@ -1,6 +1,11 @@
 package kgen.rust
 
+/** This file contains trait definitions of common rust traits. Use these
+ * to easily add trait implementations to your types.
+ */
 
+/** `std::default::Default` Trait https://doc.rust-lang.org/nightly/std/default/trait.Default.html
+ */
 val defaultTrait = Trait(
     "default", "Rust default trait",
     functions = listOf(
@@ -12,6 +17,25 @@ val defaultTrait = Trait(
     )
 )
 
+/** `std::cmp::PartialEq` Trait https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
+ */
+val partialEqualTrait = Trait(
+    "partial_eq",
+    "Trait for comparisons using the equality operator.",
+    functions = listOf(
+        Fn(
+            "eq",
+            "Returns true if `other` equals `self`.",
+            refSelf,
+            FnParam("other", "&Self".asType, "Instance to compare"),
+            returnDoc = "True if `other` equals `self`.",
+            returnType = RustBoolean
+        )
+    )
+)
+
+/** `std::ops::AddAssign` Trait https://doc.rust-lang.org/nightly/std/ops/trait.AddAssign.html
+ */
 val addAssignTrait = Trait(
     "add_assign",
     "The addition assignment operator `+=`",
@@ -31,6 +55,8 @@ val addAssignTrait = Trait(
     uses = listOf("std::ops::AddAssign").asUses
 )
 
+/** `std::ops::MulAssign` Trait https://doc.rust-lang.org/nightly/std/ops/trait.MulAssign.html
+ */
 val mulAssignTrait = Trait(
     "mul_assign",
     "The multiplication assignment operator `*=`",
@@ -50,6 +76,8 @@ val mulAssignTrait = Trait(
     uses = listOf("std::ops::MulAssign").asUses
 )
 
+/** `std::ops::Mul` Trait https://doc.rust-lang.org/nightly/std/ops/trait.Mul.html
+ */
 val mulTrait = Trait(
     "mul",
     "The multiplication operator `*`",
@@ -241,4 +269,10 @@ val glooWorkerTrait = Trait(
         AssociatedType("input"),
         AssociatedType("output")
     )
+)
+
+val allCommonTraits = setOf(
+    defaultTrait, partialEqualTrait, addAssignTrait, mulAssignTrait, mulTrait,
+    negTrait, notTrait, iteratorTrait, intoIteratorTrait, displayTrait, cloneTrait,
+    sendTrait, syncTrait, dropTrait
 )

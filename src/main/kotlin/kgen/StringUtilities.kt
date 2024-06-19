@@ -51,11 +51,13 @@ val whiteSpaceRe = """^\s+$""".toRegex()
 fun emptyIfOnlyWhitespace(text: String) =
     text.replace(whiteSpaceRe, "")
 
+private val unboundedWhiteSpace = """\s+""".toRegex()
+/** Removes whitespace from string */
+val String.noWhitespace get() = this.replace(unboundedWhiteSpace, "")
+
 val String.nullIfEmpty
-    get() = if (this.isNullOrEmpty()) {
+    get() = this.ifEmpty {
         null
-    } else {
-        this
     }
 
 val CharSequence?.emptyIfNull

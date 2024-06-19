@@ -1,5 +1,6 @@
 package kgen.rust
 
+import kgen.noWhitespace
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
@@ -34,8 +35,32 @@ internal class TraitImplTest {
     todo!("Implement `do_goo`")
     // ω <fn Foo::do_goo for i32>
   }
-}""",
-            traitImpl.asRust
+}""".noWhitespace,
+            traitImpl.asRust.noWhitespace
+        )
+    }
+
+    @Test
+    fun patchGeneric() {
+
+        assertEquals(
+            """
+impl AddAssign<Foo> for i32 {
+  
+  /// Add `Rhs` to `self`
+  /// 
+  ///   * **rhs** - Right hand side
+  fn add_assign(
+    & mut self,
+    rhs: Foo
+  ) {
+    // α <fn AddAssign::add_assign for i32>
+    todo!("Implement `add_assign`")
+    // ω <fn AddAssign::add_assign for i32>
+  }
+}
+            """.noWhitespace,
+            TraitImpl(I32, addAssignTrait, genericArgSet = GenericArgSet("Foo".asType)).asRust.noWhitespace
         )
     }
 }

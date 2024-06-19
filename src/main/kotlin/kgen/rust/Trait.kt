@@ -47,11 +47,11 @@ data class Trait(
     override val asSuperTrait: String
         get() = asRustName
 
-    val traitScopedFunctions = functions.map {
+    private val traitScopedFunctions get() = functions.map {
         it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}").copy(visibility = Visibility.None)
     }
 
-    private val traitContent = indent(
+    private val traitContent get() = indent(
         (associatedTypes.map { it.asRust } +
                 traitScopedFunctions.map { it.asTraitFn }).joinNonEmpty("\n\n")
     )!!

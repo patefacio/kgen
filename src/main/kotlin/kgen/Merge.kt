@@ -25,11 +25,11 @@ data class Block(
         endContent: String? = null,
     ) : this(
         name,
-        blockDelimiter.open,
+        "${blockDelimiter.open} <$name>",
         startContent,
         body,
         endContent,
-        blockDelimiter.close,
+        "${blockDelimiter.close} <$name>",
         null
     )
 

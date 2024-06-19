@@ -6,7 +6,7 @@ java {
 }
 
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.23"
 }
 
 group = "org.example"
@@ -21,12 +21,14 @@ dependencies {
     implementation(
         group = "ch.qos.logback",
         name = "logback-classic",
-        version = "1.2.9"
+        version = "1.5.6"
     )
 
     implementation("org.jetbrains.kotlin-wrappers:kotlin-css:1.0.0-pre.636")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-
+    implementation("org.jetbrains.exposed:exposed-core:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.51.1")
     testImplementation(kotlin("test"))
 }
 
@@ -36,5 +38,5 @@ tasks.test {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = "17"
 }

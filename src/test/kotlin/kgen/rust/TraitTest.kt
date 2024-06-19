@@ -8,7 +8,6 @@ internal class TraitTest {
 
     @Test
     fun getAsRust() {
-
         assertEquals(
             """
                 /// Supports performing foo and bar operations

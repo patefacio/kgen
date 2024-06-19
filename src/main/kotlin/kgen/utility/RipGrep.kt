@@ -10,6 +10,7 @@ import java.nio.file.Path
  * @property excludeLineRegexes Post run filters out based on these regexes
  * @property commonExclusions Post run filters out based on these regexes
  * @property wordBoundaryOnly Sets `-w` flag that treats expression as having word boundary
+ * @param usePcre2 If true specifies `Enable PCRE2 matching`
  */
 data class RipGrep(
     val expression: String,
@@ -40,7 +41,7 @@ data class RipGrep(
         usePcre2
     )
 
-    private val asCommand
+    val asCommand
         get() = listOf(
             listOfNotNull(
                 "rg --no-heading",
@@ -59,9 +60,8 @@ data class RipGrep(
                 } else {
                     ""
                 }
-
             ),
-            fileExclusions.map { "-g!$it" },
+            fileExclusions.map { "-g'!$it'" },
             listOf("-n -e'$expression'"),
             paths
         ).flatten().joinToString(" ")

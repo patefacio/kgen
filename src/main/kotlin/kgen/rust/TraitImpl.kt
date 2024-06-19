@@ -47,11 +47,12 @@ data class TraitImpl(
 
     val allUses = uses + trait.allUses
 
-    val allAttrs get() = if(debugOnly) {
-        attrs + attrDebugBuild
-    } else {
-        attrs
-    }
+    val allAttrs
+        get() = if (debugOnly) {
+            attrs + attrDebugBuild
+        } else {
+            attrs
+        }
 
     private val unitTestFunctionIds
         get() = if (unitTestTraitFunctions) {
@@ -60,9 +61,53 @@ data class TraitImpl(
             emptyList()
         } + functionUnitTests
 
+    private val requiresArgMatching
+        get() = trait.genericParamSet.typeParams.isNotEmpty() &&
+                genericArgSet.types.isNotEmpty()
+
+    private val matchedParamToArg = if (requiresArgMatching) {
+        genericArgSet.types.withIndex().associate { (i, arg) -> trait.genericParamSet.typeParams[i] to arg }
+    } else {
+        emptyMap()
+    }
+
+    /** When defining traits with generic parameters it is common to use those types in
+     * function parameters. Then when implementing the trait those type parameters must
+     * be provided type arguments. The function implementations will refer to the actual
+     * type and not the original generic type parameter as the trait functions do. So
+     * this is a way to replace any function param types referencing the generics in
+     * the trait's definition with the corresponding type passed in as the type argument.
+     * It does this replacement textually with a word-bounded regex.
+     */
+    val patchedFunctions
+        get(): List<Fn> {
+
+            val replacements = matchedParamToArg.entries.associate { (key, value) ->
+                """(?<!::)\b${key.asRust}\b""".toRegex() to value.asRust
+            }
+
+            return trait
+                .functions
+                .filter { it.body == null }
+                .map { function ->
+                function.copy(visibility = Visibility.None,
+//                    doc = if (allCommonTraits.contains(trait)) {
+//                        function.doc
+//                    } else {
+//                        null
+//                    },
+                    params = function.params.map { fnParam ->
+                        val paramType = replacements.entries.fold(fnParam.type) { paramType, replacement ->
+                            UnmodeledType(paramType.asRust.replace(replacement.key, replacement.value))
+                        }
+                        fnParam.copy(type = paramType)
+                    })
+            }
+        }
+
     val testModule
         get() = if (unitTestFunctionIds.isNotEmpty()) {
-            val testModuleNameId = "test_${trait.nameId}_on_${type.sanitized.lowercase()}"
+            val testModuleNameId = "test_${trait.nameId}_on_${type.sanitized.lowercase()}".replace("__", "_")
             Module(
                 testModuleNameId,
                 "Test trait ${trait.nameId} on ${type.asRust}",
@@ -102,45 +147,13 @@ data class TraitImpl(
                 )
             ),
             indent(
-                trait
-                    .functions
-                    .filter { it.body == null }
-                    .map { traitFunction ->
-                        // The trait may be defined with generic parameters, like `T` that are satisfied
-                        // by argument types. In the trait function those types can appear as function parameter types
-                        // as T and need to be replaced with the actual argument type.
-                        val fnParams = if (trait.genericParamSet.typeParams.isNotEmpty() &&
-                            genericArgSet.types.isNotEmpty()
-                        ) {
-
-                            val matches = (trait.genericParamSet.typeParams.map { it.id.capCamel } zip
-                                    genericArgSet.types.map { it.asRust }).toMap()
-
-                            traitFunction
-                                .params
-                                .map { fnParam ->
-                                    val replacement = matches[fnParam.type.asRust]?.asType ?: fnParam.type
-                                    fnParam.copy(
-                                        type = replacement
-                                    )
-                                }
-                        } else {
-                            traitFunction.params
-                        }
-
-                        if (noFunctionComments) {
-                            traitFunction.copy(doc = null, params = fnParams)
-                        } else {
-                            traitFunction.copy(params = fnParams)
-                        }.copy(visibility = Visibility.None)
+                patchedFunctions.joinToString("\n\n") {
+                    if (bodies.contains(it.nameId)) {
+                        it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
+                    } else {
+                        it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
                     }
-                    .joinToString("\n\n") {
-                        if (bodies.contains(it.nameId)) {
-                            it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
-                        } else {
-                            it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
-                        }
-                    }),
+                }),
             "}"
         ).joinToString("\n")
 

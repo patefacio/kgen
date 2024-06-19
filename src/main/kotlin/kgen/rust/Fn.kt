@@ -109,7 +109,7 @@ data class Fn(
         }
     ).reduce { acc, attrList -> acc + attrList }
 
-    private var paramText = if (params.isEmpty()) {
+    private val paramText get() = if (params.isEmpty()) {
         "()"
     } else {
         listOf(

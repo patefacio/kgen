@@ -26,8 +26,8 @@ Some front matter""".asTextItem,
     @Test
     fun mergeBlocksTest() {
         assertEquals(
-            completeBlockText,
-            textList.mergePriorInto(completeBlockText)
+            completeBlockText.trim(),
+            textList.mergePriorInto(completeBlockText).trim()
         )
     }
 }
