@@ -60,7 +60,7 @@ impl PartialEq for f64 {
     // ω <fn PartialEq::eq for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, partialEqualTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, partialEqTrait).asRust.noWhitespace)
 
         assertEquals("""
 impl AddAssign for f64 {
@@ -78,6 +78,39 @@ impl AddAssign for f64 {
   }
 }
         """.noWhitespace, TraitImpl(F64, addAssignTrait).asRust.noWhitespace)
+
+        assertEquals("""
+impl Hash for f64 {
+  
+  /// Feeds this value into the given `Hasher`
+  /// 
+  ///   * **state** - Hasher to feed values
+  fn hash<H>(
+    &self,
+    state: & mut H
+  )
+  where
+    H: std::hash::Hasher {
+    // α <fn Hash::hash for f64>
+    todo!("Implement `hash`")
+    // ω <fn Hash::hash for f64>
+  }
+  
+  /// Feeds a slice of this type into a given `Hasher`
+  /// 
+  ///   * **state** - Hasher to feed values
+  fn hash_slice<H>(
+    &self,
+    state: & mut H
+  )
+  where
+    H: std::hash::Hasher + std::marker::Sized {
+    // α <fn Hash::hash_slice for f64>
+    todo!("Implement `hash_slice`")
+    // ω <fn Hash::hash_slice for f64>
+  }
+}
+        """.noWhitespace, TraitImpl(F64, hashTrait).asRust.noWhitespace)
 
 
         assertEquals("""

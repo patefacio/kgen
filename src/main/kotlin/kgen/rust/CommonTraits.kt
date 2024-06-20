@@ -41,7 +41,7 @@ val debugTrait = Trait(
 
 /** `std::cmp::PartialEq` Trait https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
  */
-val partialEqualTrait = Trait(
+val partialEqTrait = Trait(
     "partial_eq",
     "Trait for comparisons using the equality operator.",
     functions = listOf(
@@ -53,6 +53,36 @@ val partialEqualTrait = Trait(
             returnDoc = "True if `other` equals `self`.",
             returnType = RustBoolean
         )
+    )
+)
+
+/** `std::hash::Hash` Trait https://doc.rust-lang.org/nightly/std/hash/trait.Hash.html
+ */
+val hashTrait = Trait(
+    "hash",
+    "Trait for hashable types",
+    functions = listOf(
+        Fn(
+            "hash",
+            "Feeds this value into the given `Hasher`",
+            refSelf,
+            FnParam("state", "& mut H".asType, "Hasher to feed values"),
+            genericParamSet = GenericParamSet(
+                TypeParam("h", bounds = Bounds("std::hash::Hasher"))
+            )
+        ),
+        Fn(
+            "hash_slice",
+            "Feeds a slice of this type into a given `Hasher`",
+            refSelf,
+            FnParam("state", "& mut H".asType, "Hasher to feed values"),
+            genericParamSet = GenericParamSet(
+                TypeParam(
+                    "h",
+                    bounds = Bounds("std::hash::Hasher", "std::marker::Sized")
+                )
+            )
+        ),
     )
 )
 
@@ -294,7 +324,7 @@ val glooWorkerTrait = Trait(
 )
 
 val allCommonTraits = setOf(
-    defaultTrait, partialEqualTrait, addAssignTrait, mulAssignTrait, mulTrait,
+    defaultTrait, partialEqTrait, addAssignTrait, mulAssignTrait, mulTrait,
     negTrait, notTrait, iteratorTrait, intoIteratorTrait, displayTrait, cloneTrait,
     sendTrait, syncTrait, dropTrait
 )
