@@ -23,6 +23,27 @@ impl Default for f64 {
 }
         """.noWhitespace, TraitImpl(F64, defaultTrait).asRust.noWhitespace)
 
+        assertEquals(
+            """
+impl Debug for f64 {
+  
+  /// Format the instance.l
+  /// 
+  ///   * **f** - The formatter
+  ///   * _return_ - Formatted instance
+  fn fmt(
+    &self,
+    #[allow(unused)] f: &mut Formatter<'_>
+  ) -> ::core::fmt::Result {
+    // α <fn Debug::fmt for f64>
+    todo!("Implement `fmt`")
+    // ω <fn Debug::fmt for f64>
+  }
+}
+            """.trimIndent().noWhitespace,
+           TraitImpl(F64, debugTrait).asRust.noWhitespace
+        )
+
         assertEquals("""
 impl PartialEq for f64 {
   

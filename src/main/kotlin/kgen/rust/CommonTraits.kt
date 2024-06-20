@@ -17,6 +17,28 @@ val defaultTrait = Trait(
     )
 )
 
+/** `std::fmt::Debug` Trait https://doc.rust-lang.org/nightly/std/fmt/trait.Debug.html
+ */
+val debugTrait = Trait(
+    "debug", "Format trait for debug formatting",
+    functions = listOf(
+        Fn(
+            "fmt",
+            "Format the instance.l",
+            refSelf,
+            FnParam(
+                "f",
+                "&mut Formatter<'_>".asType,
+                doc = "The formatter",
+                attrs = attrAllowUnused.asAttrList,
+            ),
+            returnDoc = "Formatted instance",
+            returnType = "::core::fmt::Result".asType,
+            uses = listOf("::core::fmt::Display", "::core::fmt::Formatter").asUses
+        )
+    )
+)
+
 /** `std::cmp::PartialEq` Trait https://doc.rust-lang.org/nightly/std/cmp/trait.PartialEq.html
  */
 val partialEqualTrait = Trait(
