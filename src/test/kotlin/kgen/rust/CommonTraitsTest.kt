@@ -95,20 +95,6 @@ impl Hash for f64 {
     todo!("Implement `hash`")
     // ω <fn Hash::hash for f64>
   }
-  
-  /// Feeds a slice of this type into a given `Hasher`
-  /// 
-  ///   * **state** - Hasher to feed values
-  fn hash_slice<H>(
-    &self,
-    state: & mut H
-  )
-  where
-    H: std::hash::Hasher + std::marker::Sized {
-    // α <fn Hash::hash_slice for f64>
-    todo!("Implement `hash_slice`")
-    // ω <fn Hash::hash_slice for f64>
-  }
 }
         """.noWhitespace, TraitImpl(F64, hashTrait).asRust.noWhitespace)
 

@@ -70,19 +70,7 @@ val hashTrait = Trait(
             genericParamSet = GenericParamSet(
                 TypeParam("h", bounds = Bounds("std::hash::Hasher"))
             )
-        ),
-        Fn(
-            "hash_slice",
-            "Feeds a slice of this type into a given `Hasher`",
-            refSelf,
-            FnParam("state", "& mut H".asType, "Hasher to feed values"),
-            genericParamSet = GenericParamSet(
-                TypeParam(
-                    "h",
-                    bounds = Bounds("std::hash::Hasher", "std::marker::Sized")
-                )
-            )
-        ),
+        )
     )
 )
 
