@@ -79,7 +79,7 @@ data class TraitImpl(
      * the trait's definition with the corresponding type passed in as the type argument.
      * It does this replacement textually with a word-bounded regex.
      */
-    val patchedFunctions
+    private val patchedFunctions
         get(): List<Fn> {
 
             val replacements = matchedParamToArg.entries.associate { (key, value) ->
@@ -90,18 +90,20 @@ data class TraitImpl(
                 .functions
                 .filter { it.body == null }
                 .map { function ->
-                function.copy(visibility = Visibility.None,
-//                    doc = if (allCommonTraits.contains(trait)) {
-//                        function.doc
-//                    } else {
-//                        null
-//                    },
+                function.copy(
+                    visibility = Visibility.None,
                     params = function.params.map { fnParam ->
                         val paramType = replacements.entries.fold(fnParam.type) { paramType, replacement ->
                             UnmodeledType(paramType.asRust.replace(replacement.key, replacement.value))
                         }
                         fnParam.copy(type = paramType)
-                    })
+                    },
+                    returnType = function.returnType?.asRust?.let {rt ->
+                        UnmodeledType(replacements.entries.fold(rt) { acc, replacement ->
+                           acc.replace(replacement.key, replacement.value)
+                        })
+                    }
+                )
             }
         }
 

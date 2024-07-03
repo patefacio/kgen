@@ -70,7 +70,7 @@ val hashTrait = Trait(
             genericParamSet = GenericParamSet(
                 TypeParam("h", bounds = Bounds("std::hash::Hasher"))
             )
-        )
+        ),
     )
 )
 

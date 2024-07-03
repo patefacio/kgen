@@ -5,7 +5,7 @@ import kgen.rust.Crate
 import kgen.rust.Module
 import kgen.rust.ModuleRootType
 import kgen.rust.ModuleType
-import kgen.utility.runShellCommand
+import kgen.utility.runSimpleCommand
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -173,7 +173,7 @@ data class CrateGenerator(
             ) +
                     binaryModuleResults + integrationTestsResults
 
-        "cd $targetSrcPath; cargo fmt".runShellCommand()
+        "cargo fmt".runSimpleCommand(targetSrcPath.toFile(), echoOutputs = true)
 
         if (!noWarnNonGenerated) {
             checkForUnwantedFiles(targetSrcPath, moduleGenerationResults)

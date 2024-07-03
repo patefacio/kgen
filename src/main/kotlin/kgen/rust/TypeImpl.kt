@@ -27,6 +27,8 @@ data class TypeImpl(
 
     val allUses get() = uses + functions.map { it.allUses }.flatten()
 
+    private val functionsById = functions.associateBy { it.id }
+
     constructor(
         type: Type,
         vararg functions: Fn,
@@ -71,7 +73,8 @@ data class TypeImpl(
                 testModuleNameId,
                 "Test type ${type.asRustName}",
                 functions = unitTestFunctionIds.map {
-                    unitTest(it, "test ${type.sanitizedSpecial}::${it.snakeCaseName}")
+                    val testAttr = functionsById[it]?.testFnAttr ?: attrTestFn
+                    unitTest(it, "test ${type.sanitizedSpecial}::${it.snakeCaseName}", testAttr)
                 } + panicTestFunctionIds.map { panicTest(it) },
                 moduleType = ModuleType.Inline,
                 uses = setOf(Use("test_log::test")),

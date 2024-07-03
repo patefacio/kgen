@@ -31,7 +31,11 @@ data class FnParam(
     override val asRust: String
         get() = if (nameId == "self") {
             when (type.asRust) {
-                "Self" -> "self"
+                "Self" -> if (isMutable) {
+                    "mut self"
+                } else {
+                    "self"
+                }
                 "& Self" -> "&self"
                 "& mut Self" -> "& mut self"
                 "&'a Self" -> "& 'a self"
@@ -57,6 +61,7 @@ data class FnParam(
 }
 
 val self = FnParam("self", Self)
+val selfMut = self.copy(isMutable = true)
 val refSelf = FnParam("self", RefSelf)
 fun refSelf(lifetime: String = "a") = FnParam("self", "&'$lifetime Self".asType)
 val refMutSelf = FnParam("self", RefMutSelf)

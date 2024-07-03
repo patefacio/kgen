@@ -4,11 +4,29 @@ import kgen.asId
 import kgen.db.*
 import kgen.rust.*
 
+val DbColumn.asRustType get() = when(this.type) {
+
+    is DbType.Byte -> U8
+    is DbType.Double -> F64
+    is DbType.Integer -> I64
+    is DbType.SmallInteger -> I16
+    is DbType.BigInteger -> I64
+    is DbType.Text -> RustString
+    is DbType.Date -> "chrono::NaiveDate".asType
+    is DbType.DateTime, is DbType.Timestamp -> "chrono::NaiveDateTime".asType
+    is DbType.IntegerAutoInc -> I64
+    is DbType.LongAutoInc -> I64
+    is DbType.UlongAutoInc -> U64
+    is DbType.Json, is DbType.VarChar -> RustString
+
+    else -> throw(Exception("Unsupported rust type for $this"))
+}
+
 val DbColumn.asRustField
     get() = Field(
         this.nameId.asId.snake,
         doc = this.doc ?: "Field for column `$nameId`",
-        "TODO".asType
+        this.asRustType
     )
 
 data class TableGatewayGenerator(
@@ -20,6 +38,7 @@ data class TableGatewayGenerator(
 
     val pkeyStructId = "${id.snake}_pkey".asId
     val valuesStructId = "${id.snake}_values".asId
+    val rowTypeId = "${id.snake}_row".asId
 
 
     val keyStruct = if (pkey.isNotEmpty()) {
@@ -46,14 +65,16 @@ data class TableGatewayGenerator(
 
     val tableStruct = Struct(
         "table_${id.snake}",
-        "Table Gateway Support for table `${id.snake}`.",
+        """Table Gateway Support for table `${id.snake}`.
+            |Rows
+        """.trimMargin(),
         typeImpl = TypeImpl(
             "Table${id.capCamel}".asType,
             Fn(
                 "insert",
-                "Insert rows of `${id.snake}`"
+                "Insert rows of `${id.snake}`",
+                FnParam("rows", "&[${rowTypeId.capCamel}]".asType, "Rows to insert"),
             ),
-
             Fn(
                 "select",
                 "Select rows of `${id.snake}`"
@@ -75,7 +96,15 @@ data class TableGatewayGenerator(
     val asModule = Module(
         table.nameId,
         """Table gateway pattern implemented for ${id.capCamel}""",
-        structs = listOfNotNull(keyStruct, valuesStruct, tableStruct)
+        structs = listOfNotNull(keyStruct, valuesStruct, tableStruct),
+        typeAliases = listOf(
+            TypeAlias(
+                rowTypeId.snake,
+                "(${pkeyStructId.asStructName}, ${valuesStructId.asStructName})".asType,
+                doc = "Rows are composed of the primary key and the value fields",
+                visibility = Visibility.PubExport
+            )
+        )
     )
 
 }
@@ -88,7 +117,7 @@ fun main() {
         columns = listOf(
             ModeledColumn("id", type = DbType.IntegerAutoInc),
             ModeledColumn("name", type = DbType.VarChar(16)),
-            ModeledColumn("blob", type = DbType.Blob),
+            ModeledColumn("big_number", type = DbType.BigInteger),
             ModeledColumn("weight_double", type = DbType.Double),
             ModeledColumn("weight_int", type = DbType.Integer)
         ),

@@ -14,6 +14,8 @@ import kgen.*
  * @property body The function body
  * @property isTest If true treats function as test by adding test attribute
  * @property hasUnitTest If true include unit test in same module
+ * @property isTokioTest If true treats function as tokio test by adding test attribute
+ * @property hasTokioTest If true include tokio unit test in same module
  * @property attrs Rust attributes associated with the function
  * @property blockName Name of block for rust code of the function. Reasonable default
  *                     based on [nameId] provided, but can override.
@@ -47,6 +49,8 @@ data class Fn(
     val body: FnBody? = null,
     val isTest: Boolean = false,
     val hasUnitTest: Boolean? = null,
+    val isTokioTest: Boolean = false,
+    val hasTokioTest: Boolean? = null,
     val attrs: AttrList = AttrList(),
     val blockName: String = nameId,
     val emptyBlockContents: String? = null,
@@ -74,6 +78,8 @@ data class Fn(
         body: FnBody? = null,
         isTest: Boolean = false,
         hasUnitTest: Boolean? = null,
+        isTokioTest: Boolean = false,
+        hasTokioTest: Boolean? = null,
         attrs: AttrList = AttrList(),
         blockName: String = nameId,
         emptyBlockContents: String? = null,
@@ -88,7 +94,7 @@ data class Fn(
         isAsync: Boolean = false,
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
-        genericParamSet, visibility, body, isTest, hasUnitTest, attrs,
+        genericParamSet, visibility, body, isTest, hasUnitTest, isTokioTest, hasTokioTest, attrs,
         blockName, emptyBlockContents, uses, localUses, testNameIds, panicTestNameIds,
         nameCapCamel, inlineParamDoc, consts, lets, isAsync
     )
@@ -102,10 +108,10 @@ data class Fn(
         } else {
             null
         },
-        if (isTest) {
-            AttrList(attrTestFn)
-        } else {
-            null
+        when {
+            isTokioTest  -> AttrList(attrTokioTestFn)
+            isTest -> AttrList(attrTestFn)
+            else -> null
         }
     ).reduce { acc, attrList -> acc + attrList }
 
@@ -152,7 +158,7 @@ data class Fn(
             genericParamSet
         )
 
-    private val asyncKeyword = if(isAsync) {
+    private val asyncKeyword = if(isAsync || isTokioTest) {
         "async "
     } else {
         ""
@@ -188,6 +194,12 @@ data class Fn(
         )
     } else {
         null
+    }
+
+    val testFnAttr get() = when {
+        hasTokioTest == true -> attrTokioTestFn
+        hasUnitTest == true -> attrTestFn
+        else -> null
     }
 
     fun asRust(codeBlockName: String) = listOfNotNull(

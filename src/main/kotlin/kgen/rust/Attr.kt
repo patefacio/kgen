@@ -10,6 +10,16 @@ interface AsAttr {
 
 /** A [rust attribute](https://doc.rust-lang.org/reference/attributes.html) */
 sealed class Attr(id: Id) : Identifier(id), AsAttr {
+
+    data class Text(val text: String) : Attr(id("text")) {
+
+        override val asInnerAttr: String
+            get() = "#![$text]"
+
+        override val asOuterAttr: String
+            get() = "#[$text]"
+    }
+
     class Word(nameId: String) : Attr(id(nameId)) {
 
         override val asInnerAttr: String
@@ -257,6 +267,14 @@ val attrMacroExport = Attr.Word("macro_export")
 /** For askama templates, prevents escape handling in template `template(escape="none")`. */
 val attrNoEscapeTemplate = Attr.Dict("template", "escape" to "none")
 
+/** For pulling in tokio runtime */
+val attrTokioMain = Attr.Text("tokio::main")
+
+/** For making a tokio test */
+val attrTokioTestFn = Attr.Text("tokio::test")
+
+/** For enabling tracing in tests using `tracing_test` */
+val attrTracingTest = Attr.Text("tracing_test::traced_test")
 
 /** Convert a single [Attr] into a list of attrs ([AttrList]). */
 val Attr.asAttrList get() = AttrList(this)

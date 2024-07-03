@@ -20,8 +20,15 @@ data class ClapBinary(
     val staticInits: List<StaticInit> = emptyList(),
     val lazies: List<Lazy> = emptyList(),
     val uses: Set<Use> = emptySet(),
-    val inSeparateDirectory: Boolean = false
+    val inSeparateDirectory: Boolean = false,
+    val useTokioMain: Boolean = false,
+    val asyncMain: Boolean = false,
+    val tracingWithThreadNames: Boolean = false,
+    val tracingWithFile: Boolean = false,
+    val tracingWithLineNumber: Boolean = false
 ) : Identifier(nameId) {
+
+    private val mainIsAsync get() = useTokioMain || asyncMain
 
     private val logLevelArg
         get() = if (hasLogLevel) {
@@ -35,8 +42,9 @@ data class ClapBinary(
             """
 tracing::subscriber::set_global_default(
     tracing_subscriber::fmt()
-        .with_file(true)
-        .with_line_number(true)            
+        .with_file($tracingWithFile)
+        .with_thread_names($tracingWithThreadNames)
+        .with_line_number($tracingWithLineNumber)            
         .with_max_level(match cli.log_level {
             LogLevel::Error => tracing::Level::ERROR,
             LogLevel::Warn => tracing::Level::WARN,
@@ -65,23 +73,37 @@ tracing::subscriber::set_global_default(
                     FnParam("cli", "Cli".asType, "Command line options.", allowUnused = true),
                     returnDoc = "An application error converted from a std compatible error",
                     returnType = "anyhow::Result<()>".asType,
-                    body = mainRunBody
+                    body = mainRunBody,
+                    isAsync = mainIsAsync
                 ),
                 Fn(
-                    "main", "Main entrypoint for $nameId",
+                    "main",
+                    "Main entrypoint for $nameId",
                     body = FnBody(
                         """
 let cli = Cli::parse();
 
 $initializeLogger
 
-main_run(cli).with_context(|| "main_run has failed")?;
+main_run(cli)${
+                            if (mainIsAsync) {
+                                ".await"
+                            } else {
+                                ""
+                            }
+                        }.with_context(|| "main_run has failed")?;
 Ok(())
 """.trimIndent()
                     ),
                     returnType = "anyhow::Result<()>".asType,
                     returnDoc = null,
-                    visibility = Visibility.None
+                    visibility = Visibility.None,
+                    isAsync = mainIsAsync,
+                    attrs = if (useTokioMain) {
+                        attrTokioMain.asAttrList
+                    } else {
+                        AttrList()
+                    },
                 ),
             ),
             enums = enums + listOfNotNull(

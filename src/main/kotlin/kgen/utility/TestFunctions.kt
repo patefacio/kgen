@@ -13,19 +13,21 @@ fun panicTest(nameId: String) = Fn(
 
 fun panicTest(id: Id) = panicTest(id.snakeCaseName)
 
-fun unitTest(nameId: String) = Fn(
+fun unitTest(nameId: String, attrTestFn: Attr) = Fn(
     nameId,
     doc = null,
-    attrs = AttrList(attrTestFn),
+    attrs = AttrList(attrTestFn, attrTracingTest),
     emptyBlockContents = """todo!("Add test $nameId")""",
-    visibility = Visibility.None
+    visibility = Visibility.None,
+    isAsync = attrTestFn == attrTokioTestFn
 )
 
-fun unitTest(id: Id, blockName: String) = Fn(
+fun unitTest(id: Id, blockName: String, attrTestFn: Attr) = Fn(
     id.snakeCaseName,
     blockName = blockName,
     emptyBlockContents = """todo!("Test ${id.snakeCaseName}")""",
     doc = null,
-    attrs = AttrList(attrTestFn),
-    visibility = Visibility.None
+    attrs = AttrList(attrTestFn, attrTracingTest),
+    visibility = Visibility.None,
+    isAsync = attrTestFn == attrTokioTestFn
 )

@@ -33,7 +33,8 @@ data class Ctor(
     val attrs: AttrList = AttrList(),
     val excludeInitializer: Boolean = false,
     val hasUnitTest: Boolean = false,
-    val useLetAssignments: Boolean = false
+    val useLetAssignments: Boolean = false,
+    val isAsync: Boolean = false
 ) {
 
     private fun includedFields(fields: List<Field>) = when {
@@ -113,7 +114,8 @@ data class Ctor(
             } else {
                 null
             },
-            hasUnitTest = hasUnitTest
+            hasUnitTest = hasUnitTest,
+            isAsync = isAsync
         )
     }
 }

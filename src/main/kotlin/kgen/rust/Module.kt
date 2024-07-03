@@ -179,16 +179,17 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 "Unit tests for `${nameId}`",
                 moduleType = ModuleType.Inline,
                 modules = allTraitImpls.mapNotNull { it.testModule } + allTypeImpls.mapNotNull { it.testModule },
-                functions = functions.filter { it.hasUnitTest ?: false }.map {
+                functions = functions.filter { it.hasUnitTest ?: it.hasTokioTest ?: false }.map {
                     Fn(
                         "test_${it.nameId}",
                         doc = null,
-                        attrs = AttrList(attrTestFn),
+                        attrs = AttrList(it.testFnAttr!!, attrTracingTest),
+                        isAsync = it.hasTokioTest == true,
                         emptyBlockContents = """todo!("Add test ${it.nameId}")""",
                         visibility = Visibility.None
                     )
                 } + (functions.map { fn ->
-                    fn.testNameIds.map { unitTest(it) }
+                    fn.testNameIds.map { unitTest(it, fn.testFnAttr!!) }
                 } + functions.map { fn ->
                     fn.panicTestNameIds.map { panicTest(it) }
                 }).flatten(),

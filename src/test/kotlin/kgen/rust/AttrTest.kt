@@ -12,6 +12,16 @@ internal class AttrTest {
         )
 
         assertEquals(
+            "#![tokio::test]",
+            Attr.Text("tokio::test").asInnerAttr
+        )
+
+        assertEquals(
+            "#[tokio::test]",
+            Attr.Text("tokio::test").asOuterAttr
+        )
+
+        assertEquals(
             "#[macro_use(a, b)]",
             Attr.Words("macro_use", "a", "b").asOuterAttr
         )
@@ -57,6 +67,7 @@ internal class AttrTest {
         assertEquals("#[feature(is_sorted)]", attrIsSorted.asOuterAttr)
         assertEquals("#[deny(missing_docs)]", attrDenyMissingDoc.asOuterAttr)
         assertEquals("#[template(escape=\"none\")]", attrNoEscapeTemplate.asOuterAttr)
+        assertEquals("#[tokio::main]", attrTokioMain.asOuterAttr)
 
 
     }
