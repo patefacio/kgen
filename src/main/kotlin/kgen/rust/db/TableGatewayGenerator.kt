@@ -111,19 +111,4 @@ data class TableGatewayGenerator(
 
 fun main() {
 
-
-    val gooTable = ModeledTable(
-        "goo",
-        columns = listOf(
-            ModeledColumn("id", type = DbType.IntegerAutoInc),
-            ModeledColumn("name", type = DbType.VarChar(16)),
-            ModeledColumn("big_number", type = DbType.BigInteger),
-            ModeledColumn("weight_double", type = DbType.Double),
-            ModeledColumn("weight_int", type = DbType.Integer)
-        ),
-        primaryKeyColumnNames = setOf("id")
-    )
-
-    println(TableGatewayGenerator(gooTable).asModule.asRust)
-
 }
