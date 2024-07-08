@@ -73,22 +73,31 @@ data class TableGatewayGenerator(
             Fn(
                 "insert",
                 "Insert rows of `${id.snake}`",
+                FnParam("client", "tokio_postgres::Client".asType, "The tokio postgresl client"),
                 FnParam("rows", "&[${rowTypeId.capCamel}]".asType, "Rows to insert"),
+                isAsync = true,
+                hasTokioTest = true
             ),
             Fn(
                 "select",
-                "Select rows of `${id.snake}`"
+                "Select rows of `${id.snake}`",
+                isAsync = true,
+                hasTokioTest = true
             ),
 
 
             Fn(
                 "update",
-                "Update rows of `${id.snake}`"
+                "Update rows of `${id.snake}`",
+                isAsync = true,
+                hasTokioTest = true
             ),
 
             Fn(
                 "delete",
-                "Delete rows of `${id.snake}`"
+                "Delete rows of `${id.snake}`",
+                isAsync = true,
+                hasTokioTest = true
             ),
         )
     )

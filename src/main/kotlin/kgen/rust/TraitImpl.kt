@@ -124,7 +124,6 @@ data class TraitImpl(
                     )
                 },
                 moduleType = ModuleType.Inline,
-                uses = setOf(Use("test_log::test"))
             )
         } else {
             null

@@ -77,7 +77,6 @@ data class TypeImpl(
                     unitTest(it, "test ${type.sanitizedSpecial}::${it.snakeCaseName}", testAttr)
                 } + panicTestFunctionIds.map { panicTest(it) },
                 moduleType = ModuleType.Inline,
-                uses = setOf(Use("test_log::test")),
                 visibility = Visibility.None
             )
         } else {

@@ -1,10 +1,16 @@
 package kgen.rust.db
 
 import kgen.db.asModeledTable
+import kgen.meta.MetaPaths
+import kgen.rust.Crate
+import kgen.rust.Module
+import kgen.rust.ModuleRootType
+import kgen.rust.generator.CrateGenerator
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.nio.file.Paths
 
 object KgenDatabase {
     val database = Database.connect(
@@ -31,11 +37,11 @@ object TableSample : Table("sample") {
 }
 
 fun main() {
-/*
-CREATE USER kgen WITH PASSWORD 'kgen';
-CREATE DATABASE kgen;
-GRANT ALL PRIVILEGES ON DATABASE kgen TO kgen;
- */
+    /*
+    CREATE USER kgen WITH PASSWORD 'kgen';
+    CREATE DATABASE kgen;
+    GRANT ALL PRIVILEGES ON DATABASE kgen TO kgen;
+     */
     KgenDatabase.database
 
     transaction {
@@ -45,7 +51,20 @@ GRANT ALL PRIVILEGES ON DATABASE kgen TO kgen;
     }
 
     val modeledTable = TableSample.asModeledTable()
-    println(modeledTable)
+    val libModule = Module(
+        "lib",
+        moduleRootType = ModuleRootType.LibraryRoot,
+        modules = listOf(
+            TableGatewayGenerator(modeledTable).asModule
+        )
+    )
+    val targetPath = MetaPaths.tempPath.resolve("kgen_db")
+    val crateGenerator = CrateGenerator(
+        Crate("kgen_db", rootModule = libModule),
+        targetPath.toString()
+    )
 
-    println(TableGatewayGenerator(modeledTable).asModule.asRust)
+    crateGenerator.generate(true)
+
+    //println(TableGatewayGenerator(modeledTable).asModule.asRust)
 }
