@@ -1,5 +1,7 @@
 //! Table gateway pattern implemented for Sample
 
+use tokio_postgres::types::ToSql;
+
 ////////////////////////////////////////////////////////////////////////////////////
 // --- type aliases ---
 ////////////////////////////////////////////////////////////////////////////////////
@@ -48,9 +50,55 @@ impl TableSample {
     ///   * **client** - The tokio postgresl client
     ///   * **rows** - Rows to insert
     pub async fn insert(client: tokio_postgres::Client, rows: &[SampleRow]) {
-        // α <fn TableSample::insert>
-        todo!("Implement `insert`")
-        // ω <fn TableSample::insert>
+        let col_num: usize = 8;
+        let row_num: usize = rows.len();
+
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(col_num*row_num);
+
+        let mut value_str:String = "(".to_string();
+        for j in 1..row_num {
+            for i in 1..col_num + 1 {
+                value_str.push_str(&format!("${}, ", i * j));
+            }
+            value_str.push_str("),");
+        }
+        //println!("{}", value_str);
+
+        let mut params_str: String = "".to_string();
+        for row in rows {
+            let (sp, sv) = row;
+            //for loop??
+            let temp_str = format!("({}, {}, {}, {}, {}, {}, {}, {}),", &sv.the_name, &sv.the_small_int, &sv.the_large_int, &sv.general_int, &sv.the_date, &sv.the_date_time, &sv.the_uuid, &sv.the_ulong);
+            params_str.push_str(&temp_str);
+
+
+            params.push(&sv.the_name);
+            params.push(&sv.the_small_int);
+            params.push(&sv.the_large_int);
+            params.push(&sv.general_int);
+            params.push(&sv.the_date);
+            params.push(&sv.the_date_time);
+            params.push(&sv.the_uuid);
+            params.push(&sv.the_ulong);
+        }
+
+
+
+        let statement: String = format!(r#"insert into sample
+            (the_name, the_small_int, the_large_int, general_int, the_date, the_date_time, the_uuid, the_ulong)
+            values
+            {value_str}
+            returning id
+            "#);
+
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));
     }
 
     /// Select rows of `sample`
@@ -137,7 +185,8 @@ pub mod unit_tests {
             };
 
 
-            results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)))
+            results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));
+
 
             // ω <fn test TableSample::insert>
         }
