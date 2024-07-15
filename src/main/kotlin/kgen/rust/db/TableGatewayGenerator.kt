@@ -57,7 +57,7 @@ data class TableGatewayGenerator(
 
     val valuesStruct = Struct(
         valuesStructId.snake,
-        "Primary key fields for `${id.capCamel}`",
+        "Value fields for `${id.capCamel}`",
         fields = table
             .columns
             .filter { !table.primaryKeyColumnNames.contains(it.nameId) }
@@ -65,31 +65,59 @@ data class TableGatewayGenerator(
     )
 
     val insertBody = listOf(
-        "let row_num = rows.len();",
-        "let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(row_num * ${table.columns.size});",
-        "let statement = r#\"",
-        indent(
-            listOf(
+
+        """
+        let col_num = ${table.columns.size};
+        let row_num = rows.len();
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(row_num * col_num);
+
+        let mut values_placeholder = "".to_string();
+        for i in 0..row_num {
+            values_placeholder += "(";
+            for j in 1..col_num {
+                values_placeholder += ${"&format!(\"\${}, \", j+col_num*i);"}
+            }
+            values_placeholder += ${"&format!(\"\${}),\\n\", col_num*(i+1));"}
+        }
+        values_placeholder = values_placeholder[0..values_placeholder.len()-2].to_string();
+
+        //println!("{values_placeholder}");
+        
+        let statement = format!(r#" """,
+            indent(listOf(
                 "insert into ${table.nameId} (",
                 indent(table.columns.chunked(6)
                     .map { chunk -> chunk.map { it.nameId }.joinToString(", ") }
                     .joinToString(",\n")),
                 ")"
-            ).joinToString("\n")
-        ),
-        "\"#.to_string();",
-        "for row in rows {",
+            ).joinToString("\n"), indent = "        " ),
+        """        values
+        {values_placeholder}
+        returning id
+        "#
+        ${")."}to_string();
+
+        for row in rows {""",
         indent(
 
             table.columns.map { column ->
-                if (column.nameId in table.primaryKeyColumnNames.elementAt(0)) {
+                if (column.nameId in table.primaryKeyColumnNames) {
                     "params.push(&row.0.${column.nameId})"
                 } else {
                     "params.push(&row.1.${column.nameId})"
                 }
             }.joinToString(";\n")
         ),
-        "}",
+        """}
+            
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));""",
     ).joinToString("\n")
 
     val tableStruct = Struct(
@@ -136,7 +164,7 @@ data class TableGatewayGenerator(
     val asModule = Module(
         table.nameId,
         """Table gateway pattern implemented for ${id.capCamel}""",
-        uses = listOf("tokio_postgres::types::ToSql").asUses,
+        uses = listOf("tokio_postgres::types::{Date, FromSql, ToSql}", "chrono::{NaiveDate, NaiveDateTime}").asUses,
         structs = listOfNotNull(keyStruct, valuesStruct, tableStruct),
         typeAliases = listOf(
             TypeAlias(

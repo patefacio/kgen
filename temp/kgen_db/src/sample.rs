@@ -3,7 +3,8 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
-use tokio_postgres::types::ToSql;
+use chrono::{NaiveDate, NaiveDateTime};
+use tokio_postgres::types::{Date, FromSql, ToSql};
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- type aliases ---
@@ -17,27 +18,27 @@ pub type SampleRow = (SamplePkey, SampleValues);
 /// Primary key fields for `Sample`
 pub struct SamplePkey {
     /// Field for column `id`
-    pub id: String,
+    pub id: i32,
 }
 
-/// Primary key fields for `Sample`
+/// Value fields for `Sample`
 pub struct SampleValues {
     /// Field for column `the_name`
     pub the_name: String,
     /// Field for column `the_small_int`
-    pub the_small_int: String,
+    pub the_small_int: i16,
     /// Field for column `the_large_int`
-    pub the_large_int: String,
+    pub the_large_int: i64,
     /// Field for column `general_int`
-    pub general_int: String,
+    pub general_int: i32,
     /// Field for column `the_date`
-    pub the_date: String,
+    pub the_date: NaiveDate,
     /// Field for column `the_date_time`
-    pub the_date_time: String,
+    pub the_date_time: NaiveDateTime,
     /// Field for column `the_uuid`
-    pub the_uuid: String,
+    pub the_uuid: uuid::Uuid,
     /// Field for column `the_ulong`
-    pub the_ulong: String,
+    pub the_ulong: i64,
 }
 
 /// Table Gateway Support for table `sample`.
@@ -53,15 +54,35 @@ impl TableSample {
     ///   * **client** - The tokio postgresl client
     ///   * **rows** - Rows to insert
     pub async fn insert(client: tokio_postgres::Client, rows: &[SampleRow]) {
+        let col_num = 9;
         let row_num = rows.len();
-        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(row_num * 9);
-        let statement = r#"
-      insert into sample (
-        id, the_name, the_small_int, the_large_int, general_int, the_date,
-        the_date_time, the_uuid, the_ulong
-      )
-    "#
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(row_num * col_num);
+
+        let mut values_placeholder = "".to_string();
+        for i in 0..row_num {
+            values_placeholder += "(";
+            for j in 1..col_num {
+                values_placeholder += &format!("${}, ", j + col_num * i);
+            }
+            values_placeholder += &format!("${}),\n", col_num * (i + 1));
+        }
+        values_placeholder = values_placeholder[0..values_placeholder.len() - 2].to_string();
+
+        //println!("{values_placeholder}");
+
+        let statement = format!(
+            r#" 
+            insert into sample (
+              id, the_name, the_small_int, the_large_int, general_int, the_date,
+              the_date_time, the_uuid, the_ulong
+            )
+            values
+            {values_placeholder}
+            returning id
+            "#
+        )
         .to_string();
+
         for row in rows {
             params.push(&row.0.id);
             params.push(&row.1.the_name);
@@ -73,6 +94,17 @@ impl TableSample {
             params.push(&row.1.the_uuid);
             params.push(&row.1.the_ulong)
         }
+
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results
+            .iter()
+            .for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));
     }
 
     /// Select rows of `sample`
@@ -112,6 +144,8 @@ pub mod unit_tests {
             // α <fn test TableSample::insert>
             use tokio_postgres::types::{FromSql, ToSql, Date};
             use tokio_postgres::NoTls;
+            use crate::sample::*;
+            use crate::SampleRow;
 
             let (client, connection) =
                 tokio_postgres::connect("host=localhost user=kgen password=kgen dbname=kgen", NoTls).await.unwrap();
@@ -123,6 +157,15 @@ pub mod unit_tests {
             });
 
             tracing::info!("Created {client:?}");
+
+            let row_1 : SampleRow = (SamplePkey{id: 3}, SampleValues{ the_name: "TEST ROW 1".to_string(), the_small_int: 1i16, the_large_int: 2i64, general_int: 3i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"), the_ulong: 32i64 });
+            let row_2 : SampleRow = (SamplePkey{id: 4}, SampleValues{ the_name: "TEST ROW 2".to_string(), the_small_int: 51i16, the_large_int: -213i64, general_int: 73i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("765e4321-e89b-12d3-a456-426655440000"), the_ulong: 34i64 });
+
+
+            let rows_list: [SampleRow; 2] = [row_1, row_2];
+            TableSample::insert(client, &rows_list).await;
+
+            /*
 
             let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(34);
             let statement = r#"insert into sample
@@ -151,6 +194,7 @@ pub mod unit_tests {
             params.push(&32i64);
 
 
+
             let results = match client.query(&statement, &params[..]).await {
                 Ok(stmt) => stmt,
                 Err(e) => {
@@ -160,6 +204,8 @@ pub mod unit_tests {
 
 
             results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));
+
+             */
 
 
             // ω <fn test TableSample::insert>
