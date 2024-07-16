@@ -48,23 +48,23 @@ fun main() {
         addLogger(StdOutSqlLogger)
         SchemaUtils.drop(TableSample)
         SchemaUtils.create(TableSample)
-    }
 
-    val modeledTable = TableSample.asModeledTable()
-    val libModule = Module(
-        "lib",
-        moduleRootType = ModuleRootType.LibraryRoot,
-        modules = listOf(
-            TableGatewayGenerator(modeledTable).asModule
+
+        val modeledTable = TableSample.asModeledTable()
+        val libModule = Module(
+            "lib",
+            moduleRootType = ModuleRootType.LibraryRoot,
+            modules = listOf(
+                TableGatewayGenerator(modeledTable).asModule
+            )
         )
-    )
-    val targetPath = MetaPaths.tempPath.resolve("kgen_db")
-    val crateGenerator = CrateGenerator(
-        Crate("kgen_db", rootModule = libModule),
-        targetPath.toString()
-    )
+        val targetPath = MetaPaths.tempPath.resolve("kgen_db")
+        val crateGenerator = CrateGenerator(
+            Crate("kgen_db", rootModule = libModule),
+            targetPath.toString()
+        )
 
-    crateGenerator.generate(true)
-
+        crateGenerator.generate(true)
+    }
     //println(TableGatewayGenerator(modeledTable).asModule.asRust)
 }

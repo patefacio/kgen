@@ -17,10 +17,33 @@ data class ModeledTable(
 ) : DbTable
 
 fun <T> Column<T>.asModeledColumn(doc: String? = null): ModeledColumn {
+    //println(this.columnType.sqlType())
     return ModeledColumn(
         nameId = this.name,
         doc = doc,
-        type = DbType.Json
+        type = when(this.columnType.sqlType()) {
+            "BYTE" -> DbType.Byte
+            "DOUBLE" -> DbType.Double
+            "INT" -> DbType.Integer
+            "SMALLINT" -> DbType.SmallInteger
+            "BIGINT" -> DbType.BigInteger
+            "TEXT" -> DbType.Text
+            "DATE" -> DbType.Date
+            "DATETIME" -> DbType.DateTime
+            "TIMESTAMP" -> DbType.DateTime
+            "INTERVAL" -> DbType.Interval
+            "SERIAL" -> DbType.IntegerAutoInc
+            "BIGSERIAL" -> DbType.LongAutoInc
+            "UBIGSERIAL" -> DbType.UlongAutoInc
+            "uuid" -> DbType.Uuid
+            "BINARY" -> DbType.Binary
+            "BINARYSIZED" -> DbType.Binary
+            "BLOB" -> DbType.Blob
+            "JSONBINARY" -> DbType.JsonBinary
+            "JSON" -> DbType.Json
+            "VARCHAR" -> DbType.Json
+            else -> DbType.Json
+        }
     )
 }
 

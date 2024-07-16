@@ -32,9 +32,9 @@ pub struct SampleValues {
     /// Field for column `general_int`
     pub general_int: i32,
     /// Field for column `the_date`
-    pub the_date: NaiveDate,
+    pub the_date: chrono::NaiveDate,
     /// Field for column `the_date_time`
-    pub the_date_time: NaiveDateTime,
+    pub the_date_time: chrono::NaiveDateTime,
     /// Field for column `the_uuid`
     pub the_uuid: uuid::Uuid,
     /// Field for column `the_ulong`
@@ -158,8 +158,8 @@ pub mod unit_tests {
 
             tracing::info!("Created {client:?}");
 
-            let row_1 : SampleRow = (SamplePkey{id: 3}, SampleValues{ the_name: "TEST ROW 1".to_string(), the_small_int: 1i16, the_large_int: 2i64, general_int: 3i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"), the_ulong: 32i64 });
-            let row_2 : SampleRow = (SamplePkey{id: 4}, SampleValues{ the_name: "TEST ROW 2".to_string(), the_small_int: 51i16, the_large_int: -213i64, general_int: 73i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("765e4321-e89b-12d3-a456-426655440000"), the_ulong: 34i64 });
+            let row_1 : SampleRow = (SamplePkey{id: 1}, SampleValues{ the_name: "TEST ROW 1".to_string(), the_small_int: 1i16, the_large_int: 2i64, general_int: 3i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"), the_ulong: 32i64 });
+            let row_2 : SampleRow = (SamplePkey{id: 2}, SampleValues{ the_name: "TEST ROW 2".to_string(), the_small_int: 51i16, the_large_int: -213i64, general_int: 73i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("765e4321-e89b-12d3-a456-426655440000"), the_ulong: 34i64 });
 
 
             let rows_list: [SampleRow; 2] = [row_1, row_2];

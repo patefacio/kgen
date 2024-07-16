@@ -9,15 +9,16 @@ val DbColumn.asRustType get() = when(this.type) {
 
     is DbType.Byte -> U8
     is DbType.Double -> F64
-    is DbType.Integer -> I64
+    is DbType.Integer -> I32
     is DbType.SmallInteger -> I16
     is DbType.BigInteger -> I64
     is DbType.Text -> RustString
     is DbType.Date -> "chrono::NaiveDate".asType
     is DbType.DateTime, is DbType.Timestamp -> "chrono::NaiveDateTime".asType
-    is DbType.IntegerAutoInc -> I64
+    is DbType.IntegerAutoInc -> I32
     is DbType.LongAutoInc -> I64
     is DbType.UlongAutoInc -> U64
+    is DbType.Uuid -> "uuid::Uuid".asType
     is DbType.Json, is DbType.VarChar -> RustString
 
     else -> throw(Exception("Unsupported rust type for $this"))
