@@ -18,6 +18,7 @@ val DbColumn.asRustType get() = when(this.type) {
     is DbType.IntegerAutoInc -> I32
     is DbType.LongAutoInc -> I64
     is DbType.UlongAutoInc -> U64
+    is DbType.Binary, is DbType.BinarySized -> I64
     is DbType.Uuid -> "uuid::Uuid".asType
     is DbType.Json, is DbType.VarChar -> RustString
 

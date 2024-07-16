@@ -17,7 +17,7 @@ data class ModeledTable(
 ) : DbTable
 
 fun <T> Column<T>.asModeledColumn(doc: String? = null): ModeledColumn {
-    //println(this.columnType.sqlType())
+    println(this.columnType.sqlType())
     return ModeledColumn(
         nameId = this.name,
         doc = doc,
@@ -36,9 +36,9 @@ fun <T> Column<T>.asModeledColumn(doc: String? = null): ModeledColumn {
             "BIGSERIAL" -> DbType.LongAutoInc
             "UBIGSERIAL" -> DbType.UlongAutoInc
             "uuid" -> DbType.Uuid
-            "BINARY" -> DbType.Binary
-            "BINARYSIZED" -> DbType.Binary
-            "BLOB" -> DbType.Blob
+            "bytea" -> DbType.Binary
+            //"BINARYSIZED" -> DbType.Binary
+            //"BLOB" -> DbType.Blob
             "JSONBINARY" -> DbType.JsonBinary
             "JSON" -> DbType.Json
             "VARCHAR" -> DbType.Json
