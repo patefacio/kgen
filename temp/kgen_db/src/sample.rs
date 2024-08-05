@@ -108,24 +108,93 @@ impl TableSample {
     }
 
     /// Select rows of `sample`
-    pub async fn select() {
-        // α <fn TableSample::select>
-        todo!("Implement `select`")
-        // ω <fn TableSample::select>
+    ///
+    ///   * **client** - The tokio postgresl client
+    pub async fn select(client: tokio_postgres::Client) {
+        //HERE
     }
 
     /// Update rows of `sample`
-    pub async fn update() {
-        // α <fn TableSample::update>
-        todo!("Implement `update`")
-        // ω <fn TableSample::update>
+    ///
+    ///   * **client** - The tokio postgresl client
+    ///   * **s_clause** - clause for SET statement
+    ///   * **w_clause** - clause for WHERE statement
+    pub async fn update(client: tokio_postgres::Client, s_clause: String, w_clause: String) {
+        let mut statement = "update sample SET ".to_string();
+
+        if s_clause != "" {
+            statement = statement + &s_clause + " WHERE ";
+        } else {
+        }
+
+        if w_clause != "" {
+            statement = statement + &w_clause + " RETURNING *";
+        } else {
+        }
+
+        println!("{}", statement);
+
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(0);
+
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results
+            .iter()
+            .for_each(|row| tracing::info!("updated row id -> {:?}", row.get::<usize, i32>(0)));
     }
 
     /// Delete rows of `sample`
-    pub async fn delete() {
-        // α <fn TableSample::delete>
-        todo!("Implement `delete`")
-        // ω <fn TableSample::delete>
+    ///
+    ///   * **client** - The tokio postgresl client
+    ///   * **clause** - full clause, skips input vectors
+    ///   * **cols** - columns list for clause
+    ///   * **ops** - operator list for clause
+    ///   * **conds** - conditions list for clause
+    pub async fn delete(
+        client: tokio_postgres::Client,
+        clause: String,
+        cols: Vec<&str>,
+        ops: Vec<&str>,
+        conds: Vec<&str>,
+    ) {
+        let col_num = 9;
+        assert!(cols.len() == ops.len() && ops.len() == conds.len());
+        assert!(cols.len() <= col_num);
+
+        let mut statement = "delete from sample where (".to_string();
+
+        if clause != "" {
+            statement = statement + &clause + ") RETURNING *";
+        } else {
+            for i in 0..cols.len() - 1 {
+                statement = statement + cols[i] + " " + ops[i] + " " + conds[i] + " OR ";
+            }
+            statement = statement
+                + cols[cols.len() - 1]
+                + " "
+                + ops[cols.len() - 1]
+                + " "
+                + conds[cols.len() - 1]
+                + ") RETURNING *";
+        }
+
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(0);
+
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results
+            .iter()
+            .for_each(|row| tracing::info!("deleted row id -> {:?}", row.get::<usize, i32>(0)));
     }
 }
 
@@ -160,53 +229,11 @@ pub mod unit_tests {
 
             let row_1 : SampleRow = (SamplePkey{id: 1}, SampleValues{ the_name: "TEST ROW 1".to_string(), the_small_int: 1i16, the_large_int: 2i64, general_int: 3i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"), the_ulong: 32i64 });
             let row_2 : SampleRow = (SamplePkey{id: 2}, SampleValues{ the_name: "TEST ROW 2".to_string(), the_small_int: 51i16, the_large_int: -213i64, general_int: 73i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("765e4321-e89b-12d3-a456-426655440000"), the_ulong: 34i64 });
+            let row_3 : SampleRow = (SamplePkey{id: 3}, SampleValues{ the_name: "TEST ROW 3".to_string(), the_small_int: 51i16, the_large_int: -213i64, general_int: 73i32, the_date: chrono::NaiveDate::MAX, the_date_time: chrono::NaiveDateTime::MAX, the_uuid: uuid::uuid!("765e4321-e89b-12d3-a456-426655440000"), the_ulong: 34i64 });
 
 
-            let rows_list: [SampleRow; 2] = [row_1, row_2];
+            let rows_list: [SampleRow; 3] = [row_1, row_2, row_3];
             TableSample::insert(client, &rows_list).await;
-
-            /*
-
-            let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(34);
-            let statement = r#"insert into sample
-            (the_name, the_small_int, the_large_int, general_int, the_date, the_date_time, the_uuid, the_ulong)
-            values
-            ($1, $2, $3, $4, $5, $6, $7, $8),
-            ($9, $10, $11, $12, $13, $14, $15, $16)
-            returning id
-            "#.to_string();
-            params.push(&"a");
-            params.push(&1i16);
-            params.push(&2i64);
-            params.push(&3i32);
-            params.push(&chrono::NaiveDate::MAX);
-            params.push(&chrono::NaiveDateTime::MAX);
-            params.push(&uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"));
-            params.push(&32i64);
-
-            params.push(&"b");
-            params.push(&1i16);
-            params.push(&2i64);
-            params.push(&3i32);
-            params.push(&chrono::NaiveDate::MAX);
-            params.push(&chrono::NaiveDateTime::MAX);
-            params.push(&uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"));
-            params.push(&32i64);
-
-
-
-            let results = match client.query(&statement, &params[..]).await {
-                Ok(stmt) => stmt,
-                Err(e) => {
-                    panic!("Error preparing statement: {e}");
-                }
-            };
-
-
-            results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));
-
-             */
-
 
             // ω <fn test TableSample::insert>
         }
@@ -215,7 +242,31 @@ pub mod unit_tests {
         #[tracing_test::traced_test]
         async fn select() {
             // α <fn test TableSample::select>
-            todo!("Test select")
+            use tokio_postgres::types::{FromSql, ToSql, Date};
+            use tokio_postgres::NoTls;
+            use crate::sample::*;
+            use crate::SampleRow;
+
+            let (client, connection) =
+                tokio_postgres::connect("host=localhost user=kgen password=kgen dbname=kgen", NoTls).await.unwrap();
+
+            tokio::spawn(async move {
+                if let Err(e) = connection.await {
+                    eprintln!("connection error: {}", e);
+                }
+            });
+
+            tracing::info!("Created {client:?}");
+
+            let mut input_cols = vec!["id","the_name","general_int"];
+            let mut input_operator = vec!["=","=","<"];
+            let mut input_condition = vec!["2", "\'TEST ROW 3\'", "5"];
+
+            let clause = "id >= 2 OR the_name = 'TEST ROW 3' OR general_int = 3".to_string();
+
+
+
+            //TableSample::select(client, clause, input_cols, input_operator, input_condition).await;
             // ω <fn test TableSample::select>
         }
 
@@ -223,7 +274,26 @@ pub mod unit_tests {
         #[tracing_test::traced_test]
         async fn update() {
             // α <fn test TableSample::update>
-            todo!("Test update")
+            use tokio_postgres::types::{FromSql, ToSql, Date};
+            use tokio_postgres::NoTls;
+            use crate::sample::*;
+            use crate::SampleRow;
+
+            let (client, connection) =
+                tokio_postgres::connect("host=localhost user=kgen password=kgen dbname=kgen", NoTls).await.unwrap();
+
+            tokio::spawn(async move {
+                if let Err(e) = connection.await {
+                    eprintln!("connection error: {}", e);
+                }
+            });
+
+            tracing::info!("Created {client:?}");
+
+            let where_clause = "the_name LIKE 'TEST ROW%'".to_string();
+            let set_clause = "the_name = 'UPDATED ROW 3'".to_string();
+
+            TableSample::update(client, set_clause, where_clause).await;
             // ω <fn test TableSample::update>
         }
 
@@ -231,7 +301,32 @@ pub mod unit_tests {
         #[tracing_test::traced_test]
         async fn delete() {
             // α <fn test TableSample::delete>
-            todo!("Test delete")
+            use tokio_postgres::types::{FromSql, ToSql, Date};
+            use tokio_postgres::NoTls;
+            use crate::sample::*;
+            use crate::SampleRow;
+
+            let (client, connection) =
+                tokio_postgres::connect("host=localhost user=kgen password=kgen dbname=kgen", NoTls).await.unwrap();
+
+            tokio::spawn(async move {
+                if let Err(e) = connection.await {
+                    eprintln!("connection error: {}", e);
+                }
+            });
+
+            tracing::info!("Created {client:?}");
+
+            let mut input_cols = vec!["id","the_name","general_int"];
+            let mut input_operator = vec!["=","=","<"];
+            let mut input_condition = vec!["2", "\'TEST ROW 3\'", "5"];
+
+            let clause = "id = 2 OR the_name LIKE '%ROW 3' OR general_int = 3".to_string();
+
+
+            TableSample::delete(client, clause, input_cols, input_operator, input_condition).await;
+
+
             // ω <fn test TableSample::delete>
         }
 

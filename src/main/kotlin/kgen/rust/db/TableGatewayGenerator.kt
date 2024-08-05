@@ -122,6 +122,86 @@ data class TableGatewayGenerator(
         results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));""",
     ).joinToString("\n")
 
+    val selectBody = listOf(
+        """
+        //HERE
+        """.trimIndent()
+    ).joinToString("\n")
+
+    val updateBody = listOf(
+        """
+            let mut statement = "update sample SET ".to_string();
+
+        if s_clause != "" {
+            statement = statement + &s_clause + " WHERE ";
+        } else {
+            ;
+        }
+
+        if w_clause != "" {
+            statement = statement + &w_clause + " RETURNING *";
+        } else {
+            ;
+        }
+
+        println!("{}", statement);
+
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(0);
+
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results
+            .iter()
+            .for_each(|row| {
+                tracing::info!("updated row id -> {:?}", row.get::<usize, i32>(0))
+            } );
+        """.trimIndent()
+    ).joinToString("\n")
+
+    val deleteBody = listOf(
+        """
+        let col_num = ${table.columns.size};
+        assert!(cols.len() == ops.len() && ops.len() == conds.len());
+        assert!(cols.len() <= col_num);
+        
+
+        let mut statement = "delete from ${table.nameId} where (".to_string();
+
+        if clause != "" {
+            statement = statement + &clause + ") RETURNING *";
+        } else {
+            for i in 0..cols.len() - 1 {
+                statement = statement + cols[i] + " " + ops[i] + " " + conds[i] + " OR ";
+            }
+            statement = statement
+                + cols[cols.len() - 1]
+                + " "
+                + ops[cols.len() - 1]
+                + " "
+                + conds[cols.len() - 1]
+                + ") RETURNING *";
+        }
+
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(0);
+
+        let results = match client.query(&statement, &params[..]).await {
+            Ok(stmt) => stmt,
+            Err(e) => {
+                panic!("Error preparing statement: {e}");
+            }
+        };
+
+        results
+            .iter()
+            .for_each(|row| tracing::info!("deleted row id -> {:?}", row.get::<usize, i32>(0)));
+        """.trimIndent()
+    ).joinToString("\n")
+
     val tableStruct = Struct(
         "table_${id.snake}",
         """Table Gateway Support for table `${id.snake}`.
@@ -142,23 +222,35 @@ data class TableGatewayGenerator(
             Fn(
                 "select",
                 "Select rows of `${id.snake}`",
+                FnParam("client", "tokio_postgres::Client".asType, "The tokio postgresl client"),
                 isAsync = true,
-                hasTokioTest = true
+                hasTokioTest = true,
+                body = FnBody(selectBody)
             ),
 
 
             Fn(
                 "update",
                 "Update rows of `${id.snake}`",
+                FnParam("client", "tokio_postgres::Client".asType, "The tokio postgresl client"),
+                FnParam("s_clause", "String".asType, "clause for SET statement"),
+                FnParam("w_clause", "String".asType, "clause for WHERE statement"),
                 isAsync = true,
-                hasTokioTest = true
+                hasTokioTest = true,
+                body = FnBody(updateBody)
             ),
 
             Fn(
                 "delete",
                 "Delete rows of `${id.snake}`",
+                FnParam("client", "tokio_postgres::Client".asType, "The tokio postgresl client"),
+                FnParam("clause", "String".asType, "full clause, skips input vectors"),
+                FnParam("cols", "Vec::<&str>".asType, "columns list for clause"),
+                FnParam("ops", "Vec::<&str>".asType, "operator list for clause"),
+                FnParam("conds", "Vec::<&str>".asType, "conditions list for clause"),
                 isAsync = true,
-                hasTokioTest = true
+                hasTokioTest = true,
+                body = FnBody(deleteBody)
             ),
         )
     )

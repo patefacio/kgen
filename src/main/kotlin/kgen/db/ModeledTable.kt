@@ -17,7 +17,7 @@ data class ModeledTable(
 ) : DbTable
 
 fun <T> Column<T>.asModeledColumn(doc: String? = null): ModeledColumn {
-    println(this.columnType.sqlType())
+    //println(this.columnType.sqlType())
     return ModeledColumn(
         nameId = this.name,
         doc = doc,
