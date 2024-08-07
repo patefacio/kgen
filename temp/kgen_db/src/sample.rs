@@ -242,6 +242,7 @@ pub mod unit_tests {
         #[tracing_test::traced_test]
         async fn select() {
             // α <fn test TableSample::select>
+            // TESTING GITHUB ACTIONS
             use tokio_postgres::types::{FromSql, ToSql, Date};
             use tokio_postgres::NoTls;
             use crate::sample::*;
