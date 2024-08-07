@@ -21,8 +21,5 @@ jobs:
       with:
         toolchain: stable
 
-    - name: Compile Rust file
-      run: rustc temp/kgen_db/src/sample.rs
-      
-    - name: Run Rust file
-      run: ./sample
+    - name: Run Cargo Test
+      run: cargo test --verbose
