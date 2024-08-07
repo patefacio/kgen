@@ -15,12 +15,10 @@ jobs:
     steps:
     - name: Setup Checkout
     - uses: actions/checkout@v4
-
     - name: Setup Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    
     - name: Run Test File
       run: |
         rustc temp/kgen_db/src/sample.rs
