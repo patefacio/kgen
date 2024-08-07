@@ -13,13 +13,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Setup Checkout
-    - uses: actions/checkout@v4
-    - name: Setup Rust
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Rust
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    - name: Run Test File
-      run: |
-        rustc temp/kgen_db/src/sample.rs
-        ./sample
+
+    - name: Compile Rust file
+      run: rustc temp/kgen_db/src/sample.rs
+      
+    - name: Run Rust file
+      run: ./sample
