@@ -13,15 +13,21 @@ data class ModeledTable(
     override val nameId: String,
     override val doc: String? = null,
     override val columns: List<ModeledColumn>,
-    override val primaryKeyColumnNames: Set<String> = emptySet()
+    override val primaryKeyColumns: List<ModeledColumn>,
 ) : DbTable
 
+private val varcharRegex = """VARCHAR\((\d+)\)""".toRegex(option = RegexOption.IGNORE_CASE)
+
 fun <T> Column<T>.asModeledColumn(doc: String? = null): ModeledColumn {
-    //println(this.columnType.sqlType())
+    val sqlType = this.columnType.sqlType()
+    val varCharSize = varcharRegex.find(sqlType)?.groupValues?.get(1)?.length ?: 0
+
     return ModeledColumn(
         nameId = this.name,
         doc = doc,
-        type = when(this.columnType.sqlType()) {
+        type = if (varCharSize > 0) {
+            DbType.VarChar(varCharSize)
+        } else when (this.columnType.sqlType()) {
             "BYTE" -> DbType.Byte
             "DOUBLE" -> DbType.Double
             "INT" -> DbType.Integer
@@ -41,7 +47,6 @@ fun <T> Column<T>.asModeledColumn(doc: String? = null): ModeledColumn {
             //"BLOB" -> DbType.Blob
             "JSONBINARY" -> DbType.JsonBinary
             "JSON" -> DbType.Json
-            "VARCHAR" -> DbType.Json
             else -> DbType.Json
         }
     )
@@ -54,6 +59,6 @@ fun Table.asModeledTable(doc: String? = null): ModeledTable {
         columns = this.columns.map {
             it.asModeledColumn()
         },
-        primaryKeyColumnNames = this.primaryKey?.columns?.map { it.name }?.toSet() ?: emptySet()
+        primaryKeyColumns = this.primaryKey?.columns?.map { it.asModeledColumn() } ?: emptyList(),
     )
 }

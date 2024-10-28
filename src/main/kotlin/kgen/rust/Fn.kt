@@ -52,6 +52,7 @@ data class Fn(
     val isTokioTest: Boolean = false,
     val hasTokioTest: Boolean? = null,
     val attrs: AttrList = AttrList(),
+    val testFnAttrs: AttrList = AttrList(),
     val blockName: String = nameId,
     val emptyBlockContents: String? = null,
     val uses: Set<Use> = emptySet(),
@@ -81,6 +82,7 @@ data class Fn(
         isTokioTest: Boolean = false,
         hasTokioTest: Boolean? = null,
         attrs: AttrList = AttrList(),
+        testFnAttrs: AttrList = AttrList(),
         blockName: String = nameId,
         emptyBlockContents: String? = null,
         uses: Set<Use> = emptySet(),
@@ -95,7 +97,7 @@ data class Fn(
     ) : this(
         nameId, doc, params.toList(), returnType, returnDoc, inlineDecl,
         genericParamSet, visibility, body, isTest, hasUnitTest, isTokioTest, hasTokioTest, attrs,
-        blockName, emptyBlockContents, uses, localUses, testNameIds, panicTestNameIds,
+        testFnAttrs, blockName, emptyBlockContents, uses, localUses, testNameIds, panicTestNameIds,
         nameCapCamel, inlineParamDoc, consts, lets, isAsync
     )
 
@@ -109,27 +111,28 @@ data class Fn(
             null
         },
         when {
-            isTokioTest  -> AttrList(attrTokioTestFn)
+            isTokioTest -> AttrList(attrTokioTestFn)
             isTest -> AttrList(attrTestFn)
             else -> null
         }
     ).reduce { acc, attrList -> acc + attrList }
 
-    private val paramText get() = if (params.isEmpty()) {
-        "()"
-    } else {
-        listOf(
-            "(",
-            indent(params.joinToString(",\n") {
-                if (inlineParamDoc) {
-                    listOf(commentTriple(it.doc), it.asRust).joinToString("\n")
-                } else {
-                    it.asRust
-                }
-            }),
-            ")"
-        ).joinToString("\n")
-    }
+    private val paramText
+        get() = if (params.isEmpty()) {
+            "()"
+        } else {
+            listOf(
+                "(",
+                indent(params.joinToString(",\n") {
+                    if (inlineParamDoc) {
+                        listOf(commentTriple(it.doc), it.asRust).joinToString("\n")
+                    } else {
+                        it.asRust
+                    }
+                }),
+                ")"
+            ).joinToString("\n")
+        }
 
     private val sigReturnType
         get() = if (returnType != null) {
@@ -158,7 +161,7 @@ data class Fn(
             genericParamSet
         )
 
-    private val asyncKeyword = if(isAsync || isTokioTest) {
+    private val asyncKeyword = if (isAsync || isTokioTest) {
         "async "
     } else {
         ""
@@ -177,30 +180,38 @@ data class Fn(
         ).joinNonEmpty()
 
     private val fnDoc = if (doc != null) {
-        commentTriple(listOf(
-            doc,
-            joinNonEmpty(
-                params
-                    .filter { it.nameId != "self" }
-                    .joinToString("\n") { "  * ${it.nameId.bold} - ${it.doc}" },
-                if (returnType != null) {
-                    "  * _return_ - $returnDoc"
-                } else {
-                    ""
-                }
+        commentTriple(
+            listOf(
+                doc,
+                joinNonEmpty(
+                    params
+                        .filter { it.nameId != "self" }
+                        .joinToString("\n") { "  * ${it.nameId.bold} - ${it.doc}" },
+                    if (returnType != null) {
+                        "  * _return_ - $returnDoc"
+                    } else {
+                        ""
+                    }
+                )
             )
-        )
-            .joinNonEmpty("\n\n")
+                .joinNonEmpty("\n\n")
         )
     } else {
         null
     }
 
-    val testFnAttr get() = when {
-        hasTokioTest == true -> attrTokioTestFn
-        hasUnitTest == true -> attrTestFn
-        else -> null
-    }
+    val testFunctionAttrs = testFnAttrs + listOfNotNull(
+        attrTracingTest, if (hasTokioTest == true) {
+            attrTokioTestFn
+        } else {
+            null
+        },
+        if (hasUnitTest == true) {
+            attrTestFn
+        } else {
+            null
+        }
+    ).asAttrList
 
     fun asRust(codeBlockName: String) = listOfNotNull(
         fnDoc,

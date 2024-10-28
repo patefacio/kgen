@@ -73,7 +73,7 @@ data class TypeImpl(
                 testModuleNameId,
                 "Test type ${type.asRustName}",
                 functions = unitTestFunctionIds.map {
-                    val testAttr = functionsById[it]?.testFnAttr ?: attrTestFn
+                    val testAttr = functionsById[it]?.testFunctionAttrs ?: attrTestFn.asAttrList
                     unitTest(it, "test ${type.sanitizedSpecial}::${it.snakeCaseName}", testAttr)
                 } + panicTestFunctionIds.map { panicTest(it) },
                 moduleType = ModuleType.Inline,

@@ -276,6 +276,9 @@ val attrTokioTestFn = Attr.Text("tokio::test")
 /** For enabling tracing in tests using `tracing_test` */
 val attrTracingTest = Attr.Text("tracing_test::traced_test")
 
+/** For enabling tracing in tests using `tracing_test` */
+val attrSerializeTest = Attr.Text("serial_test::serial")
+
 /** Convert a single [Attr] into a list of attrs ([AttrList]). */
 val Attr.asAttrList get() = AttrList(this)
 

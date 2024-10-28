@@ -29,6 +29,8 @@ fun singleQuote(text: String) = "'$text'"
 
 fun backtickQuote(text: String) = "`$text`"
 
+fun rustQuote(text: String) = "r#\"$text\"#"
+
 fun List<String>.joinNonEmpty(separator: CharSequence = "\n") = this.filter { it.isNotEmpty() }.joinToString(separator)
 
 fun joinNonEmpty(vararg text: String, separator: CharSequence = "\n") = text.toList().joinNonEmpty(separator)

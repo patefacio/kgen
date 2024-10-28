@@ -7,10 +7,14 @@ data class AttrList(val attrs: List<Attr> = emptyList()) : AsAttr {
     constructor(vararg attrs: Attr) : this(attrs.toList())
 
     /** Add [moreAttrs] to [attrs] */
-    operator fun plus(moreAttrs: AttrList) = AttrList(attrs + moreAttrs.attrs)
+    operator fun plus(moreAttrs: AttrList) = AttrList((attrs + moreAttrs.attrs).toSet().toList())
 
     /** Add single [Attr] to [attrs] */
-    operator fun plus(attr: Attr) = AttrList(attrs + listOf(attr))
+    operator fun plus(attr: Attr) = if(attr !in attrs) {
+        AttrList(attrs + listOf(attr))
+    } else {
+        attrs.asAttrList
+    }
 
     /** The attribute list as an _outer attribute_ */
     override val asOuterAttr: String

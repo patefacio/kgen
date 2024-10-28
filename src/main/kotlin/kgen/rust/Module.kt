@@ -183,13 +183,13 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                     Fn(
                         "test_${it.nameId}",
                         doc = null,
-                        attrs = AttrList(it.testFnAttr!!, attrTracingTest),
+                        attrs = it.testFunctionAttrs,
                         isAsync = it.hasTokioTest == true,
                         emptyBlockContents = """todo!("Add test ${it.nameId}")""",
                         visibility = Visibility.None
                     )
                 } + (functions.map { fn ->
-                    fn.testNameIds.map { unitTest(it, fn.testFnAttr!!) }
+                    fn.testNameIds.map { unitTest(it, fn.testFunctionAttrs) }
                 } + functions.map { fn ->
                     fn.panicTestNameIds.map { panicTest(it) }
                 }).flatten(),
