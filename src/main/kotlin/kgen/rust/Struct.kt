@@ -29,7 +29,8 @@ data class Struct(
     val inlineNew: Boolean = false,
     val additionalNewParams: List<FnParam> = emptyList(),
     val deriveBuilder: Boolean = false,
-    val ctors: List<Ctor> = emptyList()
+    val ctors: List<Ctor> = emptyList(),
+    val consts: List<Const> = emptyList(),
 ) : Identifier(nameId), Type, AsRust {
 
     val structName = id.capCamel
@@ -38,17 +39,19 @@ data class Struct(
 
     val structNameGenericWithoutDefaults get() = "${structName}${genericParamSet.withoutDefaults.asRust}"
 
-    val allUses get() = uses + (typeImpl?.allUses ?: emptySet()) + if(deriveBuilder) {
-        listOf("derive_builder::Builder").asUses
-    } else {
-        emptySet()
-    }
+    val allUses
+        get() = uses + (typeImpl?.allUses ?: emptySet()) + if (deriveBuilder) {
+            listOf("derive_builder::Builder").asUses
+        } else {
+            emptySet()
+        }
 
-    val allAttrs get() = attrs + if(deriveBuilder) {
-        attrDeriveBuilder
-    } else {
-        AttrList()
-    }
+    val allAttrs
+        get() = attrs + if (deriveBuilder) {
+            attrDeriveBuilder
+        } else {
+            AttrList()
+        }
 
     private fun newFnFromFields(fields: List<Field>, additionalNewParams: List<FnParam>): Fn {
         val returnType = structNameGenericWithoutDefaults.asType
@@ -153,7 +156,8 @@ data class Struct(
         inlineNew: Boolean = false,
         additionalNewParams: List<FnParam> = emptyList(),
         deriveBuilder: Boolean = false,
-        ctors: List<Ctor> = emptyList()
+        ctors: List<Ctor> = emptyList(),
+        consts: List<Const> = emptyList(),
     ) : this(
         nameId,
         doc,
@@ -173,7 +177,8 @@ data class Struct(
         inlineNew,
         additionalNewParams,
         deriveBuilder,
-        ctors
+        ctors,
+        consts
     )
 
     private val openStruct = if (asTupleStruct) {
@@ -222,6 +227,13 @@ data class Struct(
                 ""
             }
         ).joinNonEmpty()
+
+    val constsTypeImpl
+        get() = if (consts.isNotEmpty()) {
+            TypeImpl(asRustName.asType, consts = consts)
+        } else {
+            null
+        }
 
 }
 

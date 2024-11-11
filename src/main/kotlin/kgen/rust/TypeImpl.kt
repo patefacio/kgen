@@ -22,7 +22,8 @@ data class TypeImpl(
     val unitTestImplFunctions: Boolean = true,
     val skipTestsSet: Set<Id> = emptySet(),
     val functionUnitTests: List<Id> = emptyList(),
-    val uses: Set<Use> = emptySet()
+    val uses: Set<Use> = emptySet(),
+    val consts: List<Const> = emptyList(),
 ) : AsRust {
 
     val allUses get() = uses + functions.map { it.allUses }.flatten()
@@ -38,7 +39,8 @@ data class TypeImpl(
         unitTestImplFunctions: Boolean = true,
         skipTestsSet: Set<Id> = emptySet(),
         functionUnitTests: List<Id> = emptyList(),
-        uses: Set<Use> = emptySet()
+        uses: Set<Use> = emptySet(),
+        consts: List<Const> = emptyList(),
     ) : this(
         type,
         functions.toList(),
@@ -48,7 +50,8 @@ data class TypeImpl(
         unitTestImplFunctions,
         skipTestsSet,
         functionUnitTests,
-        uses
+        uses,
+        consts
     )
 
 
@@ -102,6 +105,9 @@ data class TypeImpl(
                 }.joinToString("\n\n") {
                     it.asRust
                 }
+            ),
+            indent(
+                consts.joinToString("\n\n") { it.asRust }
             ),
             "}"
         ).joinToString("\n")

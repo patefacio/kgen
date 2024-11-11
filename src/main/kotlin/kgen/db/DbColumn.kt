@@ -1,9 +1,14 @@
 package kgen.db
 
+import kgen.Id
+import kgen.asId
+
 interface DbColumn {
     val nameId: String
     val doc: String?
     val type: DbType
+
+    val id get() = nameId.asId
 
     val unnestCast get() = when(type) {
         DbType.Integer, DbType.IntegerAutoInc -> "::int"

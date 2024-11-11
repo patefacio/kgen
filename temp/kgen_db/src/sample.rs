@@ -13,51 +13,33 @@ use tokio_postgres::types::{Date, FromSql, ToSql};
 pub type SampleRow = (SamplePkey, SampleValues);
 
 ////////////////////////////////////////////////////////////////////////////////////
-// --- constants ---
-////////////////////////////////////////////////////////////////////////////////////
-/// Column names
-pub const SAMPLE_COLUMN_SET: &'static str =
-    "(id, the_name, the_small_int, the_large_int, general_int, the_date,
-	the_date_time, the_uuid, the_ulong)";
-/// Unnest column expressions
-pub const UNNESTED_COLUMN_EXPRESSION: &'static str =
-    "($1::int[], $2::varchar[], $3::smallint[], $4::bigint[], $5::int[], $6::date[],
-	$7::timestamp[], $8::uuid[], $9::bigint[])";
-/// Total number of columns, primary key columns and non-key columns
-pub const SAMPLE_PKEY_COLUMN_COUNT: usize = 1;
-/// Total number of columns in the primary key
-pub const SAMPLE_VALUE_COLUMN_COUNT: usize = 8;
-/// Total number of columns
-pub const SAMPLE_COLUMN_COUNT: usize = 9;
-
-////////////////////////////////////////////////////////////////////////////////////
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary key fields for `Sample`
 #[derive(Debug, Clone, Default)]
 pub struct SamplePkey {
-    /// Field for column `id`
+    /// Primary key fields for `Sample`
     pub id: i32,
 }
 
 /// Value fields for `Sample`
 #[derive(Debug, Clone, Default)]
 pub struct SampleValues {
-    /// Field for column `the_name`
+    /// Value fields for `Sample`
     pub the_name: String,
-    /// Field for column `the_small_int`
+    /// Value fields for `Sample`
     pub the_small_int: i16,
-    /// Field for column `the_large_int`
+    /// Value fields for `Sample`
     pub the_large_int: i64,
-    /// Field for column `general_int`
+    /// Value fields for `Sample`
     pub general_int: i32,
-    /// Field for column `the_date`
+    /// Value fields for `Sample`
     pub the_date: chrono::NaiveDate,
-    /// Field for column `the_date_time`
+    /// Value fields for `Sample`
     pub the_date_time: chrono::NaiveDateTime,
-    /// Field for column `the_uuid`
+    /// Value fields for `Sample`
     pub the_uuid: uuid::Uuid,
-    /// Field for column `the_ulong`
+    /// Value fields for `Sample`
     pub the_ulong: i64,
 }
 
@@ -80,10 +62,10 @@ impl TableSample {
             .into_iter()
             .enumerate()
             .map(|(i, row)| {
-                let start = 1 + i * SAMPLE_COLUMN_COUNT;
+                let start = 1 + i * Self::COLUMN_COUNT;
                 format!(
                     "({})",
-                    (start..start + SAMPLE_COLUMN_COUNT)
+                    (start..start + Self::COLUMN_COUNT)
                         .map(|param_index| format!("${param_index}"))
                         .join(", ")
                 )
@@ -92,7 +74,10 @@ impl TableSample {
 
         let statement = format!(
             r#"insert into sample
-    {SAMPLE_COLUMN_SET}
+    (
+    	id, the_name, the_small_int, the_large_int, general_int, the_date,
+    	the_date_time, the_uuid, the_ulong
+    )
     values 
     {values_placeholder}
     returning id
@@ -100,8 +85,7 @@ impl TableSample {
         );
         tracing::info!("SQL ->```\n{statement}\n```");
 
-        let mut params =
-            Vec::<&(dyn ToSql + Sync)>::with_capacity(rows.len() * SAMPLE_COLUMN_COUNT);
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(rows.len() * Self::COLUMN_COUNT);
         for row in rows {
             params.push(&row.0.id);
             params.push(&row.1.the_name);
@@ -137,13 +121,6 @@ impl TableSample {
         rows: &[SampleRow],
         chunk_size: usize,
     ) -> Result<(), tokio_postgres::Error> {
-        let insert_statement = r#"insert into sample
-    (id, the_name, the_small_int, the_large_int, general_int, the_date,
-    	the_date_time, the_uuid, the_ulong)
-    SELECT * FROM UNNEST
-    ($1::int[], $2::varchar[], $3::smallint[], $4::bigint[], $5::int[], $6::date[],
-    	$7::timestamp[], $8::uuid[], $9::bigint[])
-    "#;
         let mut chunk = 0;
         let mut id = Vec::with_capacity(chunk_size);
         let mut the_name = Vec::with_capacity(chunk_size);
@@ -168,7 +145,7 @@ impl TableSample {
             }
             let chunk_result = client
                 .execute(
-                    insert_statement,
+                    Self::BULK_INSERT_STATEMENT,
                     &[
                         &id,
                         &the_name,
@@ -212,10 +189,73 @@ impl TableSample {
     ///   * **client** - The tokio postgresql client
     ///   * **rows** - Rows to insert
     ///   * **chunk_size** - How to chunk the inserts
-    pub fn bulk_upsert(client: &tokio_postgres::Client, rows: &[SampleRow], chunk_size: usize) {
-        // α <fn TableSample::bulk_upsert>
-        todo!("Implement `bulk_upsert`")
-        // ω <fn TableSample::bulk_upsert>
+    ///   * _return_ -
+    pub async fn bulk_upsert(
+        client: &tokio_postgres::Client,
+        rows: &[SampleRow],
+        chunk_size: usize,
+    ) -> Result<(), tokio_postgres::Error> {
+        let mut chunk = 0;
+        let mut id = Vec::with_capacity(chunk_size);
+        let mut the_name = Vec::with_capacity(chunk_size);
+        let mut the_small_int = Vec::with_capacity(chunk_size);
+        let mut the_large_int = Vec::with_capacity(chunk_size);
+        let mut general_int = Vec::with_capacity(chunk_size);
+        let mut the_date = Vec::with_capacity(chunk_size);
+        let mut the_date_time = Vec::with_capacity(chunk_size);
+        let mut the_uuid = Vec::with_capacity(chunk_size);
+        let mut the_ulong = Vec::with_capacity(chunk_size);
+        for chunk_rows in rows.chunks(chunk_size) {
+            for (key, value) in chunk_rows.into_iter() {
+                id.push(key.id);
+                the_name.push(&value.the_name);
+                the_small_int.push(value.the_small_int);
+                the_large_int.push(value.the_large_int);
+                general_int.push(value.general_int);
+                the_date.push(value.the_date);
+                the_date_time.push(value.the_date_time);
+                the_uuid.push(value.the_uuid);
+                the_ulong.push(value.the_ulong);
+            }
+            let chunk_result = client
+                .execute(
+                    Self::BULK_UPSERT_STATEMENT,
+                    &[
+                        &id,
+                        &the_name,
+                        &the_small_int,
+                        &the_large_int,
+                        &general_int,
+                        &the_date,
+                        &the_date_time,
+                        &the_uuid,
+                        &the_ulong,
+                    ],
+                )
+                .await;
+
+            match &chunk_result {
+                Err(err) => {
+                    tracing::error!("Failed bulk_insert `sample` chunk({chunk}) -> {err}");
+                    chunk_result?;
+                }
+                _ => tracing::debug!(
+                    "Finished inserting chunk({chunk}), size({}) in `sample`",
+                    chunk_rows.len()
+                ),
+            }
+            chunk += 1;
+            id.clear();
+            the_name.clear();
+            the_small_int.clear();
+            the_large_int.clear();
+            general_int.clear();
+            the_date.clear();
+            the_date_time.clear();
+            the_uuid.clear();
+            the_ulong.clear();
+        }
+        Ok(())
     }
 
     /// Select rows of `sample`
@@ -318,6 +358,73 @@ impl TableSample {
     }
 }
 
+impl SamplePkey {
+    /// Number of fields
+    pub const NUM_FIELDS: usize = 1;
+
+    /// Names of fields
+    pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = ["id"];
+}
+
+impl SampleValues {
+    /// Number of fields
+    pub const NUM_FIELDS: usize = 8;
+
+    /// Names of fields
+    pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = [
+        "the_name",
+        "the_small_int",
+        "the_large_int",
+        "general_int",
+        "the_date",
+        "the_date_time",
+        "the_uuid",
+        "the_ulong",
+    ];
+}
+
+impl TableSample {
+    /// The bulk insert statement for table sample
+    pub const BULK_INSERT_STATEMENT: &'static str = r#"insert into sample
+  (
+  	id, the_name, the_small_int, the_large_int, general_int, the_date,
+  	the_date_time, the_uuid, the_ulong
+  )
+  SELECT * FROM UNNEST
+  (
+  	$1::int[], $2::varchar[], $3::smallint[], $4::bigint[], $5::int[], $6::date[],
+  	$7::timestamp[], $8::uuid[], $9::bigint[]
+  )
+  "#;
+
+    /// The bulk upsert statement for table sample
+    pub const BULK_UPSERT_STATEMENT: &'static str = r#"insert into sample
+  (
+  	id, the_name, the_small_int, the_large_int, general_int, the_date,
+  	the_date_time, the_uuid, the_ulong
+  )
+  SELECT * FROM UNNEST
+  (
+  	$1::int[], $2::varchar[], $3::smallint[], $4::bigint[], $5::int[], $6::date[],
+  	$7::timestamp[], $8::uuid[], $9::bigint[]
+  )
+  ON CONFLICT (id)
+  DO UPDATE SET
+      the_name = EXCLUDED.the_name,
+  	the_small_int = EXCLUDED.the_small_int,
+  	the_large_int = EXCLUDED.the_large_int,
+  	general_int = EXCLUDED.general_int,
+  	the_date = EXCLUDED.the_date,
+  	the_date_time = EXCLUDED.the_date_time,
+  	the_uuid = EXCLUDED.the_uuid,
+  	the_ulong = EXCLUDED.the_ulong
+  
+  "#;
+
+    /// The total number of key and value columns
+    pub const COLUMN_COUNT: usize = 9;
+}
+
 /// Unit tests for `sample`
 #[cfg(test)]
 pub mod unit_tests {
@@ -384,9 +491,42 @@ pub mod unit_tests {
 
         #[serial_test::serial]
         #[tracing_test::traced_test]
-        fn bulk_upsert() {
+        #[tokio::test]
+        async fn bulk_upsert() {
             // α <fn test TableSample::bulk_upsert>
-            todo!("Test bulk_upsert")
+            let (client, connection) = tokio_postgres::connect(
+                "host=localhost user=kgen password=kgen dbname=kgen",
+                NoTls,
+            )
+                .await
+                .unwrap();
+
+            tokio::spawn(async move {
+                if let Err(e) = connection.await {
+                    eprintln!("connection error: {}", e);
+                }
+            });
+
+            let deleted = TableSample::delete_all(&client).await.unwrap();
+            tracing::info!("Bulk insert deleted {deleted} in prep for insertion");
+            tracing::info!("Created {client:?}");
+
+            let mut sample_rows = sample_rows();
+            TableSample::bulk_insert(&client, &sample_rows, 2).await.expect("bulk_insert");
+            for row in sample_rows.iter_mut() {
+                use std::ops::Add;
+                row.1.the_name.push_str("_updated");
+                row.1.general_int = 99999;
+                row.1.the_small_int = 99;
+                row.1.the_date = NaiveDate::from_ymd_opt(1929, 10, 29).unwrap();
+                row.1.the_date_time = row.1.the_date.into();
+                row.1.the_large_int = i64::MAX;
+                row.1.the_uuid = uuid::Uuid::max();
+                row.1.the_ulong = i64::MAX;
+            }
+            TableSample::bulk_upsert(&client, &sample_rows, 2).await.expect("bulk_upsert");
+
+            tracing::info!("Finished bulk_insert!");
             // ω <fn test TableSample::bulk_upsert>
         }
 

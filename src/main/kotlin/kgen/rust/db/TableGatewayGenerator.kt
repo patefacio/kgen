@@ -9,25 +9,7 @@ import kgen.rust.*
 import kgen.rustQuote
 
 val DbColumn.asRustType
-    get() = when (this.type) {
-
-        is DbType.Byte -> U8
-        is DbType.Double -> F64
-        is DbType.Integer -> I32
-        is DbType.SmallInteger -> I16
-        is DbType.BigInteger -> I64
-        is DbType.Text -> RustString
-        is DbType.Date -> "chrono::NaiveDate".asType
-        is DbType.DateTime, is DbType.Timestamp -> "chrono::NaiveDateTime".asType
-        is DbType.IntegerAutoInc -> I32
-        is DbType.LongAutoInc -> I64
-        is DbType.UlongAutoInc -> U64
-        is DbType.Binary, is DbType.BinarySized -> I64
-        is DbType.Uuid -> "uuid::Uuid".asType
-        is DbType.Json, is DbType.VarChar -> RustString
-
-        else -> throw (Exception("Unsupported rust type for $this"))
-    }
+    get() = type.asRustType
 
 val DbColumn.asRustField
     get() = Field(
@@ -36,7 +18,7 @@ val DbColumn.asRustField
         this.asRustType
     )
 
-fun DbColumn.pushValue(item: String) = when(this.type) {
+fun DbColumn.pushValue(item: String) = when (this.type) {
     is DbType.VarChar -> "${this.nameId}.push(&$item.${this.nameId});"
     DbType.Text -> "${this.nameId}.push(&$item.${this.nameId});"
     else -> "${this.nameId}.push($item.${this.nameId});"
@@ -48,14 +30,6 @@ data class TableGatewayGenerator(
 
     val id = table.nameId.asId
     val columnCount = table.columns.size
-    val pkeyColumnCount = table.primaryKeyColumns.size
-    val valueColumnCount = table.valueColumns.size
-    val pkeyColumnCountConstId = "${id}_pkey_column_count".asId
-    val pkeyColumnCountAsRust = pkeyColumnCountConstId.shout
-    val valueColumnCountConstId = "${id}_value_column_count".asId
-    val valueColumnCountAsRust = valueColumnCountConstId.shout
-    val columnCountConstId = "${id}_column_count".asId
-    val columnCountAsRust = columnCountConstId.shout
     val columnSetLiteralId = "${id}_column_set".asId
     val columnSetLiteralAsRust = columnSetLiteralId.shout
 
@@ -87,26 +61,20 @@ data class TableGatewayGenerator(
         }
         .joinToString(",\n\t")
 
-    val columnSetLiteralValue = "($formattedColumnNames)"
-    val unnestedColumnExpressionId = "unnested_column_expression".asId
-    val unnestedColumnExpressionValue = "($unnestedColumnExpressions)"
+    val columnSetLiteralValue = "(\n\t$formattedColumnNames\n)"
+    val unnestedColumnExpressionValue = "(\n\t$unnestedColumnExpressions\n)"
 
-    val insertStatement = rustQuote(
-        """insert into ${table.nameId}
-{$columnSetLiteralAsRust}
-values 
-{values_placeholder}
-returning id
-"""
-    )
+    val pkeyAsSql
+        get() = table.primaryKeyColumns.chunked(6)
+            .joinToString(", ") { chunk ->
+                chunk.joinToString(", ") { it.nameId.asId.snake }
+            }
 
-    val bulkInsertStatement = rustQuote(
-        """insert into ${table.nameId}
-$columnSetLiteralValue
-SELECT * FROM UNNEST
-${unnestedColumnExpressionValue}
-"""
-    )
+    val onConflictAssignments
+        get() = table.valueColumns.joinToString(",\n\t") { column ->
+            val term = column.nameId.asId
+            "${term.snake} = EXCLUDED.${term.snake}"
+        }
 
     val pkey = table.primaryKeyColumnNameIds
     val pkeyStructId = "${id.snake}_pkey".asId
@@ -118,42 +86,49 @@ ${unnestedColumnExpressionValue}
     val rowsParam = FnParam("rows", "&[${rowTypeId.capCamel}]".asType, "Rows to insert")
     val chunkSizeFnParam = FnParam("chunk_size", USize, "How to chunk the inserts")
 
-    val keyStruct = if (pkey.isNotEmpty()) {
-        Struct(
+    val keyColumnSet = if (pkey.isNotEmpty()) {
+        QueryColumnSet(
             pkeyStructId.snake,
             "Primary key fields for `${id.capCamel}`",
-            fields = table
-                .primaryKeyColumns
-                .map { dbColumn -> dbColumn.asRustField },
-            attrs = commonDerives + derive("Default")
+            table.primaryKeyColumns.asQueryColumns
         )
     } else {
         null
     }
 
-    val valuesStruct = Struct(
-        valuesStructId.snake,
-        "Value fields for `${id.capCamel}`",
-        fields = table
-            .valueColumns
-            .map { dbColumn -> dbColumn.asRustField },
-        attrs = commonDerives + derive("Default")
-    )
+    val valueColumnSet = if (table.valueColumns.isNotEmpty()) {
+        QueryColumnSet(valuesStructId.snake, "Value fields for `${id.capCamel}`", table.valueColumns.asQueryColumns)
+    } else {
+        null
+    }
+
+    val keyStruct = keyColumnSet?.asRustStruct
+
+    val valuesStruct = valueColumnSet?.asRustStruct
 
     val insertBody = listOf(
         """
         use itertools::Itertools;
         let values_placeholder = rows.into_iter().enumerate().map(|(i, row)| {
-            let start = 1 + i * $columnCountAsRust;
+            let start = 1 + i * Self::COLUMN_COUNT;
             format!("({})",
-                (start..start+$columnCountAsRust)
+                (start..start+Self::COLUMN_COUNT)
                    .map(|param_index| format!("${'$'}{param_index}")).join(", "))
         }).join(",\n\t");
         
-        let statement = format!($insertStatement);
+        let statement = format!(${
+            rustQuote(
+                """insert into ${table.nameId}
+$columnSetLiteralValue
+values 
+{values_placeholder}
+returning id
+"""
+            )
+        });
         tracing::info!("SQL ->```\n{statement}\n```");
 
-        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(rows.len() * $columnCountAsRust);
+        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(rows.len() * Self::COLUMN_COUNT);
         for row in rows {""",
         indent(
             listOf(
@@ -264,8 +239,8 @@ ${unnestedColumnExpressionValue}
         rowsParam,
         chunkSizeFnParam,
         returnType = "Result<(), tokio_postgres::Error>".asType,
-        body = FnBody("""
-let insert_statement = $bulkInsertStatement;           
+        body = FnBody(
+            """
 let mut chunk = 0;
 $columnVectorDecls
 for chunk_rows in rows.chunks(chunk_size) {
@@ -273,7 +248,7 @@ for chunk_rows in rows.chunks(chunk_size) {
 $columnVectorAssignments    
     }
     let chunk_result = client.execute(
-        insert_statement,
+        Self::BULK_INSERT_STATEMENT,
         &[${table.columns.joinToString(", ") { "&${it.nameId}" }}]
     ).await;
     
@@ -301,6 +276,36 @@ Ok(())
         clientFnParam,
         rowsParam,
         chunkSizeFnParam,
+        returnType = "Result<(), tokio_postgres::Error>".asType,
+        returnDoc = "",
+        body = FnBody(
+            """
+let mut chunk = 0;
+$columnVectorDecls
+for chunk_rows in rows.chunks(chunk_size) {
+    for (key, value) in chunk_rows.into_iter() {
+$columnVectorAssignments    
+    }
+    let chunk_result = client.execute(
+        Self::BULK_UPSERT_STATEMENT,
+        &[${table.columns.joinToString(", ") { "&${it.nameId}" }}]
+    ).await;
+    
+    match &chunk_result {
+        Err(err) => {
+            tracing::error!("Failed bulk_insert `${table.nameId}` chunk({chunk}) -> {err}");
+            chunk_result?;
+        }
+        _ => tracing::debug!("Finished inserting chunk({chunk}), size({}) in `${table.nameId}`", chunk_rows.len())
+    }
+    chunk += 1;
+    $columnVectorClears        
+}
+Ok(())
+        """.trimIndent()
+        ),
+        isAsync = true,
+        hasTokioTest = true,
         testFnAttrs = attrSerializeTest.asAttrList
     )
 
@@ -309,6 +314,42 @@ Ok(())
         """Table Gateway Support for table `${id.snake}`.
             |Rows
         """.trimMargin(),
+        consts = listOf(
+            Const(
+                "bulk_insert_statement",
+                "The bulk insert statement for table $id",
+                "&'static str".asType,
+                rustQuote(
+                    """insert into ${table.nameId}
+$columnSetLiteralValue
+SELECT * FROM UNNEST
+${unnestedColumnExpressionValue}
+"""
+                ).asConstValue
+            ),
+            Const(
+                "bulk_upsert_statement",
+                "The bulk upsert statement for table $id",
+                "&'static str".asType,
+                rustQuote(
+                    """insert into ${table.nameId}
+$columnSetLiteralValue
+SELECT * FROM UNNEST
+${unnestedColumnExpressionValue}
+ON CONFLICT ($pkeyAsSql)
+DO UPDATE SET
+    ${onConflictAssignments}
+
+"""
+                ).asConstValue
+            ),
+            Const(
+                "column_count",
+                "The total number of key and value columns",
+                USize,
+                columnCount
+            )
+        ),
         typeImpl = TypeImpl(
             "Table${id.capCamel}".asType,
             Fn(
@@ -380,38 +421,6 @@ Ok(())
             "chrono::{NaiveDate, NaiveDateTime}"
         ).asUses,
         structs = listOfNotNull(keyStruct, valuesStruct, tableStruct),
-        consts = listOf(
-            Const(
-                columnSetLiteralId.snake,
-                "Column names",
-                "&'static str".asType,
-                columnSetLiteralValue
-            ),
-            Const(
-                unnestedColumnExpressionId.snake,
-                "Unnest column expressions",
-                "&'static str".asType,
-                unnestedColumnExpressionValue
-            ),
-            Const(
-                pkeyColumnCountConstId.snake,
-                "Total number of columns, primary key columns and non-key columns",
-                USize,
-                pkeyColumnCount
-            ),
-            Const(
-                valueColumnCountConstId.snake,
-                "Total number of columns in the primary key",
-                USize,
-                valueColumnCount
-            ),
-            Const(
-                columnCountConstId.snake,
-                "Total number of columns",
-                USize,
-                columnCount
-            )
-        ),
         typeAliases = listOf(
             TypeAlias(
                 rowTypeId.snake,

@@ -67,14 +67,4 @@ fun main() {
         crateGenerator.generate(true)
     }
     //println(TableGatewayGenerator(modeledTable).asModule.asRust)
-    println(TableGatewayGenerator(modeledTable).asModule.asRust)
-
-    transaction {
-        addLogger(StdOutSqlLogger)
-        val conn = TransactionManager.current().connection
-        val stmt = conn.prepareStatement("SELECT user", emptyArray())
-        val x = stmt.executeQuery()
-        x.next()
-        println(x.getString("user"))
-    }
 }

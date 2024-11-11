@@ -41,6 +41,8 @@ data class Module(
     val isPrivate get() = visibility == Visibility.None
     private val sizesIncluded get() = includeTypeSizes && !isBinary
 
+    private val structConstsImpls = structs.mapNotNull { it.constsTypeImpl }
+
     private val structAccessorImpls = structs.mapNotNull { struct ->
         val accessors = struct.accessors
         if (accessors.isNotEmpty()) {
@@ -308,7 +310,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                     "\n"
                 ),
                 announceSection("type impls",
-                    (allTypeImpls + structAccessorImpls).joinToString("\n\n") { it.asRust }
+                    (allTypeImpls + structAccessorImpls + structConstsImpls).joinToString("\n\n") { it.asRust }
                 ),
                 announceSection("trait impls",
                     allTraitImpls.joinToString("\n\n") { it.asRust }
