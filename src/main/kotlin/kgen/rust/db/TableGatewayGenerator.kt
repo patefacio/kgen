@@ -79,7 +79,7 @@ data class TableGatewayGenerator(
     val pkey = table.primaryKeyColumnNameIds
     val pkeyStructId = "${id.snake}_pkey".asId
 
-    val valuesStructId = "${id.snake}_values".asId
+    val valuesStructId = "${id.snake}_value".asId
     val rowTypeId = "${id.snake}_row".asId
 
     val clientFnParam = FnParam("client", "&tokio_postgres::Client".asType, "The tokio postgresql client")
@@ -315,6 +315,17 @@ Ok(())
             |Rows
         """.trimMargin(),
         consts = listOf(
+            Const(
+                "select_statement",
+                "The select statement for table $id",
+                "&'static str".asType,
+                rustQuote(
+                    """select
+$formattedColumnNames
+FROM ${table.nameId}
+                    """.trimMargin()
+                ).asConstValue
+            ),
             Const(
                 "bulk_insert_statement",
                 "The bulk insert statement for table $id",

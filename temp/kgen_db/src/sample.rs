@@ -10,7 +10,7 @@ use tokio_postgres::types::{Date, FromSql, ToSql};
 // --- type aliases ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Rows are composed of the primary key and the value fields
-pub type SampleRow = (SamplePkey, SampleValues);
+pub type SampleRow = (SamplePkey, SampleValue);
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- structs ---
@@ -24,7 +24,7 @@ pub struct SamplePkey {
 
 /// Value fields for `Sample`
 #[derive(Debug, Clone, Default)]
-pub struct SampleValues {
+pub struct SampleValue {
     /// Value fields for `Sample`
     pub the_name: String,
     /// Value fields for `Sample`
@@ -366,7 +366,7 @@ impl SamplePkey {
     pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = ["id"];
 }
 
-impl SampleValues {
+impl SampleValue {
     /// Number of fields
     pub const NUM_FIELDS: usize = 8;
 
@@ -384,6 +384,12 @@ impl SampleValues {
 }
 
 impl TableSample {
+    /// The select statement for table sample
+    pub const SELECT_STATEMENT: &'static str = r#"select
+  id, the_name, the_small_int, the_large_int, general_int, the_date,
+  	the_date_time, the_uuid, the_ulong
+  FROM sample"#;
+
     /// The bulk insert statement for table sample
     pub const BULK_INSERT_STATEMENT: &'static str = r#"insert into sample
   (
@@ -643,7 +649,7 @@ pub mod unit_tests {
         fn sample_rows() -> Vec<SampleRow> {
             let row_1: SampleRow = (
                 SamplePkey { id: 1 },
-                SampleValues {
+                SampleValue {
                     the_name: "TEST ROW 1".to_string(),
                     the_small_int: 1i16,
                     the_large_int: 2i64,
@@ -656,7 +662,7 @@ pub mod unit_tests {
             );
             let row_2: SampleRow = (
                 SamplePkey { id: 2 },
-                SampleValues {
+                SampleValue {
                     the_name: "TEST ROW 2".to_string(),
                     the_small_int: 51i16,
                     the_large_int: -213i64,
@@ -669,7 +675,7 @@ pub mod unit_tests {
             );
             let row_3: SampleRow = (
                 SamplePkey { id: 3 },
-                SampleValues {
+                SampleValue {
                     the_name: "TEST ROW 3".to_string(),
                     the_small_int: 51i16,
                     the_large_int: -213i64,

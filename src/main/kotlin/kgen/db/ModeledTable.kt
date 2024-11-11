@@ -3,18 +3,15 @@ package kgen.db
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
-data class ModeledColumn(
-    override val nameId: String,
-    override val doc: String? = null,
-    override val type: DbType
-) : DbColumn
-
 data class ModeledTable(
     override val nameId: String,
     override val doc: String? = null,
     override val columns: List<ModeledColumn>,
     override val primaryKeyColumns: List<ModeledColumn>,
-) : DbTable
+    val modeledUniqueKeys: List<ModeledUniqueKey> = emptyList(),
+    override val uniqueIndices: Map<String, List<String>> = modeledUniqueKeys.associate { it.nameId to it.columns.map { it.nameId } },
+) : DbTable {
+}
 
 private val varcharRegex = """VARCHAR\((\d+)\)""".toRegex(option = RegexOption.IGNORE_CASE)
 
