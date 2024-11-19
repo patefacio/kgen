@@ -1,7 +1,6 @@
 package kgen.db
 
 import kgen.rust.*
-import kgen.rust.db.asRustType
 
 sealed class DbType {
     data object Byte : DbType()

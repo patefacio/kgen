@@ -1,9 +1,11 @@
-package kgen.rust.db
+package kgen.rust.db.select
 
 import kgen.db.DbColumn
 import kgen.doubleQuote
 import kgen.rust.*
-import kgen.rust.db.QueryColumn.Companion.fromDbColumn
+import kgen.rust.db.asRustField
+import kgen.rust.db.asRustType
+import kgen.rust.db.select.QueryColumn.Companion.fromDbColumn
 
 data class QueryColumnSet(
     val nameId: String,
@@ -11,16 +13,17 @@ data class QueryColumnSet(
     val queryColumns: List<QueryColumn>
 ) {
     val numColumns = queryColumns.size
+
+    fun pullFieldsRust(fromVar: String = "row") =
+        queryColumns.joinToString(";\n") { queryColumn ->
+            "self.${queryColumn.id.snake} = $fromVar.${queryColumn.expression}"
+        }
+
     val asRustStruct
         get() = Struct(
             nameId,
             doc,
-            queryColumns.withIndex().map { indexedValue ->
-                val index = indexedValue.index
-                val queryColumn = indexedValue.value
-                val fieldName = queryColumn.id?.snake ?: "c_$index"
-                Field(fieldName, doc, queryColumn.type.asRustType)
-            },
+            queryColumns.map { queryColumn -> queryColumn.dbColumn!!.asRustField },
             consts = listOf(
                 Const("num_fields", "Number of fields", USize, value = numColumns),
                 Const(

@@ -1,92 +1,23 @@
 package kgen.rust.db
 
 import kgen.asId
-import kgen.db.DbColumn
 import kgen.db.DbTable
-import kgen.db.DbType
-import kgen.indent
 import kgen.rust.*
-import kgen.rustQuote
-
-val DbColumn.asRustType
-    get() = type.asRustType
-
-val DbColumn.asRustField
-    get() = Field(
-        this.nameId.asId.snake,
-        doc = this.doc ?: "Field for column `$nameId`",
-        this.asRustType
-    )
-
-fun DbColumn.pushValue(item: String) = when (this.type) {
-    is DbType.VarChar -> "${this.nameId}.push(&$item.${this.nameId});"
-    DbType.Text -> "${this.nameId}.push(&$item.${this.nameId});"
-    else -> "${this.nameId}.push($item.${this.nameId});"
-}
+import kgen.rust.db.select.QueryColumnSet
+import kgen.rust.db.select.SelectAllWhereFn
+import kgen.rust.db.select.SelectAllFn
+import kgen.rust.db.select.asQueryColumns
 
 data class TableGatewayGenerator(
     val table: DbTable
 ) {
 
-    val id = table.nameId.asId
-    val columnCount = table.columns.size
-    val columnSetLiteralId = "${id}_column_set".asId
-    val columnSetLiteralAsRust = columnSetLiteralId.shout
-
-    val columnVectorDecls
-        get() = table.columns.joinToString("\n") {
-            "let mut ${it.nameId} = Vec::with_capacity(chunk_size);"
-        }
-
-    val columnVectorAssignments = listOf(
-        table.primaryKeyColumns.joinToString("\n") { it.pushValue("key") },
-        table.valueColumns.joinToString("\n") { it.pushValue("value") },
-    ).joinToString("\n")
-
-    val columnVectorClears = listOf(
-        table.columns.joinToString("\n") { "${it.nameId}.clear();" },
-    ).joinToString("\n")
-
-    val formattedColumnNames = table.columns.chunked(6)
-        .map { chunk -> chunk.map { it.nameId }.joinToString(", ") }
-        .joinToString(",\n\t")
-
-    val unnestedColumnExpressions = table.columns
-        .withIndex()
-        .chunked(6)
-        .map { chunks ->
-            chunks.joinToString(", ") { indexedValue ->
-                "${'$'}${indexedValue.index + 1}${indexedValue.value.unnestCast}[]"
-            }
-        }
-        .joinToString(",\n\t")
-
-    val columnSetLiteralValue = "(\n\t$formattedColumnNames\n)"
-    val unnestedColumnExpressionValue = "(\n\t$unnestedColumnExpressions\n)"
-
-    val pkeyAsSql
-        get() = table.primaryKeyColumns.chunked(6)
-            .joinToString(", ") { chunk ->
-                chunk.joinToString(", ") { it.nameId.asId.snake }
-            }
-
-    val onConflictAssignments
-        get() = table.valueColumns.joinToString(",\n\t") { column ->
-            val term = column.nameId.asId
-            "${term.snake} = EXCLUDED.${term.snake}"
-        }
-
-    val pkey = table.primaryKeyColumnNameIds
+    val tableGateway = TableGateway(table)
+    val id = tableGateway.id
+    val columnCount = tableGateway.columnCount
     val pkeyStructId = "${id.snake}_pkey".asId
 
-    val valuesStructId = "${id.snake}_value".asId
-    val rowTypeId = "${id.snake}_row".asId
-
-    val clientFnParam = FnParam("client", "&tokio_postgres::Client".asType, "The tokio postgresql client")
-    val rowsParam = FnParam("rows", "&[${rowTypeId.capCamel}]".asType, "Rows to insert")
-    val chunkSizeFnParam = FnParam("chunk_size", USize, "How to chunk the inserts")
-
-    val keyColumnSet = if (pkey.isNotEmpty()) {
+    val keyColumnSet = if (table.hasPrimaryKey) {
         QueryColumnSet(
             pkeyStructId.snake,
             "Primary key fields for `${id.capCamel}`",
@@ -96,218 +27,7 @@ data class TableGatewayGenerator(
         null
     }
 
-    val valueColumnSet = if (table.valueColumns.isNotEmpty()) {
-        QueryColumnSet(valuesStructId.snake, "Value fields for `${id.capCamel}`", table.valueColumns.asQueryColumns)
-    } else {
-        null
-    }
-
     val keyStruct = keyColumnSet?.asRustStruct
-
-    val valuesStruct = valueColumnSet?.asRustStruct
-
-    val insertBody = listOf(
-        """
-        use itertools::Itertools;
-        let values_placeholder = rows.into_iter().enumerate().map(|(i, row)| {
-            let start = 1 + i * Self::COLUMN_COUNT;
-            format!("({})",
-                (start..start+Self::COLUMN_COUNT)
-                   .map(|param_index| format!("${'$'}{param_index}")).join(", "))
-        }).join(",\n\t");
-        
-        let statement = format!(${
-            rustQuote(
-                """insert into ${table.nameId}
-$columnSetLiteralValue
-values 
-{values_placeholder}
-returning id
-"""
-            )
-        });
-        tracing::info!("SQL ->```\n{statement}\n```");
-
-        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(rows.len() * Self::COLUMN_COUNT);
-        for row in rows {""",
-        indent(
-            listOf(
-                table.primaryKeyColumns.map {
-                    "params.push(&row.0.${it.nameId});"
-                },
-                table.valueColumns.map {
-                    "params.push(&row.1.${it.nameId});"
-                },
-            ).flatten().joinToString("\n")
-        ),
-        """}
-            
-        let results = match client.query(&statement, &params[..]).await {
-            Ok(stmt) => stmt,
-            Err(e) => {
-                panic!("Error preparing statement: {e}");
-            }
-        };
-        
-        results.iter().for_each(|row| tracing::info!("Row id -> {:?}", row.get::<usize, i32>(0)));""",
-    ).joinToString("\n")
-
-    val selectBody = listOf(
-        """
-        //HERE
-        """.trimIndent()
-    ).joinToString("\n")
-
-    val updateBody = listOf(
-        """
-            let mut statement = "update sample SET ".to_string();
-
-        if s_clause != "" {
-            statement = statement + &s_clause + " WHERE ";
-        } else {
-            ;
-        }
-
-        if w_clause != "" {
-            statement = statement + &w_clause + " RETURNING *";
-        } else {
-            ;
-        }
-
-        println!("{}", statement);
-
-        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(0);
-
-        let results = match client.query(&statement, &params[..]).await {
-            Ok(stmt) => stmt,
-            Err(e) => {
-                panic!("Error preparing statement: {e}");
-            }
-        };
-
-        results
-            .iter()
-            .for_each(|row| {
-                tracing::info!("updated row id -> {:?}", row.get::<usize, i32>(0))
-            } );
-        """.trimIndent()
-    ).joinToString("\n")
-
-    val deleteBody = listOf(
-        """
-        let col_num = ${table.columns.size};
-        assert!(cols.len() == ops.len() && ops.len() == conds.len());
-        assert!(cols.len() <= col_num);
-        
-
-        let mut statement = "delete from ${table.nameId} where (".to_string();
-
-        if clause != "" {
-            statement = statement + &clause + ") RETURNING *";
-        } else {
-            for i in 0..cols.len() - 1 {
-                statement = statement + cols[i] + " " + ops[i] + " " + conds[i] + " OR ";
-            }
-            statement = statement
-                + cols[cols.len() - 1]
-                + " "
-                + ops[cols.len() - 1]
-                + " "
-                + conds[cols.len() - 1]
-                + ") RETURNING *";
-        }
-
-        let mut params = Vec::<&(dyn ToSql + Sync)>::with_capacity(0);
-
-        let results = match client.query(&statement, &params[..]).await {
-            Ok(stmt) => stmt,
-            Err(e) => {
-                panic!("Error preparing statement: {e}");
-            }
-        };
-
-        results
-            .iter()
-            .for_each(|row| tracing::info!("deleted row id -> {:?}", row.get::<usize, i32>(0)));
-        """.trimIndent()
-    ).joinToString("\n")
-
-    val bulkInsertFn = Fn(
-        "bulk_insert",
-        "Insert large batch of [${id.capCamel}] rows.",
-        clientFnParam,
-        rowsParam,
-        chunkSizeFnParam,
-        returnType = "Result<(), tokio_postgres::Error>".asType,
-        body = FnBody(
-            """
-let mut chunk = 0;
-$columnVectorDecls
-for chunk_rows in rows.chunks(chunk_size) {
-    for (key, value) in chunk_rows.into_iter() {
-$columnVectorAssignments    
-    }
-    let chunk_result = client.execute(
-        Self::BULK_INSERT_STATEMENT,
-        &[${table.columns.joinToString(", ") { "&${it.nameId}" }}]
-    ).await;
-    
-    match &chunk_result {
-        Err(err) => {
-            tracing::error!("Failed bulk_insert `${table.nameId}` chunk({chunk}) -> {err}");
-            chunk_result?;
-        }
-        _ => tracing::debug!("Finished inserting chunk({chunk}), size({}) in `${table.nameId}`", chunk_rows.len())
-    }
-    chunk += 1;
-    $columnVectorClears        
-}
-Ok(())
-        """.trimIndent()
-        ),
-        isAsync = true,
-        hasTokioTest = true,
-        testFnAttrs = attrSerializeTest.asAttrList
-    )
-
-    val bulkUpsertFn = Fn(
-        "bulk_upsert",
-        "Upsert large batch of [${id.capCamel}] rows.",
-        clientFnParam,
-        rowsParam,
-        chunkSizeFnParam,
-        returnType = "Result<(), tokio_postgres::Error>".asType,
-        returnDoc = "",
-        body = FnBody(
-            """
-let mut chunk = 0;
-$columnVectorDecls
-for chunk_rows in rows.chunks(chunk_size) {
-    for (key, value) in chunk_rows.into_iter() {
-$columnVectorAssignments    
-    }
-    let chunk_result = client.execute(
-        Self::BULK_UPSERT_STATEMENT,
-        &[${table.columns.joinToString(", ") { "&${it.nameId}" }}]
-    ).await;
-    
-    match &chunk_result {
-        Err(err) => {
-            tracing::error!("Failed bulk_insert `${table.nameId}` chunk({chunk}) -> {err}");
-            chunk_result?;
-        }
-        _ => tracing::debug!("Finished inserting chunk({chunk}), size({}) in `${table.nameId}`", chunk_rows.len())
-    }
-    chunk += 1;
-    $columnVectorClears        
-}
-Ok(())
-        """.trimIndent()
-        ),
-        isAsync = true,
-        hasTokioTest = true,
-        testFnAttrs = attrSerializeTest.asAttrList
-    )
 
     val tableStruct = Struct(
         "table_${id.snake}",
@@ -315,45 +35,6 @@ Ok(())
             |Rows
         """.trimMargin(),
         consts = listOf(
-            Const(
-                "select_statement",
-                "The select statement for table $id",
-                "&'static str".asType,
-                rustQuote(
-                    """select
-$formattedColumnNames
-FROM ${table.nameId}
-                    """.trimMargin()
-                ).asConstValue
-            ),
-            Const(
-                "bulk_insert_statement",
-                "The bulk insert statement for table $id",
-                "&'static str".asType,
-                rustQuote(
-                    """insert into ${table.nameId}
-$columnSetLiteralValue
-SELECT * FROM UNNEST
-${unnestedColumnExpressionValue}
-"""
-                ).asConstValue
-            ),
-            Const(
-                "bulk_upsert_statement",
-                "The bulk upsert statement for table $id",
-                "&'static str".asType,
-                rustQuote(
-                    """insert into ${table.nameId}
-$columnSetLiteralValue
-SELECT * FROM UNNEST
-${unnestedColumnExpressionValue}
-ON CONFLICT ($pkeyAsSql)
-DO UPDATE SET
-    ${onConflictAssignments}
-
-"""
-                ).asConstValue
-            ),
             Const(
                 "column_count",
                 "The total number of key and value columns",
@@ -363,51 +44,11 @@ DO UPDATE SET
         ),
         typeImpl = TypeImpl(
             "Table${id.capCamel}".asType,
-            Fn(
-                "insert",
-                "Insert rows of `${id.snake}`",
-                clientFnParam,
-                rowsParam,
-                isAsync = true,
-                hasTokioTest = true,
-                body = FnBody(insertBody),
-                testFnAttrs = attrSerializeTest.asAttrList
-            ),
-            bulkInsertFn,
-            bulkUpsertFn,
-            Fn(
-                "select",
-                "Select rows of `${id.snake}`",
-                clientFnParam,
-                isAsync = true,
-                hasTokioTest = true,
-                body = FnBody(selectBody),
-                testFnAttrs = attrSerializeTest.asAttrList
-            ),
-            Fn(
-                "update",
-                "Update rows of `${id.snake}`",
-                clientFnParam,
-                FnParam("s_clause", "String".asType, "clause for SET statement"),
-                FnParam("w_clause", "String".asType, "clause for WHERE statement"),
-                isAsync = true,
-                hasTokioTest = true,
-                body = FnBody(updateBody),
-                testFnAttrs = attrSerializeTest.asAttrList
-            ),
-            Fn(
-                "delete",
-                "Delete rows of `${id.snake}`",
-                clientFnParam,
-                FnParam("clause", "String".asType, "full clause, skips input vectors"),
-                FnParam("cols", "Vec::<&str>".asType, "columns list for clause"),
-                FnParam("ops", "Vec::<&str>".asType, "operator list for clause"),
-                FnParam("conds", "Vec::<&str>".asType, "conditions list for clause"),
-                isAsync = true,
-                hasTokioTest = true,
-                body = FnBody(deleteBody),
-                testFnAttrs = attrSerializeTest.asAttrList
-            ),
+            SelectAllWhereFn(tableGateway).selectAllWhereFn,
+            SelectAllFn(tableGateway).selectAllFn,
+            BasicInsert(tableGateway).insertStatement,
+            BulkInsert(tableGateway).bulkInsertFn,
+            BulkUpsert(tableGateway).bulkUpsertFn,
             Fn(
                 "delete_all",
                 "Delete all rows of `${id.snake}`",
@@ -431,15 +72,10 @@ DO UPDATE SET
             "tokio_postgres::types::{Date, FromSql, ToSql}",
             "chrono::{NaiveDate, NaiveDateTime}"
         ).asUses,
-        structs = listOfNotNull(keyStruct, valuesStruct, tableStruct),
-        typeAliases = listOf(
-            TypeAlias(
-                rowTypeId.snake,
-                "(${pkeyStructId.asStructName}, ${valuesStructId.asStructName})".asType,
-                doc = "Rows are composed of the primary key and the value fields",
-                visibility = Visibility.PubExport
-            )
-        )
+        structs = listOfNotNull(
+            tableGateway.rowDataStruct, tableGateway.rowEntryStruct,
+            keyStruct, tableStruct
+        ),
     )
 
 }
