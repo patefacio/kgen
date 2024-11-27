@@ -43,7 +43,7 @@ data class CrateGenerator(
     val srcPath = Paths.get(cratePath, "src").toAbsolutePath()
     val binPath = srcPath.resolve("../bin").toAbsolutePath()
     val benchPath = srcPath.resolve("../bench").toAbsolutePath()
-    val integrationTestsPath = srcPath.resolve("../tests").toAbsolutePath()
+    val testsPath = srcPath.resolve("../tests").toAbsolutePath()
     val tomlPath = Paths.get(cratePath, "Cargo.toml").toAbsolutePath()
     val srcPathString = srcPath.pathString
 
@@ -58,9 +58,11 @@ data class CrateGenerator(
         val tempSrcPath = Paths.get(tempPath.pathString, "src")
         val tempBinPath = tempSrcPath.resolve("bin")
         val tempBenchesPath = tempSrcPath.resolve("../benches")
+        val testsPath = tempSrcPath.resolve("../tests")
         File(tempSrcPath.pathString).mkdirs()
         File(tempBinPath.pathString).mkdirs()
         File(tempBenchesPath.pathString).mkdirs()
+        File(testsPath.pathString).mkdirs()
         // Copy the cargo file into the newly created directory so `cargo fmt` will work
         tomlPath.copyTo(Paths.get(tempPath.pathString, "Cargo.toml"))
         tempSrcPath

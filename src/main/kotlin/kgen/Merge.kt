@@ -5,30 +5,33 @@ import kotlin.io.path.exists
 import kotlin.io.path.pathString
 
 /**
- * A **Block**, containing an _opener_, a _closer_ and _content_
+ * A **Block** of code to be protected across regeneration.
+ *
+ * @property name A name for the bock, used to tag the block for protection on regeneration.
+ * @property opener A string used to signify the opening of a protection block
+ * @property body A string to be placed in the block. If this is null the block is intended as
+ * a _protect block_. If it has content that means the contents are driven by the
+ * generator and no protection is required as a regeneration will reproduce the same.
+ * @property closer A string used to signify the closing of a protection block
+ * @property preserved Source text representing the contents of the block, typically read from disk and
+ * intended to be preserved.
  */
 data class Block(
     val name: String,
     val opener: String,
-    val startContent: String? = null,
     val body: String?,
-    val endContent: String? = null,
     val closer: String,
-    val source: String? = null
+    val preserved: String? = null
 ) {
 
     constructor(
         name: String,
         blockDelimiter: BlockDelimiter,
-        startContent: String? = null,
         body: String? = null,
-        endContent: String? = null,
     ) : this(
         name,
         "${blockDelimiter.open} <$name>",
-        startContent,
         body,
-        endContent,
         "${blockDelimiter.close} <$name>",
         null
     )
@@ -41,23 +44,23 @@ data class Block(
 /**
  * A **Block** is a section of text that is intended to be protected during the code
  * generation process. The [BlockDelimiter] provides a way to signify where the
- * protected text blocks are among code in the file that is intended to be generated.
+ * protected text blocks are among code in the file being generated.
  *
  * The common type of protected block has a simple [OpenBlockDelimiter], for example:
  *
  * ```rust
- *     fn index_mapping(&self) -> HashMap<SystemGrowthId, usize> {
- *          // α <fn index_mapping>
+ *fn index_mapping(&self) -> HashMap<SystemGrowthId, usize> {
+ *     // α <fn index_mapping>
  *
- *          self.identifiers
- *          .iter()
- *          .enumerate()
- *          .map(|(i, id)| (*id, i))
- *          .into_iter()
- *          .collect()
+ *     self.identifiers
+ *     .iter()
+ *     .enumerate()
+ *     .map(|(i, id)| (*id, i))
+ *     .into_iter()
+ *     .collect()
  *
- *          // ω <fn index_mapping>
- *    }
+ *      // ω <fn index_mapping>
+ *}
  * ```
  *
  * In this example the function signature is not protected and will get regenerated.
@@ -76,8 +79,8 @@ data class Block(
  * <!--- ω <fn main_content> -->
  * ```
  *
- * It is a called `ClosedBlock` simply because the delimiter is a [ClosedBlockDelimiter]
- * since it has an open `<!--- [α]` and a close `-->` **within the delimiter itself**.
+ * It is a called `ClosedBlock` because the delimiter requires some closing text
+ * (e.g. the trailing markdown/html comment end `-->`) within the delimiter itself.
  */
 interface BlockDelimiter {
     val open: String
@@ -85,12 +88,25 @@ interface BlockDelimiter {
 
     fun pullBlocks(text: String): Map<String, Block>
 
-    /** Create an empty block.
-     * @param name Name used in protection block delimiter
-     * @param blockNameDelimiter Either single back-tick (e.g. if name has templates) or angle brackets
-     * @param emptyContents An empty block is usually just the delimiters and a new-line, but sometimes
-     *                      it is useful to create an empty block with something real like a `todo!()`
-     *                      that will be used to track progress (e.g. in a test function)
+    /** Create an empty block in generated content.
+     *
+     * An example empty block, with an initial _todo_ as a placeholder until the real implementation
+     * is written.
+     *
+     * ```rust
+     * fn foo() {
+     *   // α <fn foo>
+     *   todo!("Implement foo")
+     *   // ω <fn foo>
+     * }
+     * ```
+     *
+     * @param name The name of the block
+     * @param blockNameDelimiter The delimiter
+     * @param emptyContents Any contents to be included when the block is otherwise empty. A
+     * use case for empty contents might be a block to protect a handwritten function that
+     * requires some content before the actual handwritten code is provided.
+     *
      */
     fun emptyBlock(
         name: String,
@@ -122,7 +138,7 @@ data class OpenBlockDelimiter(override val open: String, override val close: Str
                     opener = "$open $blockLabel",
                     body = body,
                     closer = "$close $blockLabel",
-                    source = blockText
+                    preserved = blockText
                 )
             Pair(blockName, block)
         }
@@ -181,12 +197,32 @@ data class ClosedBlockDelimiter(
                 opener = openMatch,
                 body = body,
                 closer = closeMatch,
-                source = blockText
+                preserved = blockText
             )
             Pair(blockName, block)
         }
     }
 
+    /** Create an empty block in generated content.
+     *
+     * An example empty block, with an initial _todo_ as a placeholder until the real implementation
+     * is written.
+     *
+     * ```rust
+     * fn foo() {
+     *   // α <fn foo>
+     *   todo!("Implement foo")
+     *   // ω <fn foo>
+     * }
+     * ```
+     *
+     * @param name The name of the block
+     * @param blockNameDelimiter The delimiter
+     * @param emptyContents Any contents to be included when the block is otherwise empty. A
+     * use case for empty contents might be a block to protect a handwritten function that
+     * requires some content before the actual handwritten code is provided.
+     *
+     */
     override fun emptyBlock(
         name: String,
         blockNameDelimiter: BlockNameDelimiter,
@@ -284,9 +320,9 @@ fun mergeBlocks(
     priorBlocks.entries.forEach { (blockName, block) ->
         val generatedBlock = generatedBlocks[blockName]
         if (generatedBlock != null) {
-            if (block.source != null) {
+            if (block.preserved != null) {
                 result = result.replace(
-                    generatedBlock.source!!,
+                    generatedBlock.preserved!!,
                     block.toString()
                 )
             }

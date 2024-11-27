@@ -4,5 +4,8 @@ enum class DbTableClassifier {
     AutoId,
     AutoIdWithPkey,
     Pkey,
-    Keyless
+    Keyless;
+
+    /** Returns true if table has _auto id */
+    val hasAutoId get() = this == AutoId || this == AutoIdWithPkey
 }

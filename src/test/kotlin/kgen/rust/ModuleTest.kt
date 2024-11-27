@@ -38,6 +38,12 @@ use crate::time_revalue::{Revalue, RevalueOn};
 pub const FOO: i32 = 234;
 
 ////////////////////////////////////////////////////////////////////////////////////
+// --- statics ---
+////////////////////////////////////////////////////////////////////////////////////
+/// This is a foo
+pub static FOO: i32 = 234;
+
+////////////////////////////////////////////////////////////////////////////////////
 // --- traits ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// TODO: Document Trait(t1)
@@ -63,6 +69,9 @@ pub struct S {
                 testMacroUses = listOf("tester"),
                 consts = listOf(
                     Const("foo", "This is a foo", I32, 234)
+                ),
+                statics = listOf(
+                    Static("foo", "This is a foo", I32, 234)
                 ),
                 structs = listOf(
                     Struct("s", "S struct")

@@ -2,9 +2,7 @@ package kgen.rust.db
 
 import kgen.db.asDbTable
 import kgen.meta.MetaPaths
-import kgen.rust.Crate
-import kgen.rust.Module
-import kgen.rust.ModuleRootType
+import kgen.rust.*
 import kgen.rust.generator.CrateGenerator
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
@@ -25,39 +23,43 @@ object TableSampleWithId : Table("sample_with_id") {
     val name = varchar("the_name", 255)
     val smallInt = short("the_small_int")
     val largeInt = long("the_large_int")
+    val bigInt = ulong("the_big_int")
     val general_int = integer("general_int")
     val date = date("the_date")
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
-    val ulong = ulong("the_ulong")
 
     override val primaryKey = PrimaryKey(id)
+
+    init {
+       uniqueIndex(name, smallInt)
+    }
 }
 
-object TableSample: Table("sample") {
+object TableSample : Table("sample") {
     val name = varchar("the_name", 255)
     val smallInt = short("the_small_int")
     val largeInt = long("the_large_int")
-    val general_int = integer("general_int")
+    val bigInt = ulong("the_big_int")
     val date = date("the_date")
+    val general_int = integer("general_int")
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
-    val ulong = ulong("the_ulong")
 
     override val primaryKey = PrimaryKey(name, smallInt)
 }
 
-object TableKeyless: Table("keyless") {
+object TableKeyless : Table("keyless") {
     val name = varchar("the_name", 255)
     val smallInt = short("the_small_int")
     val largeInt = long("the_large_int")
+    val bigInt = ulong("the_big_int")
     val general_int = integer("general_int")
     val date = date("the_date")
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
     val ulong = ulong("the_ulong")
 }
-
 
 
 fun main() {
@@ -76,15 +78,30 @@ fun main() {
         tables.forEach { table -> SchemaUtils.create(table) }
 
         val dbTables = tables.map { it.asDbTable }
+        val tableGateways = dbTables.map { TableGateway(it) }
 
         val libModule = Module(
             "lib",
             moduleRootType = ModuleRootType.LibraryRoot,
-            modules = dbTables.map { TableGatewayGenerator(it).asModule }
+            modules = tableGateways.map { it.asModule },
         )
+
         val targetPath = MetaPaths.tempPath.resolve("kgen_db")
         val crateGenerator = CrateGenerator(
-            Crate("kgen_db", rootModule = libModule),
+            Crate(
+                "kgen_db",
+                rootModule = libModule,
+                integrationTestModules = listOf(
+                    Module("db", "Pulls in the db tests", customModDecls = listOf(ModDecl("db_tests"))),
+                    Module(
+                        "db_tests",
+                        "Tests for generated db code",
+                        ModuleType.Directory,
+                        modules = tableGateways.map { it.testModule } +
+                                TableGateway.testSupportModule
+                    )
+                )
+            ),
             targetPath.toString()
         )
 

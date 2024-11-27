@@ -98,36 +98,6 @@ generated postfix text *updated4*
     }
 
     @Test
-    fun mergeBlocksWithStartContent() {
-
-        val alpha = "// α"
-        val omega = "// ω"
-
-        //val r = """$alpha\s+[<`](?<blockName>[^\n]*)[>`]\s*(?<body>.*?)\s*$omega\s*\1"""
-        val r = """$alpha\s+(?<blockLabel>[<`](?<blockName>[^\n]+)[>`])\s*(?<body>.*?)\s*$omega\s+\1"""
-            .toRegex(options = setOf(RegexOption.MULTILINE, RegexOption.DOT_MATCHES_ALL))
-
-        r
-            .findAll("// α <blockName> this is the body \nfoo\n// ω <blockName>")
-            .forEach { matchResult ->
-                println("blockLabel -> ${matchResult.groups["blockLabel"]}")
-                println("blockName -> ${matchResult.groups["blockName"]}")
-                println("body -> ${matchResult.groups["body"]}")
-                println("$matchResult")
-            }
-
-        // val r = """(?<opener>$alpha)(?<blockName>([<`]([^\\n]*)[>`])[ \\t]*)(?<body>.*?)(?<closer>$omega)""".toRegex()
-
-
-        val merged = mergeBlocks(
-            generated = newGeneratedText,
-            prior = sampleText,
-            // TODO  blockDelimiter = alphaOmegaDelimiter(startContent = "Some Start Content")
-        )
-        assertEquals(expectedAfterMerge, merged)
-    }
-
-    @Test
     fun mergeGeneratedWithFile() {
         val targetFilePath = kotlin.io.path.createTempFile(prefix = "kgen_merge").toString()
 

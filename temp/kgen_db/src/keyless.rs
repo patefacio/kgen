@@ -3,21 +3,23 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
-use chrono::{NaiveDate, NaiveDateTime};
-use tokio_postgres::types::{Date, FromSql, ToSql};
+use tokio_postgres::types::ToSql;
+use tokio_postgres::Client;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default)]
-pub struct KeylessData {
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub struct KeylessRowData {
     /// Field for column `the_name`
     pub the_name: String,
     /// Field for column `the_small_int`
     pub the_small_int: i16,
     /// Field for column `the_large_int`
     pub the_large_int: i64,
+    /// Field for column `the_big_int`
+    pub the_big_int: i64,
     /// Field for column `general_int`
     pub general_int: i32,
     /// Field for column `the_date`
@@ -47,19 +49,19 @@ impl TableKeyless {
     ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
     pub async fn select_all_where(
-        client: &tokio_postgres::Client,
+        client: &Client,
         where_clause: &str,
         params: &[&(dyn ToSql + Sync)],
         capacity: usize,
-    ) -> Vec<KeylessData> {
+    ) -> Vec<KeylessRowData> {
         let statement = format!(
             r#"SELECT 
-    the_name, the_small_int, the_large_int, general_int, the_date, the_date_time,
-    	the_uuid, the_ulong
+    the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid, the_ulong
     FROM keyless
     WHERE {where_clause}"#
         );
-        let mut results = Vec::<KeylessData>::with_capacity(capacity);
+        let mut results = Vec::<KeylessRowData>::with_capacity(capacity);
         let rows = match client.query(&statement, params).await {
             Ok(stmt) => stmt,
             Err(e) => {
@@ -68,15 +70,16 @@ impl TableKeyless {
         };
 
         for row in rows {
-            results.push(KeylessData {
+            results.push(KeylessRowData {
                 the_name: row.get(0),
                 the_small_int: row.get(1),
                 the_large_int: row.get(2),
-                general_int: row.get(3),
-                the_date: row.get(4),
-                the_date_time: row.get(5),
-                the_uuid: row.get(6),
-                the_ulong: row.get(7),
+                the_big_int: row.get(3),
+                general_int: row.get(4),
+                the_date: row.get(5),
+                the_date_time: row.get(6),
+                the_uuid: row.get(7),
+                the_ulong: row.get(8),
             });
             tracing::info!("{:?}", results.last().unwrap());
         }
@@ -89,33 +92,95 @@ impl TableKeyless {
     ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
     #[inline]
-    pub async fn select_all(client: &tokio_postgres::Client, capacity: usize) -> Vec<KeylessData> {
+    pub async fn select_all(client: &Client, capacity: usize) -> Vec<KeylessRowData> {
         Self::select_all_where(&client, "1=1", &[], capacity).await
     }
 
-    /// Insert rows of `keyless`
+    /// Insert rows of `keyless` by building parameterized statement.
+    /// For large insertions prefer [bulk_insert]
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **rows** - Rows to insert
-    pub async fn insert(client: &tokio_postgres::Client, rows: &[KeylessData]) {
-        todo!()
+    ///   * **rows** - Row data to insert
+    ///   * _return_ - Success or tokio_postgres::Error
+    pub async fn basic_insert(
+        client: &Client,
+        rows: &[KeylessRowData],
+    ) -> Result<u64, tokio_postgres::Error> {
+        use itertools::Itertools;
+        let mut param_id = 0;
+        let mut params: Vec<&(dyn ToSql + Sync)> =
+            Vec::with_capacity(rows.len() * KeylessRowData::NUM_FIELDS);
+        let value_params = rows
+            .iter()
+            .map(|row| {
+                let row_params = KeylessRowData::FIELD_NAMES
+                    .map(|_| {
+                        param_id = param_id + 1;
+                        format!("${param_id}")
+                    })
+                    .join(", ");
+
+                params.push(&row.the_name);
+                params.push(&row.the_small_int);
+                params.push(&row.the_large_int);
+                params.push(&row.the_big_int);
+                params.push(&row.general_int);
+                params.push(&row.the_date);
+                params.push(&row.the_date_time);
+                params.push(&row.the_uuid);
+                params.push(&row.the_ulong);
+
+                format!("({row_params})")
+            })
+            .join(",\n");
+
+        let insert_result = client
+            .execute(
+                &format!(
+                    r#"insert into keyless
+    (
+    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid, the_ulong
+    )
+    VALUES
+    {value_params}
+    "#
+                ),
+                &params,
+            )
+            .await;
+
+        match insert_result {
+            Err(err) => {
+                tracing::error!("Failed basic_insert `keyless`");
+                Err(err)
+            }
+            Ok(insert_result) => {
+                tracing::debug!(
+                    "Finished basic insert of count({}) in `keyless`",
+                    insert_result
+                );
+                Ok(insert_result)
+            }
+        }
     }
 
     /// Insert large batch of [Keyless] rows.
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **rows** - Rows to insert
+    ///   * **rows** - Row data to insert
     ///   * **chunk_size** - How to chunk the inserts
-    ///   * _return_ - TODO: Document FnReturn(bulk_insert)
+    ///   * _return_ - Success or tokio_postgres::Error
     pub async fn bulk_insert(
-        client: &tokio_postgres::Client,
-        rows: &[KeylessData],
+        client: &Client,
+        rows: &[KeylessRowData],
         chunk_size: usize,
     ) -> Result<(), tokio_postgres::Error> {
         let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
+        let mut the_big_int = Vec::with_capacity(chunk_size);
         let mut general_int = Vec::with_capacity(chunk_size);
         let mut the_date = Vec::with_capacity(chunk_size);
         let mut the_date_time = Vec::with_capacity(chunk_size);
@@ -126,6 +191,7 @@ impl TableKeyless {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
+                the_big_int.push(row.the_big_int);
                 general_int.push(row.general_int);
                 the_date.push(row.the_date);
                 the_date_time.push(row.the_date_time);
@@ -136,19 +202,20 @@ impl TableKeyless {
                 .execute(
                     r#"insert into keyless
     (
-    	the_name, the_small_int, the_large_int, general_int, the_date, the_date_time,
-    	the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid, the_ulong
     )
     SELECT * FROM UNNEST
     (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::int[], $5::date[], $6::timestamp[],
-    	$7::uuid[], $8::bigint[]
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::int[], $6::date[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[]
     )
     "#,
                     &[
                         &the_name,
                         &the_small_int,
                         &the_large_int,
+                        &the_big_int,
                         &general_int,
                         &the_date,
                         &the_date_time,
@@ -163,39 +230,44 @@ impl TableKeyless {
                     tracing::error!("Failed bulk_insert `keyless` chunk({chunk}) -> {err}");
                     chunk_result?;
                 }
-                _ => tracing::debug!(
-                    "Finished inserting chunk({chunk}), size({}) in `keyless`",
-                    chunk_rows.len()
-                ),
+                Ok(chunk_result) => {
+                    tracing::debug!(
+                        "Finished bulk insert of size({}) in `keyless`",
+                        chunk_result
+                    );
+                }
             }
             chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
+            the_big_int.clear();
             general_int.clear();
             the_date.clear();
             the_date_time.clear();
             the_uuid.clear();
             the_ulong.clear();
         }
+
         Ok(())
     }
 
     /// Upsert large batch of [Keyless] rows.
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **rows** - Rows to insert
+    ///   * **rows** - Row data to insert
     ///   * **chunk_size** - How to chunk the inserts
     ///   * _return_ -
     pub async fn bulk_upsert(
-        client: &tokio_postgres::Client,
-        rows: &[KeylessData],
+        client: &Client,
+        rows: &[KeylessRowData],
         chunk_size: usize,
     ) -> Result<(), tokio_postgres::Error> {
         let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
+        let mut the_big_int = Vec::with_capacity(chunk_size);
         let mut general_int = Vec::with_capacity(chunk_size);
         let mut the_date = Vec::with_capacity(chunk_size);
         let mut the_date_time = Vec::with_capacity(chunk_size);
@@ -206,6 +278,7 @@ impl TableKeyless {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
+                the_big_int.push(row.the_big_int);
                 general_int.push(row.general_int);
                 the_date.push(row.the_date);
                 the_date_time.push(row.the_date_time);
@@ -216,19 +289,20 @@ impl TableKeyless {
                 .execute(
                     r#"insert into keyless
     (
-    	the_name, the_small_int, the_large_int, general_int, the_date, the_date_time,
-    	the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid, the_ulong
     )
     SELECT * FROM UNNEST
     (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::int[], $5::date[], $6::timestamp[],
-    	$7::uuid[], $8::bigint[]
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::int[], $6::date[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[]
     )
     ON CONFLICT ()
     DO UPDATE SET
         the_name = EXCLUDED.the_name,
     	the_small_int = EXCLUDED.the_small_int,
     	the_large_int = EXCLUDED.the_large_int,
+    	the_big_int = EXCLUDED.the_big_int,
     	general_int = EXCLUDED.general_int,
     	the_date = EXCLUDED.the_date,
     	the_date_time = EXCLUDED.the_date_time,
@@ -239,6 +313,7 @@ impl TableKeyless {
                         &the_name,
                         &the_small_int,
                         &the_large_int,
+                        &the_big_int,
                         &general_int,
                         &the_date,
                         &the_date_time,
@@ -253,15 +328,18 @@ impl TableKeyless {
                     tracing::error!("Failed bulk_insert `keyless` chunk({chunk}) -> {err}");
                     chunk_result?;
                 }
-                _ => tracing::debug!(
-                    "Finished inserting chunk({chunk}), size({}) in `keyless`",
-                    chunk_rows.len()
-                ),
+                Ok(chunk_result) => {
+                    tracing::debug!(
+                        "Finished bulk upsert of size({}) in `keyless`",
+                        chunk_result
+                    );
+                }
             }
             chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
+            the_big_int.clear();
             general_int.clear();
             the_date.clear();
             the_date_time.clear();
@@ -276,20 +354,21 @@ impl TableKeyless {
     ///   * **client** - The tokio postgresql client
     ///   * _return_ - Number of rows deleted
     #[inline]
-    pub async fn delete_all(client: &tokio_postgres::Client) -> Result<u64, tokio_postgres::Error> {
-        Ok(client.execute("DELETE FROM keyless", &[]).await?)
+    pub async fn delete_all(client: &Client) -> Result<u64, tokio_postgres::Error> {
+        client.execute("DELETE FROM keyless", &[]).await
     }
 }
 
-impl KeylessData {
+impl KeylessRowData {
     /// Number of fields
-    pub const NUM_FIELDS: usize = 8;
+    pub const NUM_FIELDS: usize = 9;
 
     /// Names of fields
     pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = [
         "the_name",
         "the_small_int",
         "the_large_int",
+        "the_big_int",
         "general_int",
         "the_date",
         "the_date_time",
@@ -300,60 +379,7 @@ impl KeylessData {
 
 impl TableKeyless {
     /// The total number of key and value columns
-    pub const COLUMN_COUNT: usize = 8;
-}
-
-/// Unit tests for `keyless`
-#[cfg(test)]
-pub mod unit_tests {
-
-    /// Test type TableKeyless
-    mod test_table_keyless {
-        ////////////////////////////////////////////////////////////////////////////////////
-        // --- functions ---
-        ////////////////////////////////////////////////////////////////////////////////////
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn select_all_where() {
-            // α <fn test TableKeyless::select_all_where>
-            todo!("Test select_all_where")
-            // ω <fn test TableKeyless::select_all_where>
-        }
-
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn insert() {
-            // α <fn test TableKeyless::insert>
-            todo!("Test insert")
-            // ω <fn test TableKeyless::insert>
-        }
-
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn bulk_insert() {
-            // α <fn test TableKeyless::bulk_insert>
-            todo!("Test bulk_insert")
-            // ω <fn test TableKeyless::bulk_insert>
-        }
-
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn bulk_upsert() {
-            // α <fn test TableKeyless::bulk_upsert>
-            todo!("Test bulk_upsert")
-            // ω <fn test TableKeyless::bulk_upsert>
-        }
-
-        // α <mod-def test_table_keyless>
-        // ω <mod-def test_table_keyless>
-    }
-
-    // α <mod-def unit_tests>
-    // ω <mod-def unit_tests>
+    pub const COLUMN_COUNT: usize = 9;
 }
 
 // α <mod-def keyless>

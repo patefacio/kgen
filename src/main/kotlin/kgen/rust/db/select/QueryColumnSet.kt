@@ -38,7 +38,7 @@ data class QueryColumnSet(
                         .asConstValue
                 )
             ),
-            attrs = commonDerives + derive("Default")
+            attrs = commonDerives + derive("Default", "Eq", "PartialEq", "Hash", "Ord", "PartialOrd")
         )
 
     companion object {

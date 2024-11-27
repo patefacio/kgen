@@ -27,7 +27,7 @@ WHERE {where_clause}
         """.trimMargin()
         )
 
-    val returnType = tableGateway.rowEntryStructRustName ?: tableGateway.rowDataStruct.structName
+    val returnType = tableGateway.rowEntryStructName ?: tableGateway.rowDataStruct.structName
 
     private val firstDataOffset = if (table.hasAutoInc) {
         1
@@ -43,7 +43,7 @@ WHERE {where_clause}
 
     val fieldAssignments = listOf(
         "${tableGateway.rowDataStruct.structName} {",
-        tableGateway.dataQueryColumns.withIndex().joinToString(",\n") { (i, queryColumn) ->
+        tableGateway.dataQueryColumns.queryColumns.withIndex().joinToString(",\n") { (i, queryColumn) ->
             "${queryColumn.id.snake}: ${queryColumn.columnReadAccess("row", i + firstDataOffset)}"
         },
         "}"
@@ -64,7 +64,7 @@ WHERE {where_clause}
             FnParam("params", "&[&(dyn ToSql + Sync)]".asType, "Any clause parameters"),
             FnParam("capacity", USize, "Capacity to the results"),
             isAsync = true,
-            hasTokioTest = true,
+            hasUnitTest = false,
             body = FnBody(
                 listOf(
                     """let statement = format!($selectStatement);

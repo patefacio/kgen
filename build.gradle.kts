@@ -7,6 +7,7 @@ java {
 
 plugins {
     kotlin("jvm") version "1.9.23"
+    id("org.jetbrains.dokka") version "1.9.0"
 }
 
 group = "org.example"
@@ -42,3 +43,19 @@ tasks.test {
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "17"
 }
+
+tasks.dokkaHtml {
+    outputDirectory.set(buildDir.resolve("dokka"))
+    dokkaSourceSets {
+        configureEach {
+            includeNonPublic.set(false)
+            skipDeprecated.set(true)
+            reportUndocumented.set(true)
+            perPackageOption {
+                matchingRegex.set(".*internal.*") // Example: Exclude internal packages
+                suppress.set(true)
+            }
+        }
+    }
+}
+

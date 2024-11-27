@@ -23,10 +23,14 @@ val DbTable.unnestedColumnExpressions get() = this.nonAutoIncColumns
     }
     .joinToString(",\n\t")
 
-val DbTable.pkeyAsSql get() = this.primaryKeyColumns.chunked(6)
-        .joinToString(", ") { chunk ->
-            chunk.joinToString(", ") { it.nameId.asId.snake }
-        }
+val DbTable.onConflictKey get() = if(this.hasAutoInc) {
+    this.uniqueIndices.entries.first().value
+} else {
+    this.primaryKeyColumns
+}.chunked(6)
+    .joinToString(", ") { chunk ->
+        chunk.joinToString(", ") { it.nameId.asId.snake }
+    }
 
 val DbTable.unnestColumnVectorDecls
     get() = this.nonAutoIncColumns.joinToString("\n") {

@@ -50,4 +50,5 @@ data class DbColumn(
 
         fun <T> fromColumn(column: Column<T>) = DbColumn(column.name.asId.snake, type = getDbType(column))
     }
+
 }

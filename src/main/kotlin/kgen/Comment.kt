@@ -37,3 +37,11 @@ val String?.comment
     } else {
         null
     }
+
+val String?.blockComment
+    get() = if (this != null) {
+        blockComment(this)
+    } else {
+        null
+    }
+

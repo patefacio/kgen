@@ -34,5 +34,6 @@ data class FnBody(
             postBlock
         )
             .joinToString("\n")
-
 }
+
+val String.asFnBody get() = FnBody(this)

@@ -18,10 +18,11 @@ data class Module(
     val modules: List<Module> = emptyList(),
     val uses: Set<Use> = emptySet(),
     val typeAliases: List<TypeAlias> = emptyList(),
-    val staticInits: List<StaticInit> = emptyList(),
     val declMacros: List<DeclMacro> = emptyList(),
     val lazies: List<Lazy> = emptyList(),
     val consts: List<Const> = emptyList(),
+    val statics: List<Static> = emptyList(),
+    val staticInits: List<StaticInit> = emptyList(),
     val attrs: AttrList = AttrList(),
     val macroUses: List<String> = emptyList(),
     val testMacroUses: List<String> = emptyList(),
@@ -33,7 +34,8 @@ data class Module(
     val classicModStructure: Boolean = true,
     val includeTypeSizes: Boolean = false,
     val isBinary: Boolean = false,
-    val disabled: Boolean = false
+    val disabled: Boolean = false,
+    val customModDecls: List<ModDecl> = emptyList()
 ) : Identifier(nameId), AsRust {
 
     val rustFileName = "${nameId}.rs"
@@ -159,8 +161,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             } else {
                 ""
             },
-            attrs.asOuterAttr,
-            "$asModDecl {",
+            "${asModDecl.asModuleDef} {",
             indent(content) ?: "",
             "}"
         )
@@ -231,6 +232,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             functions.filter { it.visibility.isExport }.map { Pair(it.rustFunctionName, it.visibility) } +
             typeAliases.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             consts.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
+            statics.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             lazies.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             declMacros.filter { it.visibility.isExport }.map { Pair(it.asRustName, it.visibility) } +
             functions.filter { it.visibility.isExport }.map { Pair(it.nameId, it.visibility) }
@@ -255,9 +257,11 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
 
     private val usingsSection =
         listOfNotNull(
-            announceSection("pub module uses",
+            announceSection(
+                "pub module uses",
                 (pubUses + exportUses).joinToString("\n") { it.asRust }),
-            announceSection("module uses",
+            announceSection(
+                "module uses",
                 allUses.filter { it.visibility != Visibility.Pub }.joinToString("\n") { it.asRust }),
         ).joinNonEmpty()
 
@@ -273,35 +277,52 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 } else {
                     ""
                 },
-                announceSection("macro-use imports",
+                announceSection(
+                    "macro-use imports",
                     macroUses.map { "#[macro_use]\nextern crate $it;" }
                 ),
-                announceSection("test-macro-use imports",
+                announceSection(
+                    "test-macro-use imports",
                     testMacroUses.map { "#[cfg(test)]\n#[macro_use]\nextern crate $it;" }
                 ),
                 usingsSection,
-                announceSection("mod decls",
-                    (modules
-                        .filter { (it.moduleType != ModuleType.Inline) && !it.disabled }
-                        .map { "${it.asModDecl};" }).joinToString("\n")
+                announceSection(
+                    "mod decls",
+                    (
+                            customModDecls + modules
+                                .filter { (it.moduleType != ModuleType.Inline) && !it.disabled }
+                                .map { it.asModDecl }
+                            ).map { it.asModuleDecl }.joinNonEmpty()
                 ),
-                announceSection("declarative macros",
+                announceSection(
+                    "declarative macros",
                     declMacros.joinToString("\n") { it.asRust }),
-                announceSection("type aliases",
+                announceSection(
+                    "type aliases",
                     typeAliases.joinToString("\n") { it.asRust }),
-                announceSection("static inits",
+                announceSection(
+                    "static inits",
                     allStaticInits.joinToString("\n\n") { it.asRust }),
-                announceSection("lazy inits",
+                announceSection(
+                    "lazy inits",
                     allLazies.joinToString("\n\n") { it.asRust }),
-                announceSection("constants",
+                announceSection(
+                    "constants",
                     consts.joinToString("\n") { it.asRust }),
-                announceSection("enums",
+                announceSection(
+                    "statics",
+                    statics.joinToString("\n") { it.asRust }),
+                announceSection(
+                    "enums",
                     enums.joinToString("\n\n") { it.asRust }),
-                announceSection("traits",
+                announceSection(
+                    "traits",
                     traits.joinToString("\n\n") { it.asRust }),
-                announceSection("structs",
+                announceSection(
+                    "structs",
                     structs.joinToString("\n\n") { it.asRust }),
-                announceSection("functions",
+                announceSection(
+                    "functions",
                     allFunctions.joinToString("\n\n") { it.asRust }),
                 leadingText(
                     modules
@@ -309,10 +330,12 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                         .joinToString("\n\n") { it.asRust },
                     "\n"
                 ),
-                announceSection("type impls",
+                announceSection(
+                    "type impls",
                     (allTypeImpls + structAccessorImpls + structConstsImpls).joinToString("\n\n") { it.asRust }
                 ),
-                announceSection("trait impls",
+                announceSection(
+                    "trait impls",
                     allTraitImpls.joinToString("\n\n") { it.asRust }
                 ),
                 testModule?.asRust ?: "",
@@ -321,16 +344,20 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             ).joinNonEmpty("\n\n")
         )
 
-    private val asModDecl: String
-        get() = listOfNotNull(
-            if (moduleType != ModuleType.Inline && attrs.attrs.isNotEmpty()) {
-                attrs.asOuterAttr
-            } else {
-                null
-            },
-            "${trailingText(visibility.asRust)}mod $nameId"
-        ).joinToString("\n")
+    private val asModDecl = ModDecl(nameId, visibility, attrs)
 }
+/*
+get() = listOfNotNull(
+    if (moduleType != ModuleType.Inline && attrs.attrs.isNotEmpty()) {
+        attrs.asOuterAttr
+    } else {
+        null
+    },
+
+    "${trailingText(visibility.asRust)}mod $nameId"
+).joinToString("\n")
+
+ */
 
 enum class ModuleRootType {
     LibraryRoot,

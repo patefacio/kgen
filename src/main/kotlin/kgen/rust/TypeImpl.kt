@@ -93,22 +93,19 @@ data class TypeImpl(
                 "impl${genericParamSet.asRust} ${type.asRustName}${genericArgSet.asRust}",
                 genericParamSet
             ) + " {",
-            indent(
-                functions.map {
-                    if (it.nameId == it.blockName) {
+            functions
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString("\n\n") {
+                    val fn = if (it.nameId == it.blockName) {
                         it.copy(
                             blockName = "${type.sanitizedSpecial}::${it.nameId}"
                         )
                     } else {
                         it
                     }
-                }.joinToString("\n\n") {
-                    it.asRust
-                }
-            ),
-            indent(
-                consts.joinToString("\n\n") { it.asRust }
-            ),
+                    fn.asRust
+                }.indented,
+            consts.takeIf { it.isNotEmpty() }?.joinToString("\n\n") { it.asRust }.indented,
             "}"
         ).joinToString("\n")
 }

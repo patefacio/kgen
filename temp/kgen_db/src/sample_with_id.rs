@@ -3,21 +3,23 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
-use chrono::{NaiveDate, NaiveDateTime};
-use tokio_postgres::types::{Date, FromSql, ToSql};
+use tokio_postgres::types::ToSql;
+use tokio_postgres::Client;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default)]
-pub struct SampleWithIdData {
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub struct SampleWithIdRowData {
     /// Field for column `the_name`
     pub the_name: String,
     /// Field for column `the_small_int`
     pub the_small_int: i16,
     /// Field for column `the_large_int`
     pub the_large_int: i64,
+    /// Field for column `the_big_int`
+    pub the_big_int: i64,
     /// Field for column `general_int`
     pub general_int: i32,
     /// Field for column `the_date`
@@ -26,8 +28,6 @@ pub struct SampleWithIdData {
     pub the_date_time: chrono::NaiveDateTime,
     /// Field for column `the_uuid`
     pub the_uuid: uuid::Uuid,
-    /// Field for column `the_ulong`
-    pub the_ulong: i64,
 }
 
 /// All fields plus auto id for table `sample_with_id`.
@@ -36,11 +36,11 @@ pub struct SampleWithIdEntry {
     /// Field for column `auto_id`
     pub auto_id: i32,
     /// The data fields
-    pub data: SampleWithIdData,
+    pub data: SampleWithIdRowData,
 }
 
 /// Primary key fields for `SampleWithId`
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Ord, PartialOrd)]
 pub struct SampleWithIdPkey {
     /// Field for column `auto_id`
     pub auto_id: i32,
@@ -63,15 +63,15 @@ impl TableSampleWithId {
     ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
     pub async fn select_all_where(
-        client: &tokio_postgres::Client,
+        client: &Client,
         where_clause: &str,
         params: &[&(dyn ToSql + Sync)],
         capacity: usize,
     ) -> Vec<SampleWithIdEntry> {
         let statement = format!(
             r#"SELECT 
-    auto_id, the_name, the_small_int, the_large_int, general_int, the_date,
-    	the_date_time, the_uuid, the_ulong
+    auto_id, the_name, the_small_int, the_large_int, the_big_int, general_int,
+    	the_date, the_date_time, the_uuid
     FROM sample_with_id
     WHERE {where_clause}"#
         );
@@ -86,15 +86,15 @@ impl TableSampleWithId {
         for row in rows {
             results.push(SampleWithIdEntry {
                 auto_id: row.get(0),
-                data: SampleWithIdData {
+                data: SampleWithIdRowData {
                     the_name: row.get(1),
                     the_small_int: row.get(2),
                     the_large_int: row.get(3),
-                    general_int: row.get(4),
-                    the_date: row.get(5),
-                    the_date_time: row.get(6),
-                    the_uuid: row.get(7),
-                    the_ulong: row.get(8),
+                    the_big_int: row.get(4),
+                    general_int: row.get(5),
+                    the_date: row.get(6),
+                    the_date_time: row.get(7),
+                    the_uuid: row.get(8),
                 },
             });
             tracing::info!("{:?}", results.last().unwrap());
@@ -108,74 +108,142 @@ impl TableSampleWithId {
     ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
     #[inline]
-    pub async fn select_all(
-        client: &tokio_postgres::Client,
-        capacity: usize,
-    ) -> Vec<SampleWithIdEntry> {
+    pub async fn select_all(client: &Client, capacity: usize) -> Vec<SampleWithIdEntry> {
         Self::select_all_where(&client, "1=1", &[], capacity).await
     }
 
-    /// Insert rows of `sample_with_id`
+    /// Insert rows of `sample_with_id` by building parameterized statement.
+    /// For large insertions prefer [bulk_insert]
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **rows** - Rows to insert
-    pub async fn insert(client: &tokio_postgres::Client, rows: &[SampleWithIdData]) {
-        todo!()
+    ///   * **rows** - Row data, consumed but returned with ids
+    ///   * _return_ - Entries with corresponding _auto_id_
+    pub async fn basic_insert(
+        client: &Client,
+        rows: Vec<SampleWithIdRowData>,
+    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error> {
+        use itertools::Itertools;
+        let mut param_id = 0;
+        let mut params: Vec<&(dyn ToSql + Sync)> =
+            Vec::with_capacity(rows.len() * SampleWithIdRowData::NUM_FIELDS);
+        let value_params = rows
+            .iter()
+            .map(|row| {
+                let row_params = SampleWithIdRowData::FIELD_NAMES
+                    .map(|_| {
+                        param_id = param_id + 1;
+                        format!("${param_id}")
+                    })
+                    .join(", ");
+
+                params.push(&row.the_name);
+                params.push(&row.the_small_int);
+                params.push(&row.the_large_int);
+                params.push(&row.the_big_int);
+                params.push(&row.general_int);
+                params.push(&row.the_date);
+                params.push(&row.the_date_time);
+                params.push(&row.the_uuid);
+
+                format!("({row_params})")
+            })
+            .join(",\n");
+
+        let insert_result = client
+            .query(
+                &format!(
+                    r#"insert into sample_with_id
+    (
+    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid
+    )
+    VALUES
+    {value_params}
+    returning auto_id
+    "#
+                ),
+                &params,
+            )
+            .await;
+
+        match insert_result {
+            Err(err) => {
+                tracing::error!("Failed basic_insert `sample_with_id`");
+                Err(err)
+            }
+            Ok(insert_result) => {
+                tracing::debug!(
+                    "Finished basic insert of count({}) in `sample_with_id`",
+                    insert_result.len()
+                );
+                Ok(insert_result
+                    .into_iter()
+                    .zip(rows)
+                    .map(|(row, data)| {
+                        let auto_id = row.get(0);
+                        SampleWithIdEntry { auto_id, data }
+                    })
+                    .collect())
+            }
+        }
     }
 
     /// Insert large batch of [SampleWithId] rows.
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **rows** - Rows to insert
+    ///   * **rows** - Row data, consumed but returned with ids
     ///   * **chunk_size** - How to chunk the inserts
-    ///   * _return_ - TODO: Document FnReturn(bulk_insert)
+    ///   * _return_ - Entries with corresponding _auto_id_
     pub async fn bulk_insert(
-        client: &tokio_postgres::Client,
-        rows: &[SampleWithIdData],
+        client: &Client,
+        rows: Vec<SampleWithIdRowData>,
         chunk_size: usize,
-    ) -> Result<(), tokio_postgres::Error> {
+    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error> {
         let mut chunk = 0;
+        let mut auto_id = Vec::with_capacity(rows.len());
+
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
+        let mut the_big_int = Vec::with_capacity(chunk_size);
         let mut general_int = Vec::with_capacity(chunk_size);
         let mut the_date = Vec::with_capacity(chunk_size);
         let mut the_date_time = Vec::with_capacity(chunk_size);
         let mut the_uuid = Vec::with_capacity(chunk_size);
-        let mut the_ulong = Vec::with_capacity(chunk_size);
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
+                the_big_int.push(row.the_big_int);
                 general_int.push(row.general_int);
                 the_date.push(row.the_date);
                 the_date_time.push(row.the_date_time);
                 the_uuid.push(row.the_uuid);
-                the_ulong.push(row.the_ulong);
             }
             let chunk_result = client
-                .execute(
+                .query(
                     r#"insert into sample_with_id
     (
-    	the_name, the_small_int, the_large_int, general_int, the_date, the_date_time,
-    	the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid
     )
     SELECT * FROM UNNEST
     (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::int[], $5::date[], $6::timestamp[],
-    	$7::uuid[], $8::bigint[]
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::int[], $6::date[],
+    	$7::timestamp[], $8::uuid[]
     )
+    returning auto_id
     "#,
                     &[
                         &the_name,
                         &the_small_int,
                         &the_large_int,
+                        &the_big_int,
                         &general_int,
                         &the_date,
                         &the_date_time,
                         &the_uuid,
-                        &the_ulong,
                     ],
                 )
                 .await;
@@ -185,87 +253,100 @@ impl TableSampleWithId {
                     tracing::error!("Failed bulk_insert `sample_with_id` chunk({chunk}) -> {err}");
                     chunk_result?;
                 }
-                _ => tracing::debug!(
-                    "Finished inserting chunk({chunk}), size({}) in `sample_with_id`",
-                    chunk_rows.len()
-                ),
+                Ok(chunk_result) => {
+                    tracing::debug!(
+                        "Finished bulk insert of size({}) in `sample_with_id`",
+                        chunk_result.len()
+                    );
+                    chunk_result.into_iter().for_each(|result| {
+                        auto_id.push(result.get(0));
+                    });
+                }
             }
             chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
+            the_big_int.clear();
             general_int.clear();
             the_date.clear();
             the_date_time.clear();
             the_uuid.clear();
-            the_ulong.clear();
         }
-        Ok(())
+
+        Ok(auto_id
+            .into_iter()
+            .zip(rows.into_iter())
+            .map(|(auto_id, data)| SampleWithIdEntry { auto_id, data })
+            .collect())
     }
 
     /// Upsert large batch of [SampleWithId] rows.
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **rows** - Rows to insert
+    ///   * **rows** - Row data, consumed but returned with ids
     ///   * **chunk_size** - How to chunk the inserts
     ///   * _return_ -
     pub async fn bulk_upsert(
-        client: &tokio_postgres::Client,
-        rows: &[SampleWithIdData],
+        client: &Client,
+        rows: Vec<SampleWithIdRowData>,
         chunk_size: usize,
-    ) -> Result<(), tokio_postgres::Error> {
+    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error> {
         let mut chunk = 0;
+        let mut auto_id = Vec::with_capacity(rows.len());
+
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
+        let mut the_big_int = Vec::with_capacity(chunk_size);
         let mut general_int = Vec::with_capacity(chunk_size);
         let mut the_date = Vec::with_capacity(chunk_size);
         let mut the_date_time = Vec::with_capacity(chunk_size);
         let mut the_uuid = Vec::with_capacity(chunk_size);
-        let mut the_ulong = Vec::with_capacity(chunk_size);
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
+                the_big_int.push(row.the_big_int);
                 general_int.push(row.general_int);
                 the_date.push(row.the_date);
                 the_date_time.push(row.the_date_time);
                 the_uuid.push(row.the_uuid);
-                the_ulong.push(row.the_ulong);
             }
             let chunk_result = client
-                .execute(
+                .query(
                     r#"insert into sample_with_id
     (
-    	the_name, the_small_int, the_large_int, general_int, the_date, the_date_time,
-    	the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
+    	the_date_time, the_uuid
     )
     SELECT * FROM UNNEST
     (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::int[], $5::date[], $6::timestamp[],
-    	$7::uuid[], $8::bigint[]
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::int[], $6::date[],
+    	$7::timestamp[], $8::uuid[]
     )
-    ON CONFLICT (auto_id)
+    ON CONFLICT (the_name, the_small_int)
     DO UPDATE SET
         the_name = EXCLUDED.the_name,
     	the_small_int = EXCLUDED.the_small_int,
     	the_large_int = EXCLUDED.the_large_int,
+    	the_big_int = EXCLUDED.the_big_int,
     	general_int = EXCLUDED.general_int,
     	the_date = EXCLUDED.the_date,
     	the_date_time = EXCLUDED.the_date_time,
-    	the_uuid = EXCLUDED.the_uuid,
-    	the_ulong = EXCLUDED.the_ulong
+    	the_uuid = EXCLUDED.the_uuid
+    returning auto_id
     "#,
                     &[
                         &the_name,
                         &the_small_int,
                         &the_large_int,
+                        &the_big_int,
                         &general_int,
                         &the_date,
                         &the_date_time,
                         &the_uuid,
-                        &the_ulong,
                     ],
                 )
                 .await;
@@ -275,22 +356,31 @@ impl TableSampleWithId {
                     tracing::error!("Failed bulk_insert `sample_with_id` chunk({chunk}) -> {err}");
                     chunk_result?;
                 }
-                _ => tracing::debug!(
-                    "Finished inserting chunk({chunk}), size({}) in `sample_with_id`",
-                    chunk_rows.len()
-                ),
+                Ok(chunk_result) => {
+                    tracing::debug!(
+                        "Finished bulk upsert of size({}) in `sample_with_id`",
+                        chunk_result.len()
+                    );
+                    chunk_result.into_iter().for_each(|result| {
+                        auto_id.push(result.get(0));
+                    });
+                }
             }
             chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
+            the_big_int.clear();
             general_int.clear();
             the_date.clear();
             the_date_time.clear();
             the_uuid.clear();
-            the_ulong.clear();
         }
-        Ok(())
+        Ok(auto_id
+            .into_iter()
+            .zip(rows.into_iter())
+            .map(|(auto_id, data)| SampleWithIdEntry { auto_id, data })
+            .collect())
     }
 
     /// Delete all rows of `sample_with_id`
@@ -298,12 +388,12 @@ impl TableSampleWithId {
     ///   * **client** - The tokio postgresql client
     ///   * _return_ - Number of rows deleted
     #[inline]
-    pub async fn delete_all(client: &tokio_postgres::Client) -> Result<u64, tokio_postgres::Error> {
-        Ok(client.execute("DELETE FROM sample_with_id", &[]).await?)
+    pub async fn delete_all(client: &Client) -> Result<u64, tokio_postgres::Error> {
+        client.execute("DELETE FROM sample_with_id", &[]).await
     }
 }
 
-impl SampleWithIdData {
+impl SampleWithIdRowData {
     /// Number of fields
     pub const NUM_FIELDS: usize = 8;
 
@@ -312,11 +402,11 @@ impl SampleWithIdData {
         "the_name",
         "the_small_int",
         "the_large_int",
+        "the_big_int",
         "general_int",
         "the_date",
         "the_date_time",
         "the_uuid",
-        "the_ulong",
     ];
 }
 
@@ -331,196 +421,6 @@ impl SampleWithIdPkey {
 impl TableSampleWithId {
     /// The total number of key and value columns
     pub const COLUMN_COUNT: usize = 9;
-}
-
-/// Unit tests for `sample_with_id`
-#[cfg(test)]
-pub mod unit_tests {
-
-    /// Test type TableSampleWithId
-    mod test_table_sample_with_id {
-        ////////////////////////////////////////////////////////////////////////////////////
-        // --- functions ---
-        ////////////////////////////////////////////////////////////////////////////////////
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn select_all_where() {
-            // α <fn test TableSampleWithId::select_all_where>
-            println!(
-                "RUST_LOG={}",
-                std::env::var("RUST_LOG").unwrap_or_else(|_| "not set".to_string())
-            );
-
-            let (client, connection) = tokio_postgres::connect(
-                "host=localhost user=kgen password=kgen dbname=kgen",
-                NoTls,
-            )
-            .await
-            .unwrap();
-
-            tokio::spawn(async move {
-                if let Err(e) = connection.await {
-                    eprintln!("connection error: {}", e);
-                }
-            });
-
-            let rows = TableSampleWithId::select_all(&client, 10).await;
-            tracing::info!("Selected all rows {rows:#?}");
-            let rows = TableSampleWithId::select_all_where(&client, "general_int > 3", &[], 10).await;
-            tracing::info!("Selected all rows where > 3 {rows:#?}");
-            let some_general_int = 3;
-            let rows = TableSampleWithId::select_all_where(
-                &client,
-                "general_int > $1",
-                &[&some_general_int],
-                10,
-            )
-            .await;
-            tracing::info!("Selected all rows where > 3 as param {rows:#?}");
-            let rows = TableSampleWithId::select_all_where(
-                &client,
-                "general_int BETWEEN $1 AND $1",
-                &[&some_general_int],
-                10,
-            )
-            .await;
-            tracing::info!("Selected all rows between 3 and 3 {rows:#?}");
-
-            // ω <fn test TableSampleWithId::select_all_where>
-        }
-
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn insert() {
-            // α <fn test TableSampleWithId::insert>
-            todo!("Test insert")
-            // ω <fn test TableSampleWithId::insert>
-        }
-
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn bulk_insert() {
-            // α <fn test TableSampleWithId::bulk_insert>
-            let (client, connection) = tokio_postgres::connect(
-                "host=localhost user=kgen password=kgen dbname=kgen",
-                NoTls,
-            )
-            .await
-            .unwrap();
-
-            tokio::spawn(async move {
-                if let Err(e) = connection.await {
-                    eprintln!("connection error: {}", e);
-                }
-            });
-
-            let deleted = TableSample::delete_all(&client).await.unwrap();
-            tracing::info!("Bulk insert deleted {deleted} in prep for insertion");
-            tracing::info!("Created {client:?}");
-
-            TableSampleWithId::bulk_insert(&client, &sample_rows(), 2)
-                .await
-                .expect("bulk_insert");
-            tracing::info!("Finished bulk_insert!");
-
-            // ω <fn test TableSampleWithId::bulk_insert>
-        }
-
-        #[serial_test::serial]
-        #[tracing_test::traced_test]
-        #[tokio::test]
-        async fn bulk_upsert() {
-            // α <fn test TableSampleWithId::bulk_upsert>
-            let (client, connection) = tokio_postgres::connect(
-                "host=localhost user=kgen password=kgen dbname=kgen",
-                NoTls,
-            )
-            .await
-            .unwrap();
-
-            tokio::spawn(async move {
-                if let Err(e) = connection.await {
-                    eprintln!("connection error: {}", e);
-                }
-            });
-
-            let deleted = TableSampleWithId::delete_all(&client).await.unwrap();
-            tracing::info!("Bulk insert deleted {deleted} in prep for insertion");
-            tracing::info!("Created {client:?}");
-
-            let mut sample_rows = sample_rows();
-            TableSampleWithId::bulk_insert(&client, &sample_rows, 2)
-                .await
-                .expect("bulk_insert");
-            for row in sample_rows.iter_mut() {
-                row.the_name.push_str("_updated");
-                row.general_int = 99999;
-                row.the_small_int = 99;
-                row.the_date = NaiveDate::from_ymd_opt(1929, 10, 29).unwrap();
-                row.the_date_time = row.the_date.into();
-                row.the_large_int = i64::MAX;
-                row.the_uuid = uuid::Uuid::max();
-                row.the_ulong = i64::MAX;
-            }
-            TableSampleWithId::bulk_upsert(&client, &sample_rows, 2)
-                .await
-                .expect("bulk_upsert");
-
-            tracing::info!("Finished bulk_insert!");
-            // ω <fn test TableSampleWithId::bulk_upsert>
-        }
-
-        // α <mod-def test_table_sample_with_id>
-        use super::*;
-        use crate::sample::*;
-        use crate::sample_with_id::SampleWithIdEntry;
-        use chrono::{NaiveDate, NaiveDateTime};
-        use tokio_postgres::types::{Date, FromSql, ToSql};
-        use tokio_postgres::NoTls;
-
-        fn sample_rows() -> Vec<SampleWithIdData> {
-            vec![
-                SampleWithIdData {
-                    the_name: "TEST ROW 1".to_string(),
-                    the_small_int: 1i16,
-                    the_large_int: 2i64,
-                    general_int: 3i32,
-                    the_date: chrono::NaiveDate::MAX,
-                    the_date_time: chrono::NaiveDateTime::MAX,
-                    the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-426655440000"),
-                    the_ulong: 32i64,
-                },
-                SampleWithIdData {
-                    the_name: "TEST ROW 2".to_string(),
-                    the_small_int: 2i16,
-                    the_large_int: 3i64,
-                    general_int: 5i32,
-                    the_date: chrono::NaiveDate::MAX,
-                    the_date_time: chrono::NaiveDateTime::MAX,
-                    the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-42665544ffff"),
-                    the_ulong: 32i64,
-                },
-                SampleWithIdData {
-                    the_name: "TEST ROW 3".to_string(),
-                    the_small_int: 3i16,
-                    the_large_int: 4i64,
-                    general_int: 6i32,
-                    the_date: chrono::NaiveDate::MAX,
-                    the_date_time: chrono::NaiveDateTime::MAX,
-                    the_uuid: uuid::uuid!("123e4567-e89b-12d3-a456-42665544cccc"),
-                    the_ulong: 32i64,
-                },
-            ]
-        }
-        // ω <mod-def test_table_sample_with_id>
-    }
-
-    // α <mod-def unit_tests>
-    use super::*;
-    // ω <mod-def unit_tests>
 }
 
 // α <mod-def sample_with_id>
