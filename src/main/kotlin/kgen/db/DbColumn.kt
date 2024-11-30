@@ -20,11 +20,9 @@ data class DbColumn(
             val sqlType = column.columnType.sqlType()
             val varCharSize = varcharRegex.find(sqlType)?.groupValues?.get(1)?.length ?: 0
 
-            println("GETTING TYPE ${column.columnType.sqlType()} FOR ${column.name}")
-
             return if (varCharSize > 0) {
                 DbType.VarChar(varCharSize)
-            } else when (column.columnType.sqlType()) {
+            } else when (column.columnType.sqlType().uppercase()) {
                 "BYTE" -> DbType.Byte
                 "DOUBLE" -> DbType.Double
                 "INT" -> DbType.Integer
@@ -38,8 +36,8 @@ data class DbColumn(
                 "SERIAL" -> DbType.IntegerAutoInc
                 "BIGSERIAL" -> DbType.LongAutoInc
                 "UBIGSERIAL" -> DbType.UlongAutoInc
-                "uuid" -> DbType.Uuid
-                "bytea" -> DbType.Binary
+                "UUID" -> DbType.Uuid
+                "BYTEA" -> DbType.Binary
                 //"BINARYSIZED" -> DbType.Binary
                 //"BLOB" -> DbType.Blob
                 "JSONBINARY" -> DbType.JsonBinary
