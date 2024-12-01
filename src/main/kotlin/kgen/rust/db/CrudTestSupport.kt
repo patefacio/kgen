@@ -71,7 +71,7 @@ data class CrudTestSupport(
             "Select all from the database and assert they compare to [values]",
             FnParam("pool_conn", "&T".asType, "The pool connection"),
             FnParam(
-                "values", "&BTreeSet<${tableGateway.rowDataStructName}>".asType,
+                "values", "&Vec<${tableGateway.rowDataStructName}>".asType,
                 "Values to compare to selected"
             ),
             FnParam("label", "&str".asType, "Label for assert"),
@@ -88,21 +88,21 @@ data class CrudTestSupport(
                         DbTableClassifier.AutoIdWithPkey, DbTableClassifier.AutoId -> {
                             """
    let selected_entries = ${tableStructName}::select_all(&pool_conn, 4).await;
-   let selected = entries_to_row_data(&selected_entries).into_iter().collect::<BTreeSet<_>>();
+   let selected = entries_to_row_data(&selected_entries);
             """.trimIndent()
                         }
 
                         else -> {
                             """
-   let selected = ${tableStructName}::select_all(&pool_conn, 4).await.into_iter().collect::<BTreeSet<_>>();
+   let selected = ${tableStructName}::select_all(&pool_conn, 4).await;
             """.trimIndent()
                         }
                     },
                     """
 assert_eq!(selected.len(), values.len());
-selected.iter().zip(values.iter()).for_each(|(a, b)| {
+get_sample_rows_sorted(&selected).iter().zip(get_sample_rows_sorted(values).iter()).for_each(|(a, b)| {
     let matched = a == b;
-    tracing::debug!("{label}: {}", if matched { format!("Match({a:?})") } else { "Mismatch".to_string() }); 
+    tracing::debug!("{label}: {}", if matched { format!("Match({a:?})") } else { format!("Mismatch\n{a:?}\n---\n{b:?}") }); 
     assert_eq!(true, matched);
 });
                 """.trimIndent()
@@ -124,10 +124,11 @@ selected.iter().zip(values.iter()).for_each(|(a, b)| {
             else -> null
         },
         Fn(
-            "get_sample_rows_set",
+            "get_sample_rows_sorted",
             "Get the sample rows as a set",
-            body = FnBody("get_sample_rows().iter().cloned().collect()"),
-            returnType = "BTreeSet<${tableGateway.rowDataStructName}>".asType,
+            FnParam("rows", "&[${tableGateway.rowDataStructName}]".asType, "The rows to stringify and sort"),
+            body = FnBody("rows.iter().cloned().map(|r| format!(\"{r:?}\")).collect()"),
+            returnType = "BTreeSet<String>".asType,
             returnDoc = "The samples as set",
             inlineDecl = InlineDecl.Inline
         ),
@@ -199,7 +200,7 @@ ${"Test the basic insert functionality".blockComment}
                 
     tracing::debug!("Inserted with `basic_insert` -> {inserted:?}");
     
-    ${"Select back out the inserted data, convert to BTreeSet and compare to samples".blockComment}
+    ${"Select back out the inserted data and compare to samples".blockComment}
     {
         select_and_compare_assert(&conn, ${
                     tableGateway.autoIdDetails?.insertedDataTransform ?: "&get_sample_rows().iter().cloned().collect()"
@@ -214,7 +215,7 @@ ${"Test the bulk insert functionality".blockComment}
 {
     let inserted = ${tableStructName}::bulk_insert(&conn, $bulkSamplesArg, 4).await.unwrap();
     tracing::debug!("Inserted with `bulk_insert` -> {inserted:?}");
-    ${"Select back out the inserted data, convert to BTreeSet and compare to samples".blockComment}
+    ${"Select back out the inserted data and compare to samples".blockComment}
     select_and_compare_assert(&conn, ${tableGateway.autoIdDetails?.insertedDataTransform ?: "&get_sample_rows().iter().cloned().collect()"}, "Blk Ins Cmp").await;
 }
 

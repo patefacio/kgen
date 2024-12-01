@@ -10,7 +10,7 @@ use tokio_postgres::Client;
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct SampleWithIdRowData {
     /// Field for column `the_name`
     pub the_name: String,
@@ -30,6 +30,10 @@ pub struct SampleWithIdRowData {
     pub the_uuid: uuid::Uuid,
     /// Field for column `the_ulong`
     pub the_ulong: i64,
+    /// Field for column `the_json`
+    pub the_json: serde_json::Value,
+    /// Field for column `the_jsonb`
+    pub the_jsonb: serde_json::Value,
     /// Field for column `nullable_name`
     pub nullable_name: String,
     /// Field for column `nullable_small_int`
@@ -48,6 +52,10 @@ pub struct SampleWithIdRowData {
     pub nullable_uuid: Option<uuid::Uuid>,
     /// Field for column `nullable_ulong`
     pub nullable_ulong: Option<i64>,
+    /// Field for column `nullable_json`
+    pub nullable_json: Option<serde_json::Value>,
+    /// Field for column `nullable_jsonb`
+    pub nullable_jsonb: serde_json::Value,
 }
 
 /// All fields plus auto id for table `sample_with_id`.
@@ -60,7 +68,7 @@ pub struct SampleWithIdEntry {
 }
 
 /// Primary key fields for `SampleWithId`
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash, Ord, PartialOrd)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct SampleWithIdPkey {
     /// Field for column `auto_id`
     pub auto_id: i32,
@@ -91,9 +99,9 @@ impl TableSampleWithId {
         let statement = format!(
             r#"SELECT 
     auto_id, the_name, the_small_int, the_large_int, the_big_int, the_date,
-    	the_general_int, the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int,
-    	nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid,
-    	nullable_ulong
+    	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
+    	nullable_name, nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int,
+    	nullable_date_time, nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
     FROM sample_with_id
     WHERE {where_clause}"#
         );
@@ -118,15 +126,19 @@ impl TableSampleWithId {
                     the_date_time: row.get(7),
                     the_uuid: row.get(8),
                     the_ulong: row.get(9),
-                    nullable_name: row.get(10),
-                    nullable_small_int: row.get(11),
-                    nullable_large_int: row.get(12),
-                    nullable_big_int: row.get(13),
-                    nullable_date: row.get(14),
-                    nullable_general_int: row.get(15),
-                    nullable_date_time: row.get(16),
-                    nullable_uuid: row.get(17),
-                    nullable_ulong: row.get(18),
+                    the_json: row.get(10),
+                    the_jsonb: row.get(11),
+                    nullable_name: row.get(12),
+                    nullable_small_int: row.get(13),
+                    nullable_large_int: row.get(14),
+                    nullable_big_int: row.get(15),
+                    nullable_date: row.get(16),
+                    nullable_general_int: row.get(17),
+                    nullable_date_time: row.get(18),
+                    nullable_uuid: row.get(19),
+                    nullable_ulong: row.get(20),
+                    nullable_json: row.get(21),
+                    nullable_jsonb: row.get(22),
                 },
             });
             tracing::info!("{:?}", results.last().unwrap());
@@ -177,6 +189,8 @@ impl TableSampleWithId {
                 params.push(&row.the_date_time);
                 params.push(&row.the_uuid);
                 params.push(&row.the_ulong);
+                params.push(&row.the_json);
+                params.push(&row.the_jsonb);
                 params.push(&row.nullable_name);
                 params.push(&row.nullable_small_int);
                 params.push(&row.nullable_large_int);
@@ -186,6 +200,8 @@ impl TableSampleWithId {
                 params.push(&row.nullable_date_time);
                 params.push(&row.nullable_uuid);
                 params.push(&row.nullable_ulong);
+                params.push(&row.nullable_json);
+                params.push(&row.nullable_jsonb);
 
                 format!("({row_params})")
             })
@@ -194,8 +210,9 @@ impl TableSampleWithId {
         let insert_result = client.query(&format!(r#"insert into sample_with_id
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
-    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
-    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
     )
     VALUES
     {value_params}
@@ -247,6 +264,8 @@ impl TableSampleWithId {
         let mut the_date_time = Vec::with_capacity(chunk_size);
         let mut the_uuid = Vec::with_capacity(chunk_size);
         let mut the_ulong = Vec::with_capacity(chunk_size);
+        let mut the_json = Vec::with_capacity(chunk_size);
+        let mut the_jsonb = Vec::with_capacity(chunk_size);
         let mut nullable_name = Vec::with_capacity(chunk_size);
         let mut nullable_small_int = Vec::with_capacity(chunk_size);
         let mut nullable_large_int = Vec::with_capacity(chunk_size);
@@ -256,6 +275,8 @@ impl TableSampleWithId {
         let mut nullable_date_time = Vec::with_capacity(chunk_size);
         let mut nullable_uuid = Vec::with_capacity(chunk_size);
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
+        let mut nullable_json = Vec::with_capacity(chunk_size);
+        let mut nullable_jsonb = Vec::with_capacity(chunk_size);
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
@@ -267,6 +288,8 @@ impl TableSampleWithId {
                 the_date_time.push(row.the_date_time);
                 the_uuid.push(row.the_uuid);
                 the_ulong.push(row.the_ulong);
+                the_json.push(&row.the_json);
+                the_jsonb.push(&row.the_jsonb);
                 nullable_name.push(&row.nullable_name);
                 nullable_small_int.push(row.nullable_small_int);
                 nullable_large_int.push(row.nullable_large_int);
@@ -276,23 +299,27 @@ impl TableSampleWithId {
                 nullable_date_time.push(row.nullable_date_time);
                 nullable_uuid.push(row.nullable_uuid);
                 nullable_ulong.push(row.nullable_ulong);
+                nullable_json.push(&row.nullable_json);
+                nullable_jsonb.push(&row.nullable_jsonb);
             }
             let chunk_result = client.query(
             r#"insert into sample_with_id
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
-    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
-    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
     )
     SELECT * FROM UNNEST
     (
     	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
-    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::varchar[], $11::smallint[], $12::bigint[],
-    	$13::bigint[], $14::date[], $15::int[], $16::timestamp[], $17::uuid[], $18::bigint[]
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::json[], $11::json[], $12::varchar[],
+    	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
+    	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
     )
     returning auto_id
     "#,
-            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong]
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &the_json, &the_jsonb, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong, &nullable_json, &nullable_jsonb]
         ).await;
 
             match &chunk_result {
@@ -320,6 +347,8 @@ impl TableSampleWithId {
             the_date_time.clear();
             the_uuid.clear();
             the_ulong.clear();
+            the_json.clear();
+            the_jsonb.clear();
             nullable_name.clear();
             nullable_small_int.clear();
             nullable_large_int.clear();
@@ -329,6 +358,8 @@ impl TableSampleWithId {
             nullable_date_time.clear();
             nullable_uuid.clear();
             nullable_ulong.clear();
+            nullable_json.clear();
+            nullable_jsonb.clear();
         }
 
         Ok(auto_id
@@ -361,6 +392,8 @@ impl TableSampleWithId {
         let mut the_date_time = Vec::with_capacity(chunk_size);
         let mut the_uuid = Vec::with_capacity(chunk_size);
         let mut the_ulong = Vec::with_capacity(chunk_size);
+        let mut the_json = Vec::with_capacity(chunk_size);
+        let mut the_jsonb = Vec::with_capacity(chunk_size);
         let mut nullable_name = Vec::with_capacity(chunk_size);
         let mut nullable_small_int = Vec::with_capacity(chunk_size);
         let mut nullable_large_int = Vec::with_capacity(chunk_size);
@@ -370,6 +403,8 @@ impl TableSampleWithId {
         let mut nullable_date_time = Vec::with_capacity(chunk_size);
         let mut nullable_uuid = Vec::with_capacity(chunk_size);
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
+        let mut nullable_json = Vec::with_capacity(chunk_size);
+        let mut nullable_jsonb = Vec::with_capacity(chunk_size);
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
@@ -381,6 +416,8 @@ impl TableSampleWithId {
                 the_date_time.push(row.the_date_time);
                 the_uuid.push(row.the_uuid);
                 the_ulong.push(row.the_ulong);
+                the_json.push(&row.the_json);
+                the_jsonb.push(&row.the_jsonb);
                 nullable_name.push(&row.nullable_name);
                 nullable_small_int.push(row.nullable_small_int);
                 nullable_large_int.push(row.nullable_large_int);
@@ -390,19 +427,23 @@ impl TableSampleWithId {
                 nullable_date_time.push(row.nullable_date_time);
                 nullable_uuid.push(row.nullable_uuid);
                 nullable_ulong.push(row.nullable_ulong);
+                nullable_json.push(&row.nullable_json);
+                nullable_jsonb.push(&row.nullable_jsonb);
             }
             let chunk_result = client.query(
             r#"insert into sample_with_id
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
-    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
-    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
     )
     SELECT * FROM UNNEST
     (
     	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
-    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::varchar[], $11::smallint[], $12::bigint[],
-    	$13::bigint[], $14::date[], $15::int[], $16::timestamp[], $17::uuid[], $18::bigint[]
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::json[], $11::json[], $12::varchar[],
+    	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
+    	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
     )
     ON CONFLICT (the_name, the_small_int)
     DO UPDATE SET
@@ -415,6 +456,8 @@ impl TableSampleWithId {
     	the_date_time = EXCLUDED.the_date_time,
     	the_uuid = EXCLUDED.the_uuid,
     	the_ulong = EXCLUDED.the_ulong,
+    	the_json = EXCLUDED.the_json,
+    	the_jsonb = EXCLUDED.the_jsonb,
     	nullable_name = EXCLUDED.nullable_name,
     	nullable_small_int = EXCLUDED.nullable_small_int,
     	nullable_large_int = EXCLUDED.nullable_large_int,
@@ -423,10 +466,12 @@ impl TableSampleWithId {
     	nullable_general_int = EXCLUDED.nullable_general_int,
     	nullable_date_time = EXCLUDED.nullable_date_time,
     	nullable_uuid = EXCLUDED.nullable_uuid,
-    	nullable_ulong = EXCLUDED.nullable_ulong
+    	nullable_ulong = EXCLUDED.nullable_ulong,
+    	nullable_json = EXCLUDED.nullable_json,
+    	nullable_jsonb = EXCLUDED.nullable_jsonb
     returning auto_id
     "#,
-            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong]
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &the_json, &the_jsonb, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong, &nullable_json, &nullable_jsonb]
         ).await;
 
             match &chunk_result {
@@ -454,6 +499,8 @@ impl TableSampleWithId {
             the_date_time.clear();
             the_uuid.clear();
             the_ulong.clear();
+            the_json.clear();
+            the_jsonb.clear();
             nullable_name.clear();
             nullable_small_int.clear();
             nullable_large_int.clear();
@@ -463,6 +510,8 @@ impl TableSampleWithId {
             nullable_date_time.clear();
             nullable_uuid.clear();
             nullable_ulong.clear();
+            nullable_json.clear();
+            nullable_jsonb.clear();
         }
         Ok(auto_id
             .into_iter()
@@ -483,7 +532,7 @@ impl TableSampleWithId {
 
 impl SampleWithIdRowData {
     /// Number of fields
-    pub const NUM_FIELDS: usize = 18;
+    pub const NUM_FIELDS: usize = 22;
 
     /// Names of fields
     pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = [
@@ -496,6 +545,8 @@ impl SampleWithIdRowData {
         "the_date_time",
         "the_uuid",
         "the_ulong",
+        "the_json",
+        "the_jsonb",
         "nullable_name",
         "nullable_small_int",
         "nullable_large_int",
@@ -505,6 +556,8 @@ impl SampleWithIdRowData {
         "nullable_date_time",
         "nullable_uuid",
         "nullable_ulong",
+        "nullable_json",
+        "nullable_jsonb",
     ];
 }
 
@@ -518,7 +571,7 @@ impl SampleWithIdPkey {
 
 impl TableSampleWithId {
     /// The total number of key and value columns
-    pub const COLUMN_COUNT: usize = 19;
+    pub const COLUMN_COUNT: usize = 23;
 }
 
 // α <mod-def sample_with_id>

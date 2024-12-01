@@ -4,7 +4,6 @@ import kgen.db.DbColumn
 import kgen.doubleQuote
 import kgen.rust.*
 import kgen.rust.db.asRustField
-import kgen.rust.db.asRustType
 import kgen.rust.db.select.QueryColumn.Companion.fromDbColumn
 
 data class QueryColumnSet(
@@ -38,7 +37,7 @@ data class QueryColumnSet(
                         .asConstValue
                 )
             ),
-            attrs = commonDerives + derive("Default", "Eq", "PartialEq", "Hash", "Ord", "PartialOrd")
+            attrs = commonDerives + derive("Default", "Eq", "PartialEq", "Hash")
         )
 
     companion object {

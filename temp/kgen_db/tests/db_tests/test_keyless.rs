@@ -27,6 +27,8 @@ pub fn mutate_row_data(row_data: &mut KeylessRowData) {
     row_data.the_date_time.mutate_value();
     row_data.the_uuid.mutate_value();
     row_data.the_ulong.mutate_value();
+    row_data.the_json.mutate_value();
+    row_data.the_jsonb.mutate_value();
     row_data.nullable_name.mutate_value();
     row_data.nullable_small_int.mutate_value();
     row_data.nullable_large_int.mutate_value();
@@ -36,6 +38,8 @@ pub fn mutate_row_data(row_data: &mut KeylessRowData) {
     row_data.nullable_date_time.mutate_value();
     row_data.nullable_uuid.mutate_value();
     row_data.nullable_ulong.mutate_value();
+    row_data.nullable_json.mutate_value();
+    row_data.nullable_jsonb.mutate_value();
 }
 
 /// Select all from the database and assert they compare to [values]
@@ -43,38 +47,36 @@ pub fn mutate_row_data(row_data: &mut KeylessRowData) {
 ///   * **pool_conn** - The pool connection
 ///   * **values** - Values to compare to selected
 ///   * **label** - Label for assert
-pub async fn select_and_compare_assert<T>(
-    pool_conn: &T,
-    values: &BTreeSet<KeylessRowData>,
-    label: &str,
-) where
+pub async fn select_and_compare_assert<T>(pool_conn: &T, values: &Vec<KeylessRowData>, label: &str)
+where
     T: Deref<Target = Client>,
 {
-    let selected = TableKeyless::select_all(&pool_conn, 4)
-        .await
-        .into_iter()
-        .collect::<BTreeSet<_>>();
+    let selected = TableKeyless::select_all(&pool_conn, 4).await;
     assert_eq!(selected.len(), values.len());
-    selected.iter().zip(values.iter()).for_each(|(a, b)| {
-        let matched = a == b;
-        tracing::debug!(
-            "{label}: {}",
-            if matched {
-                format!("Match({a:?})")
-            } else {
-                "Mismatch".to_string()
-            }
-        );
-        assert_eq!(true, matched);
-    });
+    get_sample_rows_sorted(&selected)
+        .iter()
+        .zip(get_sample_rows_sorted(values).iter())
+        .for_each(|(a, b)| {
+            let matched = a == b;
+            tracing::debug!(
+                "{label}: {}",
+                if matched {
+                    format!("Match({a:?})")
+                } else {
+                    format!("Mismatch\n{a:?}\n---\n{b:?}")
+                }
+            );
+            assert_eq!(true, matched);
+        });
 }
 
 /// Get the sample rows as a set
 ///
+///   * **rows** - The rows to stringify and sort
 ///   * _return_ - The samples as set
 #[inline]
-pub fn get_sample_rows_set() -> BTreeSet<KeylessRowData> {
-    get_sample_rows().iter().cloned().collect()
+pub fn get_sample_rows_sorted(rows: &[KeylessRowData]) -> BTreeSet<String> {
+    rows.iter().cloned().map(|r| format!("{r:?}")).collect()
 }
 
 /// Get a set of sample rows for testing
@@ -96,6 +98,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("528f97ee-afb7-349d-ae9d-228f407501d5").unwrap(),
             the_ulong: -2147483648,
+            the_json: "{ value: 1 }".into(),
+            the_jsonb: "{ value: 1 }".into(),
             nullable_name: "a".into(),
             nullable_small_int: Some(-32768),
             nullable_large_int: Some(-2147483648),
@@ -112,6 +116,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("528f97ee-afb7-349d-ae9d-228f407501d5").unwrap(),
             ),
             nullable_ulong: Some(-2147483648),
+            nullable_json: Some("{ value: 1 }".into()),
+            nullable_jsonb: "{ value: 1 }".into(),
         },
         KeylessRowData {
             the_name: "b".into(),
@@ -127,6 +133,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("2d41f1a3-e690-3d91-8a3e-cce82beaf5a5").unwrap(),
             the_ulong: -2147483647,
+            the_json: "{ value: 2 }".into(),
+            the_jsonb: "{ value: 2 }".into(),
             nullable_name: "b".into(),
             nullable_small_int: Some(-32767),
             nullable_large_int: Some(-2147483647),
@@ -143,6 +151,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("2d41f1a3-e690-3d91-8a3e-cce82beaf5a5").unwrap(),
             ),
             nullable_ulong: Some(-2147483647),
+            nullable_json: Some("{ value: 2 }".into()),
+            nullable_jsonb: "{ value: 2 }".into(),
         },
         KeylessRowData {
             the_name: "c".into(),
@@ -158,6 +168,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("01ff6bbb-b780-3928-addf-5f189dc96802").unwrap(),
             the_ulong: -2147483646,
+            the_json: "{ value: 3 }".into(),
+            the_jsonb: "{ value: 3 }".into(),
             nullable_name: "c".into(),
             nullable_small_int: Some(-32766),
             nullable_large_int: Some(-2147483646),
@@ -174,6 +186,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("01ff6bbb-b780-3928-addf-5f189dc96802").unwrap(),
             ),
             nullable_ulong: Some(-2147483646),
+            nullable_json: Some("{ value: 3 }".into()),
+            nullable_jsonb: "{ value: 3 }".into(),
         },
         KeylessRowData {
             the_name: "d".into(),
@@ -189,6 +203,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("7fa8058e-840e-362e-a8e3-9d1b75f39fe8").unwrap(),
             the_ulong: -2147483645,
+            the_json: "{ value: 4 }".into(),
+            the_jsonb: "{ value: 4 }".into(),
             nullable_name: "d".into(),
             nullable_small_int: Some(-32765),
             nullable_large_int: Some(-2147483645),
@@ -205,6 +221,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("7fa8058e-840e-362e-a8e3-9d1b75f39fe8").unwrap(),
             ),
             nullable_ulong: Some(-2147483645),
+            nullable_json: Some("{ value: 4 }".into()),
+            nullable_jsonb: "{ value: 4 }".into(),
         },
         KeylessRowData {
             the_name: "e".into(),
@@ -220,6 +238,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("0edc1aeb-3200-3d26-b2be-77c5039aecf3").unwrap(),
             the_ulong: -2147483644,
+            the_json: "{ value: 5 }".into(),
+            the_jsonb: "{ value: 5 }".into(),
             nullable_name: "e".into(),
             nullable_small_int: Some(-32764),
             nullable_large_int: Some(-2147483644),
@@ -236,6 +256,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("0edc1aeb-3200-3d26-b2be-77c5039aecf3").unwrap(),
             ),
             nullable_ulong: Some(-2147483644),
+            nullable_json: Some("{ value: 5 }".into()),
+            nullable_jsonb: "{ value: 5 }".into(),
         },
         KeylessRowData {
             the_name: "f".into(),
@@ -251,6 +273,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("9d6a2a8e-4852-33e4-ade0-7aaadb41066d").unwrap(),
             the_ulong: -2147483643,
+            the_json: "{ value: 6 }".into(),
+            the_jsonb: "{ value: 6 }".into(),
             nullable_name: "f".into(),
             nullable_small_int: Some(-32763),
             nullable_large_int: Some(-2147483643),
@@ -267,6 +291,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("9d6a2a8e-4852-33e4-ade0-7aaadb41066d").unwrap(),
             ),
             nullable_ulong: Some(-2147483643),
+            nullable_json: Some("{ value: 6 }".into()),
+            nullable_jsonb: "{ value: 6 }".into(),
         },
         KeylessRowData {
             the_name: "g".into(),
@@ -282,6 +308,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("f89673f7-afd4-3121-b58d-c3b683a88e4d").unwrap(),
             the_ulong: -2147483642,
+            the_json: "{ value: 7 }".into(),
+            the_jsonb: "{ value: 7 }".into(),
             nullable_name: "g".into(),
             nullable_small_int: Some(-32762),
             nullable_large_int: Some(-2147483642),
@@ -298,6 +326,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("f89673f7-afd4-3121-b58d-c3b683a88e4d").unwrap(),
             ),
             nullable_ulong: Some(-2147483642),
+            nullable_json: Some("{ value: 7 }".into()),
+            nullable_jsonb: "{ value: 7 }".into(),
         },
         KeylessRowData {
             the_name: "h".into(),
@@ -313,6 +343,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("9f56050f-c322-3efa-9e1f-96f4d3217930").unwrap(),
             the_ulong: -2147483641,
+            the_json: "{ value: 8 }".into(),
+            the_jsonb: "{ value: 8 }".into(),
             nullable_name: "h".into(),
             nullable_small_int: Some(-32761),
             nullable_large_int: Some(-2147483641),
@@ -329,6 +361,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("9f56050f-c322-3efa-9e1f-96f4d3217930").unwrap(),
             ),
             nullable_ulong: Some(-2147483641),
+            nullable_json: Some("{ value: 8 }".into()),
+            nullable_jsonb: "{ value: 8 }".into(),
         },
         KeylessRowData {
             the_name: "i".into(),
@@ -344,6 +378,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("caa9705c-21b1-387a-afd8-de69e0698cb7").unwrap(),
             the_ulong: -2147483640,
+            the_json: "{ value: 9 }".into(),
+            the_jsonb: "{ value: 9 }".into(),
             nullable_name: "i".into(),
             nullable_small_int: Some(-32760),
             nullable_large_int: Some(-2147483640),
@@ -360,6 +396,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("caa9705c-21b1-387a-afd8-de69e0698cb7").unwrap(),
             ),
             nullable_ulong: Some(-2147483640),
+            nullable_json: Some("{ value: 9 }".into()),
+            nullable_jsonb: "{ value: 9 }".into(),
         },
         KeylessRowData {
             the_name: "j".into(),
@@ -375,6 +413,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("0455e422-6d84-35e3-9db8-1eb8c06af841").unwrap(),
             the_ulong: -2147483639,
+            the_json: "{ value: 10 }".into(),
+            the_jsonb: "{ value: 10 }".into(),
             nullable_name: "j".into(),
             nullable_small_int: Some(-32759),
             nullable_large_int: Some(-2147483639),
@@ -391,6 +431,8 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
                 uuid::Uuid::parse_str("0455e422-6d84-35e3-9db8-1eb8c06af841").unwrap(),
             ),
             nullable_ulong: Some(-2147483639),
+            nullable_json: Some("{ value: 10 }".into()),
+            nullable_jsonb: "{ value: 10 }".into(),
         },
     ]
 }
@@ -423,7 +465,7 @@ pub async fn test_crud() {
         tracing::debug!("Inserted with `basic_insert` -> {inserted:?}");
 
         /*
-          Select back out the inserted data, convert to BTreeSet and compare to samples
+          Select back out the inserted data and compare to samples
         */
         {
             select_and_compare_assert(
@@ -445,7 +487,7 @@ pub async fn test_crud() {
         let inserted = TableKeyless::bulk_insert(&conn, &samples, 4).await.unwrap();
         tracing::debug!("Inserted with `bulk_insert` -> {inserted:?}");
         /*
-          Select back out the inserted data, convert to BTreeSet and compare to samples
+          Select back out the inserted data and compare to samples
         */
         select_and_compare_assert(
             &conn,

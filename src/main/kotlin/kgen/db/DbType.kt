@@ -100,7 +100,8 @@ sealed class DbType {
             is DbType.UlongAutoInc -> U64
             is DbType.Binary, is DbType.BinarySized -> I64
             is DbType.Uuid -> "uuid::Uuid".asType
-            is DbType.Json, is DbType.VarChar -> RustString
+            is DbType.VarChar -> RustString
+            is DbType.Json, is DbType.JsonBinary -> "serde_json::Value".asType
 
 
             is DbType.NullableByte -> "Option<u8>".asType
@@ -113,7 +114,8 @@ sealed class DbType {
             is DbType.NullableDateTime, is DbType.NullableTimestamp -> "Option<chrono::NaiveDateTime>".asType
             is DbType.NullableBinary, is DbType.NullableBinarySized -> "Option<i64>".asType
             is DbType.NullableUuid -> "Option<uuid::Uuid>".asType
-            is DbType.NullableJson, is DbType.NullableVarChar -> "Option<String>".asType
+            is DbType.NullableVarChar -> "Option<String>".asType
+            is DbType.NullableJson, is DbType.NullableJsonBinary -> "Option<serde_json::Value>".asType
             else -> throw (Exception("Unsupported rust type for $this"))
         }
 

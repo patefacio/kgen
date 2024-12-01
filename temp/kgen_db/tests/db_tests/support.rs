@@ -8,6 +8,7 @@ use bb8_postgres::PostgresConnectionManager;
 use chrono::Duration;
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
+use serde_json::Value;
 use std::ops::Add;
 use tokio_postgres::NoTls;
 use uuid::Uuid;
@@ -143,6 +144,20 @@ impl MutateValue for Option<String> {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {
         self.as_mut().map(|v| v.push_str("*"));
+    }
+}
+
+impl MutateValue for Value {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        // Need easy mutation
+    }
+}
+
+impl MutateValue for Option<Value> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        // Need easy way to mutate
     }
 }
 

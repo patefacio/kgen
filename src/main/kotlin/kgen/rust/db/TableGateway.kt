@@ -194,6 +194,14 @@ data class TableGateway(
                             bodies = mapOf("mutate_value" to "self.as_mut().map(|v| v.push_str(\"*\"));")
                         ),
                         TraitImpl(
+                            "Value".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "// Need easy mutation")
+                        ),
+                        TraitImpl(
+                            "Option<Value>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "// Need easy way to mutate")
+                        ),
+                        TraitImpl(
                             RustChar, mutateValueTrait,
                             bodies = mapOf("mutate_value" to "*self = (*self as u8 + 1) as char;")
                         ),
@@ -270,11 +278,12 @@ pool""".trimIndent()
             uses = listOf(
                 "bb8::Pool",
                 "bb8_postgres::PostgresConnectionManager",
-                "tokio_postgres::NoTls",
-                "std::ops::Add",
+                "chrono::Duration",
                 "chrono::NaiveDate",
                 "chrono::NaiveDateTime",
-                "chrono::Duration",
+                "serde_json::Value",
+                "std::ops::Add",
+                "tokio_postgres::NoTls",
                 "uuid::Uuid",
             ).asUses
         )

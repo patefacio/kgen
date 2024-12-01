@@ -8,6 +8,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.javatime.datetime
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.postgresql.util.PGobject
 
 object KgenDatabase {
     val database = Database.connect(
@@ -16,6 +17,29 @@ object KgenDatabase {
         user = "kgen",
         password = "kgen"
     )
+}
+
+
+class JsonBColumnType<T : Any> : ColumnType<T>() {
+    override fun sqlType(): String = "JSONB"
+    override fun valueFromDB(value: Any): T {
+        return when (value) {
+            is PGobject -> value.value as T
+            is String -> value as T
+            else -> throw IllegalArgumentException("Unexpected value type: ${value::class.java}")
+        }
+    }
+}
+
+class JsonColumnType<T : Any> : ColumnType<T>() {
+    override fun sqlType(): String = "JSON"
+    override fun valueFromDB(value: Any): T {
+        return when (value) {
+            is PGobject -> value.value as T
+            is String -> value as T
+            else -> throw IllegalArgumentException("Unexpected value type: ${value::class.java}")
+        }
+    }
 }
 
 object TableSampleWithId : Table("sample_with_id") {
@@ -29,6 +53,8 @@ object TableSampleWithId : Table("sample_with_id") {
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
     val ulong = ulong("the_ulong")
+    val json = registerColumn<Any>("the_json", JsonColumnType())
+    val jsonb = registerColumn<Any>("the_jsonb", JsonBColumnType())
 
     val nullableName = varchar("nullable_name", 255).nullable()
     val nullableSmallInt = short("nullable_small_int").nullable()
@@ -39,6 +65,8 @@ object TableSampleWithId : Table("sample_with_id") {
     val nullableDateTime = datetime("nullable_date_time").nullable()
     val nullableUuid = uuid("nullable_uuid").nullable()
     val nullableUlong = ulong("nullable_ulong").nullable()
+    val nullableJson = registerColumn<Any>("nullable_json", JsonColumnType()).nullable()
+    val nullableJsonb = registerColumn<Any>("nullable_jsonb", JsonBColumnType()).nullable()
 
     override val primaryKey = PrimaryKey(id)
 
@@ -57,6 +85,8 @@ object TableSample : Table("sample") {
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
     val ulong = ulong("the_ulong")
+    val json = registerColumn<Any>("the_json", JsonColumnType())
+    val jsonb = registerColumn<Any>("the_jsonb", JsonBColumnType())
 
     val nullableName = varchar("nullable_name", 255).nullable()
     val nullableSmallInt = short("nullable_small_int").nullable()
@@ -67,6 +97,8 @@ object TableSample : Table("sample") {
     val nullableDateTime = datetime("nullable_date_time").nullable()
     val nullableUuid = uuid("nullable_uuid").nullable()
     val nullableUlong = ulong("nullable_ulong").nullable()
+    val nullableJson = registerColumn<Any>("nullable_json", JsonColumnType()).nullable()
+    val nullableJsonb = registerColumn<Any>("nullable_jsonb", JsonBColumnType()).nullable()
 
     override val primaryKey = PrimaryKey(name, smallInt)
 }
@@ -81,6 +113,8 @@ object TableKeyless : Table("keyless") {
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
     val ulong = ulong("the_ulong")
+    val json = registerColumn<Any>("the_json", JsonColumnType())
+    val jsonb = registerColumn<Any>("the_jsonb", JsonBColumnType())
 
     val nullableName = varchar("nullable_name", 255).nullable()
     val nullableSmallInt = short("nullable_small_int").nullable()
@@ -91,7 +125,8 @@ object TableKeyless : Table("keyless") {
     val nullableDateTime = datetime("nullable_date_time").nullable()
     val nullableUuid = uuid("nullable_uuid").nullable()
     val nullableUlong = ulong("nullable_ulong").nullable()
-
+    val nullableJson = registerColumn<Any>("nullable_json", JsonColumnType()).nullable()
+    val nullableJsonb = registerColumn<Any>("nullable_jsonb", JsonBColumnType()).nullable()
 }
 
 

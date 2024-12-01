@@ -17,10 +17,12 @@ bb8 = "0.8.6"
 bb8-postgres = "0.8.1"
 chrono = "0.4.38"
 itertools = "0.13.0"
+serde = "1.0.215"
+serde_json = "1.0.133"
 serial_test = "3.1.1"
 static_init = "1.0.3"
 tokio = { version="1.38.0", features = ["macros", "test-util" ] }
-tokio-postgres = { version = "0.7.10", features = [ "with-chrono-0_4", "with-uuid-1" ] }
+tokio-postgres = { version = "0.7.10", features = ["with-chrono-0_4", "with-uuid-1", "with-serde_json-1"] }
 tracing = "0.1.40"
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 uuid = { version = "1.11.0", features = ["v4", "v5" ] }

@@ -21,6 +21,8 @@ val DbColumn.unnestCast
         DbType.Double, DbType.NullableDouble -> "::double precision"
         DbType.Byte, DbType.NullableByte -> "::bytea"
         DbType.BigInteger, DbType.NullableBigInteger -> "::bigint"
+        DbType.Json, DbType.NullableJson -> "::json"
+        DbType.JsonBinary, DbType.NullableJsonBinary -> "::jsonb"
         DbType.Date, DbType.NullableDate -> "::date"
         DbType.DateTime, DbType.NullableDateTime -> "::timestamp"
         DbType.SmallInteger, DbType.NullableSmallInteger -> "::smallint"
@@ -33,7 +35,8 @@ val DbColumn.unnestCast
     }
 
 fun DbColumn.pushValue(item: String) = when (this.type) {
-    is DbType.VarChar -> "${this.nameId}.push(&$item.${this.nameId});"
+    is DbType.VarChar, is DbType.JsonBinary, is DbType.Json,
+    is DbType.NullableJsonBinary, is DbType.NullableJson -> "${this.nameId}.push(&$item.${this.nameId});"
     DbType.Text -> "${this.nameId}.push(&$item.${this.nameId});"
     else -> "${this.nameId}.push($item.${this.nameId});"
 }
