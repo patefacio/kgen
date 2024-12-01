@@ -18,30 +18,31 @@ data class DbColumn(
         fun <T> getDbType(column: Column<T>): DbType {
 
             val sqlType = column.columnType.sqlType()
+            val isNullable = column.columnType.nullable
             val varCharSize = varcharRegex.find(sqlType)?.groupValues?.get(1)?.length ?: 0
 
+            println("Checking ${column.name} -> $sqlType")
             return if (varCharSize > 0) {
                 DbType.VarChar(varCharSize)
             } else when (column.columnType.sqlType().uppercase()) {
-                "BYTE" -> DbType.Byte
-                "DOUBLE" -> DbType.Double
-                "INT" -> DbType.Integer
-                "SMALLINT" -> DbType.SmallInteger
-                "BIGINT" -> DbType.BigInteger
-                "TEXT" -> DbType.Text
-                "DATE" -> DbType.Date
-                "DATETIME" -> DbType.DateTime
-                "TIMESTAMP" -> DbType.DateTime
-                "INTERVAL" -> DbType.Interval
+                "BYTE" -> if (isNullable) DbType.NullableByte else DbType.Byte
+                "DOUBLE" -> if (isNullable) DbType.NullableDouble else DbType.Double
+                "INT" -> if (isNullable) DbType.NullableInteger else DbType.Integer
+                "SMALLINT" -> if (isNullable) DbType.NullableSmallInteger else DbType.SmallInteger
+                "BIGINT" -> if (isNullable) DbType.NullableBigInteger else DbType.BigInteger
+                "TEXT" -> if (isNullable) DbType.NullableText else DbType.Text
+                "DATE" -> if (isNullable) DbType.NullableDate else DbType.Date
+                "DATETIME", "TIMESTAMP" -> if (isNullable) DbType.NullableDateTime else DbType.DateTime
+                "INTERVAL" -> if (isNullable) DbType.NullableInterval else DbType.Interval
                 "SERIAL" -> DbType.IntegerAutoInc
                 "BIGSERIAL" -> DbType.LongAutoInc
                 "UBIGSERIAL" -> DbType.UlongAutoInc
-                "UUID" -> DbType.Uuid
-                "BYTEA" -> DbType.Binary
+                "UUID" -> if (isNullable) DbType.NullableUuid else DbType.Uuid
+                "BYTEA" -> if (isNullable) DbType.NullableBinary else DbType.Binary
                 //"BINARYSIZED" -> DbType.Binary
                 //"BLOB" -> DbType.Blob
-                "JSONBINARY" -> DbType.JsonBinary
-                "JSON" -> DbType.Json
+                "JSONBINARY" -> if (isNullable) DbType.NullableJsonBinary else DbType.JsonBinary
+                "JSON" -> if (isNullable) DbType.NullableJson else DbType.Json
                 else -> DbType.Json
             }
         }

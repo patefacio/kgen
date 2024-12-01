@@ -69,10 +69,24 @@ impl MutateValue for i64 {
     }
 }
 
+impl MutateValue for Option<i64> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| v.add(1));
+    }
+}
+
 impl MutateValue for u64 {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {
         *self = self.add(1);
+    }
+}
+
+impl MutateValue for Option<u64> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| v.add(1));
     }
 }
 
@@ -83,10 +97,24 @@ impl MutateValue for u32 {
     }
 }
 
+impl MutateValue for Option<u32> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| v.add(1));
+    }
+}
+
 impl MutateValue for i32 {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {
         *self = self.add(1);
+    }
+}
+
+impl MutateValue for Option<i32> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| v.add(1));
     }
 }
 
@@ -97,10 +125,24 @@ impl MutateValue for i16 {
     }
 }
 
+impl MutateValue for Option<i16> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| v.add(1));
+    }
+}
+
 impl MutateValue for String {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {
         self.push_str("*");
+    }
+}
+
+impl MutateValue for Option<String> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| v.push_str("*"));
     }
 }
 
@@ -111,10 +153,24 @@ impl MutateValue for char {
     }
 }
 
+impl MutateValue for Option<char> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|c| *c = (*c as u8 + 1) as char);
+    }
+}
+
 impl MutateValue for NaiveDate {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {
         *self = *self + Duration::days(1);
+    }
+}
+
+impl MutateValue for Option<NaiveDate> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| *v = *v + Duration::days(1));
     }
 }
 
@@ -125,12 +181,26 @@ impl MutateValue for NaiveDateTime {
     }
 }
 
+impl MutateValue for Option<NaiveDateTime> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| *v = *v + Duration::days(1));
+    }
+}
+
 impl MutateValue for Uuid {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {
         let bytes = self.as_bytes();
         let namespace = Uuid::new_v5(&Uuid::NAMESPACE_DNS, b"kgen-test");
         *self = Uuid::new_v5(&namespace, bytes)
+    }
+}
+
+impl MutateValue for Option<Uuid> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|u| u.mutate_value());
     }
 }
 

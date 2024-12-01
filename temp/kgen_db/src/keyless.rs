@@ -20,16 +20,34 @@ pub struct KeylessRowData {
     pub the_large_int: i64,
     /// Field for column `the_big_int`
     pub the_big_int: i64,
-    /// Field for column `general_int`
-    pub general_int: i32,
     /// Field for column `the_date`
     pub the_date: chrono::NaiveDate,
+    /// Field for column `the_general_int`
+    pub the_general_int: i32,
     /// Field for column `the_date_time`
     pub the_date_time: chrono::NaiveDateTime,
     /// Field for column `the_uuid`
     pub the_uuid: uuid::Uuid,
     /// Field for column `the_ulong`
     pub the_ulong: i64,
+    /// Field for column `nullable_name`
+    pub nullable_name: String,
+    /// Field for column `nullable_small_int`
+    pub nullable_small_int: Option<i16>,
+    /// Field for column `nullable_large_int`
+    pub nullable_large_int: Option<i64>,
+    /// Field for column `nullable_big_int`
+    pub nullable_big_int: Option<i64>,
+    /// Field for column `nullable_date`
+    pub nullable_date: Option<chrono::NaiveDate>,
+    /// Field for column `nullable_general_int`
+    pub nullable_general_int: Option<i32>,
+    /// Field for column `nullable_date_time`
+    pub nullable_date_time: Option<chrono::NaiveDateTime>,
+    /// Field for column `nullable_uuid`
+    pub nullable_uuid: Option<uuid::Uuid>,
+    /// Field for column `nullable_ulong`
+    pub nullable_ulong: Option<i64>,
 }
 
 /// Table Gateway Support for table `keyless`.
@@ -56,8 +74,9 @@ impl TableKeyless {
     ) -> Vec<KeylessRowData> {
         let statement = format!(
             r#"SELECT 
-    the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
-    	the_date_time, the_uuid, the_ulong
+    the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
+    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
     FROM keyless
     WHERE {where_clause}"#
         );
@@ -75,11 +94,20 @@ impl TableKeyless {
                 the_small_int: row.get(1),
                 the_large_int: row.get(2),
                 the_big_int: row.get(3),
-                general_int: row.get(4),
-                the_date: row.get(5),
+                the_date: row.get(4),
+                the_general_int: row.get(5),
                 the_date_time: row.get(6),
                 the_uuid: row.get(7),
                 the_ulong: row.get(8),
+                nullable_name: row.get(9),
+                nullable_small_int: row.get(10),
+                nullable_large_int: row.get(11),
+                nullable_big_int: row.get(12),
+                nullable_date: row.get(13),
+                nullable_general_int: row.get(14),
+                nullable_date_time: row.get(15),
+                nullable_uuid: row.get(16),
+                nullable_ulong: row.get(17),
             });
             tracing::info!("{:?}", results.last().unwrap());
         }
@@ -124,31 +152,34 @@ impl TableKeyless {
                 params.push(&row.the_small_int);
                 params.push(&row.the_large_int);
                 params.push(&row.the_big_int);
-                params.push(&row.general_int);
                 params.push(&row.the_date);
+                params.push(&row.the_general_int);
                 params.push(&row.the_date_time);
                 params.push(&row.the_uuid);
                 params.push(&row.the_ulong);
+                params.push(&row.nullable_name);
+                params.push(&row.nullable_small_int);
+                params.push(&row.nullable_large_int);
+                params.push(&row.nullable_big_int);
+                params.push(&row.nullable_date);
+                params.push(&row.nullable_general_int);
+                params.push(&row.nullable_date_time);
+                params.push(&row.nullable_uuid);
+                params.push(&row.nullable_ulong);
 
                 format!("({row_params})")
             })
             .join(",\n");
 
-        let insert_result = client
-            .execute(
-                &format!(
-                    r#"insert into keyless
+        let insert_result = client.execute(&format!(r#"insert into keyless
     (
-    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
-    	the_date_time, the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
+    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
     )
     VALUES
     {value_params}
-    "#
-                ),
-                &params,
-            )
-            .await;
+    "#), &params).await;
 
         match insert_result {
             Err(err) => {
@@ -181,49 +212,57 @@ impl TableKeyless {
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
         let mut the_big_int = Vec::with_capacity(chunk_size);
-        let mut general_int = Vec::with_capacity(chunk_size);
         let mut the_date = Vec::with_capacity(chunk_size);
+        let mut the_general_int = Vec::with_capacity(chunk_size);
         let mut the_date_time = Vec::with_capacity(chunk_size);
         let mut the_uuid = Vec::with_capacity(chunk_size);
         let mut the_ulong = Vec::with_capacity(chunk_size);
+        let mut nullable_name = Vec::with_capacity(chunk_size);
+        let mut nullable_small_int = Vec::with_capacity(chunk_size);
+        let mut nullable_large_int = Vec::with_capacity(chunk_size);
+        let mut nullable_big_int = Vec::with_capacity(chunk_size);
+        let mut nullable_date = Vec::with_capacity(chunk_size);
+        let mut nullable_general_int = Vec::with_capacity(chunk_size);
+        let mut nullable_date_time = Vec::with_capacity(chunk_size);
+        let mut nullable_uuid = Vec::with_capacity(chunk_size);
+        let mut nullable_ulong = Vec::with_capacity(chunk_size);
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
                 the_big_int.push(row.the_big_int);
-                general_int.push(row.general_int);
                 the_date.push(row.the_date);
+                the_general_int.push(row.the_general_int);
                 the_date_time.push(row.the_date_time);
                 the_uuid.push(row.the_uuid);
                 the_ulong.push(row.the_ulong);
+                nullable_name.push(&row.nullable_name);
+                nullable_small_int.push(row.nullable_small_int);
+                nullable_large_int.push(row.nullable_large_int);
+                nullable_big_int.push(row.nullable_big_int);
+                nullable_date.push(row.nullable_date);
+                nullable_general_int.push(row.nullable_general_int);
+                nullable_date_time.push(row.nullable_date_time);
+                nullable_uuid.push(row.nullable_uuid);
+                nullable_ulong.push(row.nullable_ulong);
             }
-            let chunk_result = client
-                .execute(
-                    r#"insert into keyless
+            let chunk_result = client.execute(
+            r#"insert into keyless
     (
-    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
-    	the_date_time, the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
+    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
     )
     SELECT * FROM UNNEST
     (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::int[], $6::date[],
-    	$7::timestamp[], $8::uuid[], $9::bigint[]
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::varchar[], $11::smallint[], $12::bigint[],
+    	$13::bigint[], $14::date[], $15::int[], $16::timestamp[], $17::uuid[], $18::bigint[]
     )
     "#,
-                    &[
-                        &the_name,
-                        &the_small_int,
-                        &the_large_int,
-                        &the_big_int,
-                        &general_int,
-                        &the_date,
-                        &the_date_time,
-                        &the_uuid,
-                        &the_ulong,
-                    ],
-                )
-                .await;
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong]
+        ).await;
 
             match &chunk_result {
                 Err(err) => {
@@ -242,11 +281,20 @@ impl TableKeyless {
             the_small_int.clear();
             the_large_int.clear();
             the_big_int.clear();
-            general_int.clear();
             the_date.clear();
+            the_general_int.clear();
             the_date_time.clear();
             the_uuid.clear();
             the_ulong.clear();
+            nullable_name.clear();
+            nullable_small_int.clear();
+            nullable_large_int.clear();
+            nullable_big_int.clear();
+            nullable_date.clear();
+            nullable_general_int.clear();
+            nullable_date_time.clear();
+            nullable_uuid.clear();
+            nullable_ulong.clear();
         }
 
         Ok(())
@@ -268,34 +316,53 @@ impl TableKeyless {
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
         let mut the_big_int = Vec::with_capacity(chunk_size);
-        let mut general_int = Vec::with_capacity(chunk_size);
         let mut the_date = Vec::with_capacity(chunk_size);
+        let mut the_general_int = Vec::with_capacity(chunk_size);
         let mut the_date_time = Vec::with_capacity(chunk_size);
         let mut the_uuid = Vec::with_capacity(chunk_size);
         let mut the_ulong = Vec::with_capacity(chunk_size);
+        let mut nullable_name = Vec::with_capacity(chunk_size);
+        let mut nullable_small_int = Vec::with_capacity(chunk_size);
+        let mut nullable_large_int = Vec::with_capacity(chunk_size);
+        let mut nullable_big_int = Vec::with_capacity(chunk_size);
+        let mut nullable_date = Vec::with_capacity(chunk_size);
+        let mut nullable_general_int = Vec::with_capacity(chunk_size);
+        let mut nullable_date_time = Vec::with_capacity(chunk_size);
+        let mut nullable_uuid = Vec::with_capacity(chunk_size);
+        let mut nullable_ulong = Vec::with_capacity(chunk_size);
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
                 the_big_int.push(row.the_big_int);
-                general_int.push(row.general_int);
                 the_date.push(row.the_date);
+                the_general_int.push(row.the_general_int);
                 the_date_time.push(row.the_date_time);
                 the_uuid.push(row.the_uuid);
                 the_ulong.push(row.the_ulong);
+                nullable_name.push(&row.nullable_name);
+                nullable_small_int.push(row.nullable_small_int);
+                nullable_large_int.push(row.nullable_large_int);
+                nullable_big_int.push(row.nullable_big_int);
+                nullable_date.push(row.nullable_date);
+                nullable_general_int.push(row.nullable_general_int);
+                nullable_date_time.push(row.nullable_date_time);
+                nullable_uuid.push(row.nullable_uuid);
+                nullable_ulong.push(row.nullable_ulong);
             }
-            let chunk_result = client
-                .execute(
-                    r#"insert into keyless
+            let chunk_result = client.execute(
+            r#"insert into keyless
     (
-    	the_name, the_small_int, the_large_int, the_big_int, general_int, the_date,
-    	the_date_time, the_uuid, the_ulong
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, nullable_name, nullable_small_int, nullable_large_int,
+    	nullable_big_int, nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong
     )
     SELECT * FROM UNNEST
     (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::int[], $6::date[],
-    	$7::timestamp[], $8::uuid[], $9::bigint[]
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::varchar[], $11::smallint[], $12::bigint[],
+    	$13::bigint[], $14::date[], $15::int[], $16::timestamp[], $17::uuid[], $18::bigint[]
     )
     ON CONFLICT ()
     DO UPDATE SET
@@ -303,25 +370,23 @@ impl TableKeyless {
     	the_small_int = EXCLUDED.the_small_int,
     	the_large_int = EXCLUDED.the_large_int,
     	the_big_int = EXCLUDED.the_big_int,
-    	general_int = EXCLUDED.general_int,
     	the_date = EXCLUDED.the_date,
+    	the_general_int = EXCLUDED.the_general_int,
     	the_date_time = EXCLUDED.the_date_time,
     	the_uuid = EXCLUDED.the_uuid,
-    	the_ulong = EXCLUDED.the_ulong
+    	the_ulong = EXCLUDED.the_ulong,
+    	nullable_name = EXCLUDED.nullable_name,
+    	nullable_small_int = EXCLUDED.nullable_small_int,
+    	nullable_large_int = EXCLUDED.nullable_large_int,
+    	nullable_big_int = EXCLUDED.nullable_big_int,
+    	nullable_date = EXCLUDED.nullable_date,
+    	nullable_general_int = EXCLUDED.nullable_general_int,
+    	nullable_date_time = EXCLUDED.nullable_date_time,
+    	nullable_uuid = EXCLUDED.nullable_uuid,
+    	nullable_ulong = EXCLUDED.nullable_ulong
     "#,
-                    &[
-                        &the_name,
-                        &the_small_int,
-                        &the_large_int,
-                        &the_big_int,
-                        &general_int,
-                        &the_date,
-                        &the_date_time,
-                        &the_uuid,
-                        &the_ulong,
-                    ],
-                )
-                .await;
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong]
+        ).await;
 
             match &chunk_result {
                 Err(err) => {
@@ -340,11 +405,20 @@ impl TableKeyless {
             the_small_int.clear();
             the_large_int.clear();
             the_big_int.clear();
-            general_int.clear();
             the_date.clear();
+            the_general_int.clear();
             the_date_time.clear();
             the_uuid.clear();
             the_ulong.clear();
+            nullable_name.clear();
+            nullable_small_int.clear();
+            nullable_large_int.clear();
+            nullable_big_int.clear();
+            nullable_date.clear();
+            nullable_general_int.clear();
+            nullable_date_time.clear();
+            nullable_uuid.clear();
+            nullable_ulong.clear();
         }
         Ok(())
     }
@@ -361,7 +435,7 @@ impl TableKeyless {
 
 impl KeylessRowData {
     /// Number of fields
-    pub const NUM_FIELDS: usize = 9;
+    pub const NUM_FIELDS: usize = 18;
 
     /// Names of fields
     pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = [
@@ -369,17 +443,26 @@ impl KeylessRowData {
         "the_small_int",
         "the_large_int",
         "the_big_int",
-        "general_int",
         "the_date",
+        "the_general_int",
         "the_date_time",
         "the_uuid",
         "the_ulong",
+        "nullable_name",
+        "nullable_small_int",
+        "nullable_large_int",
+        "nullable_big_int",
+        "nullable_date",
+        "nullable_general_int",
+        "nullable_date_time",
+        "nullable_uuid",
+        "nullable_ulong",
     ];
 }
 
 impl TableKeyless {
     /// The total number of key and value columns
-    pub const COLUMN_COUNT: usize = 9;
+    pub const COLUMN_COUNT: usize = 18;
 }
 
 // α <mod-def keyless>

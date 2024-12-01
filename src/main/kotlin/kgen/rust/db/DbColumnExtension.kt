@@ -17,18 +17,18 @@ val DbColumn.asRustField
 
 val DbColumn.unnestCast
     get() = when (type) {
-        DbType.Integer, DbType.IntegerAutoInc -> "::int"
-        DbType.Double -> "::double precision"
-        DbType.Byte -> "::bytea"
-        DbType.BigInteger -> "::bigint"
-        DbType.Date -> "::date"
-        DbType.DateTime -> "::timestamp"
-        DbType.SmallInteger -> "::smallint"
-        DbType.Timestamp -> "::timestamptz"
-        DbType.Interval -> "::interval"
-        DbType.Uuid -> "::uuid"
-        DbType.Text -> "::text"
-        is DbType.VarChar -> "::varchar"
+        DbType.Integer, DbType.NullableInteger, DbType.IntegerAutoInc -> "::int"
+        DbType.Double, DbType.NullableDouble -> "::double precision"
+        DbType.Byte, DbType.NullableByte -> "::bytea"
+        DbType.BigInteger, DbType.NullableBigInteger -> "::bigint"
+        DbType.Date, DbType.NullableDate -> "::date"
+        DbType.DateTime, DbType.NullableDateTime -> "::timestamp"
+        DbType.SmallInteger, DbType.NullableSmallInteger -> "::smallint"
+        DbType.Timestamp, DbType.Timestamp -> "::timestamptz"
+        DbType.Interval, DbType.NullableInterval -> "::interval"
+        DbType.Uuid, DbType.NullableUuid -> "::uuid"
+        DbType.Text, DbType.NullableText -> "::text"
+        is DbType.VarChar, is DbType.NullableVarChar -> "::varchar"
         else -> "::TODO"
     }
 

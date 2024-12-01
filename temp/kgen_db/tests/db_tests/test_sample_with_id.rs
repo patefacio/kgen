@@ -20,10 +20,20 @@ use tokio_postgres::Client;
 pub fn mutate_row_data(row_data: &mut SampleWithIdRowData) {
     row_data.the_large_int.mutate_value();
     row_data.the_big_int.mutate_value();
-    row_data.general_int.mutate_value();
     row_data.the_date.mutate_value();
+    row_data.the_general_int.mutate_value();
     row_data.the_date_time.mutate_value();
     row_data.the_uuid.mutate_value();
+    row_data.the_ulong.mutate_value();
+    row_data.nullable_name.mutate_value();
+    row_data.nullable_small_int.mutate_value();
+    row_data.nullable_large_int.mutate_value();
+    row_data.nullable_big_int.mutate_value();
+    row_data.nullable_date.mutate_value();
+    row_data.nullable_general_int.mutate_value();
+    row_data.nullable_date_time.mutate_value();
+    row_data.nullable_uuid.mutate_value();
+    row_data.nullable_ulong.mutate_value();
 }
 
 /// Select all from the database and assert they compare to [values]
@@ -84,140 +94,310 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_small_int: -32768,
             the_large_int: -2147483648,
             the_big_int: -2147483648,
-            general_int: -2147483648,
             the_date: chrono::NaiveDate::parse_from_str("2000-01-01", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483648,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-01-01T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("528f97ee-afb7-349d-ae9d-228f407501d5").unwrap(),
+            the_ulong: -2147483648,
+            nullable_name: "a".into(),
+            nullable_small_int: Some(-32768),
+            nullable_large_int: Some(-2147483648),
+            nullable_big_int: Some(-2147483648),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-01-01", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483648),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-01-01T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("528f97ee-afb7-349d-ae9d-228f407501d5").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483648),
         },
         SampleWithIdRowData {
             the_name: "b".into(),
             the_small_int: -32767,
             the_large_int: -2147483647,
             the_big_int: -2147483647,
-            general_int: -2147483647,
             the_date: chrono::NaiveDate::parse_from_str("2000-02-03", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483647,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-02-03T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("2d41f1a3-e690-3d91-8a3e-cce82beaf5a5").unwrap(),
+            the_ulong: -2147483647,
+            nullable_name: "b".into(),
+            nullable_small_int: Some(-32767),
+            nullable_large_int: Some(-2147483647),
+            nullable_big_int: Some(-2147483647),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-02-03", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483647),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-02-03T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("2d41f1a3-e690-3d91-8a3e-cce82beaf5a5").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483647),
         },
         SampleWithIdRowData {
             the_name: "c".into(),
             the_small_int: -32766,
             the_large_int: -2147483646,
             the_big_int: -2147483646,
-            general_int: -2147483646,
             the_date: chrono::NaiveDate::parse_from_str("2000-03-05", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483646,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-03-05T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("01ff6bbb-b780-3928-addf-5f189dc96802").unwrap(),
+            the_ulong: -2147483646,
+            nullable_name: "c".into(),
+            nullable_small_int: Some(-32766),
+            nullable_large_int: Some(-2147483646),
+            nullable_big_int: Some(-2147483646),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-03-05", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483646),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-03-05T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("01ff6bbb-b780-3928-addf-5f189dc96802").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483646),
         },
         SampleWithIdRowData {
             the_name: "d".into(),
             the_small_int: -32765,
             the_large_int: -2147483645,
             the_big_int: -2147483645,
-            general_int: -2147483645,
             the_date: chrono::NaiveDate::parse_from_str("2000-04-07", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483645,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-04-07T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("7fa8058e-840e-362e-a8e3-9d1b75f39fe8").unwrap(),
+            the_ulong: -2147483645,
+            nullable_name: "d".into(),
+            nullable_small_int: Some(-32765),
+            nullable_large_int: Some(-2147483645),
+            nullable_big_int: Some(-2147483645),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-04-07", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483645),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-04-07T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("7fa8058e-840e-362e-a8e3-9d1b75f39fe8").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483645),
         },
         SampleWithIdRowData {
             the_name: "e".into(),
             the_small_int: -32764,
             the_large_int: -2147483644,
             the_big_int: -2147483644,
-            general_int: -2147483644,
             the_date: chrono::NaiveDate::parse_from_str("2000-05-09", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483644,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-05-09T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("0edc1aeb-3200-3d26-b2be-77c5039aecf3").unwrap(),
+            the_ulong: -2147483644,
+            nullable_name: "e".into(),
+            nullable_small_int: Some(-32764),
+            nullable_large_int: Some(-2147483644),
+            nullable_big_int: Some(-2147483644),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-05-09", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483644),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-05-09T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("0edc1aeb-3200-3d26-b2be-77c5039aecf3").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483644),
         },
         SampleWithIdRowData {
             the_name: "f".into(),
             the_small_int: -32763,
             the_large_int: -2147483643,
             the_big_int: -2147483643,
-            general_int: -2147483643,
             the_date: chrono::NaiveDate::parse_from_str("2000-06-11", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483643,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-06-11T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("9d6a2a8e-4852-33e4-ade0-7aaadb41066d").unwrap(),
+            the_ulong: -2147483643,
+            nullable_name: "f".into(),
+            nullable_small_int: Some(-32763),
+            nullable_large_int: Some(-2147483643),
+            nullable_big_int: Some(-2147483643),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-06-11", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483643),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-06-11T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("9d6a2a8e-4852-33e4-ade0-7aaadb41066d").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483643),
         },
         SampleWithIdRowData {
             the_name: "g".into(),
             the_small_int: -32762,
             the_large_int: -2147483642,
             the_big_int: -2147483642,
-            general_int: -2147483642,
             the_date: chrono::NaiveDate::parse_from_str("2000-07-13", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483642,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-07-13T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("f89673f7-afd4-3121-b58d-c3b683a88e4d").unwrap(),
+            the_ulong: -2147483642,
+            nullable_name: "g".into(),
+            nullable_small_int: Some(-32762),
+            nullable_large_int: Some(-2147483642),
+            nullable_big_int: Some(-2147483642),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-07-13", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483642),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-07-13T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("f89673f7-afd4-3121-b58d-c3b683a88e4d").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483642),
         },
         SampleWithIdRowData {
             the_name: "h".into(),
             the_small_int: -32761,
             the_large_int: -2147483641,
             the_big_int: -2147483641,
-            general_int: -2147483641,
             the_date: chrono::NaiveDate::parse_from_str("2000-08-15", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483641,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-08-15T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("9f56050f-c322-3efa-9e1f-96f4d3217930").unwrap(),
+            the_ulong: -2147483641,
+            nullable_name: "h".into(),
+            nullable_small_int: Some(-32761),
+            nullable_large_int: Some(-2147483641),
+            nullable_big_int: Some(-2147483641),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-08-15", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483641),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-08-15T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("9f56050f-c322-3efa-9e1f-96f4d3217930").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483641),
         },
         SampleWithIdRowData {
             the_name: "i".into(),
             the_small_int: -32760,
             the_large_int: -2147483640,
             the_big_int: -2147483640,
-            general_int: -2147483640,
             the_date: chrono::NaiveDate::parse_from_str("2000-09-17", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483640,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-09-17T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("caa9705c-21b1-387a-afd8-de69e0698cb7").unwrap(),
+            the_ulong: -2147483640,
+            nullable_name: "i".into(),
+            nullable_small_int: Some(-32760),
+            nullable_large_int: Some(-2147483640),
+            nullable_big_int: Some(-2147483640),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-09-17", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483640),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-09-17T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("caa9705c-21b1-387a-afd8-de69e0698cb7").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483640),
         },
         SampleWithIdRowData {
             the_name: "j".into(),
             the_small_int: -32759,
             the_large_int: -2147483639,
             the_big_int: -2147483639,
-            general_int: -2147483639,
             the_date: chrono::NaiveDate::parse_from_str("2000-10-19", "%Y-%m-%d").unwrap(),
+            the_general_int: -2147483639,
             the_date_time: chrono::NaiveDateTime::parse_from_str(
                 "2000-10-19T01:01",
                 "%Y-%m-%dT%H:%M",
             )
             .unwrap(),
             the_uuid: uuid::Uuid::parse_str("0455e422-6d84-35e3-9db8-1eb8c06af841").unwrap(),
+            the_ulong: -2147483639,
+            nullable_name: "j".into(),
+            nullable_small_int: Some(-32759),
+            nullable_large_int: Some(-2147483639),
+            nullable_big_int: Some(-2147483639),
+            nullable_date: Some(
+                chrono::NaiveDate::parse_from_str("2000-10-19", "%Y-%m-%d").unwrap(),
+            ),
+            nullable_general_int: Some(-2147483639),
+            nullable_date_time: Some(
+                chrono::NaiveDateTime::parse_from_str("2000-10-19T01:01", "%Y-%m-%dT%H:%M")
+                    .unwrap(),
+            ),
+            nullable_uuid: Some(
+                uuid::Uuid::parse_str("0455e422-6d84-35e3-9db8-1eb8c06af841").unwrap(),
+            ),
+            nullable_ulong: Some(-2147483639),
         },
     ]
 }

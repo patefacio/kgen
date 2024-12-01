@@ -24,10 +24,21 @@ object TableSampleWithId : Table("sample_with_id") {
     val smallInt = short("the_small_int")
     val largeInt = long("the_large_int")
     val bigInt = ulong("the_big_int")
-    val general_int = integer("general_int")
     val date = date("the_date")
+    val general_int = integer("the_general_int")
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
+    val ulong = ulong("the_ulong")
+
+    val nullableName = varchar("nullable_name", 255).nullable()
+    val nullableSmallInt = short("nullable_small_int").nullable()
+    val nullableLargeInt = long("nullable_large_int").nullable()
+    val nullableBigInt = ulong("nullable_big_int").nullable()
+    val nullableDate = date("nullable_date").nullable()
+    val nullableGeneralInt = integer("nullable_general_int").nullable()
+    val nullableDateTime = datetime("nullable_date_time").nullable()
+    val nullableUuid = uuid("nullable_uuid").nullable()
+    val nullableUlong = ulong("nullable_ulong").nullable()
 
     override val primaryKey = PrimaryKey(id)
 
@@ -42,9 +53,20 @@ object TableSample : Table("sample") {
     val largeInt = long("the_large_int")
     val bigInt = ulong("the_big_int")
     val date = date("the_date")
-    val general_int = integer("general_int")
+    val general_int = integer("the_general_int")
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
+    val ulong = ulong("the_ulong")
+
+    val nullableName = varchar("nullable_name", 255).nullable()
+    val nullableSmallInt = short("nullable_small_int").nullable()
+    val nullableLargeInt = long("nullable_large_int").nullable()
+    val nullableBigInt = ulong("nullable_big_int").nullable()
+    val nullableDate = date("nullable_date").nullable()
+    val nullableGeneralInt = integer("nullable_general_int").nullable()
+    val nullableDateTime = datetime("nullable_date_time").nullable()
+    val nullableUuid = uuid("nullable_uuid").nullable()
+    val nullableUlong = ulong("nullable_ulong").nullable()
 
     override val primaryKey = PrimaryKey(name, smallInt)
 }
@@ -54,11 +76,22 @@ object TableKeyless : Table("keyless") {
     val smallInt = short("the_small_int")
     val largeInt = long("the_large_int")
     val bigInt = ulong("the_big_int")
-    val general_int = integer("general_int")
     val date = date("the_date")
+    val general_int = integer("the_general_int")
     val dateTime = datetime("the_date_time")
     val uuid = uuid("the_uuid")
     val ulong = ulong("the_ulong")
+
+    val nullableName = varchar("nullable_name", 255).nullable()
+    val nullableSmallInt = short("nullable_small_int").nullable()
+    val nullableLargeInt = long("nullable_large_int").nullable()
+    val nullableBigInt = ulong("nullable_big_int").nullable()
+    val nullableDate = date("nullable_date").nullable()
+    val nullableGeneralInt = integer("nullable_general_int").nullable()
+    val nullableDateTime = datetime("nullable_date_time").nullable()
+    val nullableUuid = uuid("nullable_uuid").nullable()
+    val nullableUlong = ulong("nullable_ulong").nullable()
+
 }
 
 

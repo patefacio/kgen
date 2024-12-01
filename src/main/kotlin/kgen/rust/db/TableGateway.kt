@@ -65,8 +65,9 @@ data class TableGateway(
 
     val rowEntryStructName = rowEntryStruct?.asRustName
 
-    val autoIdDetails = if(hasAutoId) {
-        AutoIdDetails(autoIncQueryColumn!!.id,
+    val autoIdDetails = if (hasAutoId) {
+        AutoIdDetails(
+            autoIncQueryColumn!!.id,
             rowEntryStructName!!,
             rowDataStructName
         )
@@ -111,18 +112,18 @@ data class TableGateway(
                 bulkInsert.bulkInsertFn,
                 bulkUpsert?.bulkUpsertFn,
             ) +
-            Fn(
-                "delete_all",
-                "Delete all rows of `${id.snake}`",
-                clientFnParam,
-                isAsync = true,
-                hasTokioTest = true,
-                inlineDecl = InlineDecl.Inline,
-                returnType = "Result<u64, tokio_postgres::Error>".asType,
-                returnDoc = "Number of rows deleted",
-                body = FnBody("client.execute(\"DELETE FROM ${table.nameId}\", &[]).await"),
-                hasUnitTest = false
-            ),
+                    Fn(
+                        "delete_all",
+                        "Delete all rows of `${id.snake}`",
+                        clientFnParam,
+                        isAsync = true,
+                        hasTokioTest = true,
+                        inlineDecl = InlineDecl.Inline,
+                        returnType = "Result<u64, tokio_postgres::Error>".asType,
+                        returnDoc = "Number of rows deleted",
+                        body = FnBody("client.execute(\"DELETE FROM ${table.nameId}\", &[]).await"),
+                        hasUnitTest = false
+                    ),
         ),
         attrs = commonDerives + derive("Default")
     )
@@ -170,53 +171,67 @@ data class TableGateway(
             ),
             traits = listOf(mutateValueTrait),
             traitImpls = listOf(
-                TraitImpl(
-                    "i64".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = self.add(1);")
-                ),
-                TraitImpl(
-                    "u64".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = self.add(1);")
-                ),
-                TraitImpl(
-                    "u32".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = self.add(1);")
-                ),
-                TraitImpl(
-                    "i32".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = self.add(1);")
-                ),
-                TraitImpl(
-                    "i16".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = self.add(1);")
-                ),
-                TraitImpl(
-                    RustString, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "self.push_str(\"*\");")
-                ),
-                TraitImpl(
-                    RustChar, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = (*self as u8 + 1) as char;")
-                ),
-                TraitImpl(
-                    "NaiveDate".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = *self + Duration::days(1);")
-                ),
-                TraitImpl(
-                    "NaiveDateTime".asType, mutateValueTrait,
-                    bodies = mapOf("mutate_value" to "*self = *self + Duration::days(1);")
-                ),
-                TraitImpl(
-                    "Uuid".asType, mutateValueTrait,
-                    bodies = mapOf(
-                        "mutate_value" to """
+                "i64", "u64", "u32", "i32", "i16"
+            ).map {
+                listOf(
+                    TraitImpl(
+                        it.asType, mutateValueTrait,
+                        bodies = mapOf("mutate_value" to "*self = self.add(1);")
+                    ),
+                    TraitImpl(
+                        "Option<${it}>".asType, mutateValueTrait,
+                        bodies = mapOf("mutate_value" to "self.as_mut().map(|v| v.add(1));")
+                    ),
+                )
+            }.flatten() +
+                    listOf(
+                        TraitImpl(
+                            RustString, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.push_str(\"*\");")
+                        ),
+                        TraitImpl(
+                            "Option<String>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.as_mut().map(|v| v.push_str(\"*\"));")
+                        ),
+                        TraitImpl(
+                            RustChar, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "*self = (*self as u8 + 1) as char;")
+                        ),
+                        TraitImpl(
+                            "Option<char>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.as_mut().map(|c| *c = (*c as u8 + 1) as char);")
+                        ),
+                        TraitImpl(
+                            "NaiveDate".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "*self = *self + Duration::days(1);")
+                        ),
+                        TraitImpl(
+                            "Option<NaiveDate>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.as_mut().map(|v| *v = *v + Duration::days(1));")
+                        ),
+                        TraitImpl(
+                            "NaiveDateTime".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "*self = *self + Duration::days(1);")
+                        ),
+                        TraitImpl(
+                            "Option<NaiveDateTime>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.as_mut().map(|v| *v = *v + Duration::days(1));")
+                        ),
+                        TraitImpl(
+                            "Uuid".asType, mutateValueTrait,
+                            bodies = mapOf(
+                                "mutate_value" to """
 let bytes = self.as_bytes();
 let namespace = Uuid::new_v5(&Uuid::NAMESPACE_DNS, b"kgen-test");
 *self = Uuid::new_v5(&namespace, bytes)
                     """.trimIndent()
-                    )
-                ),
-            ),
+                            )
+                        ),
+                        TraitImpl(
+                            "Option<Uuid>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.as_mut().map(|u| u.mutate_value());")
+                        )
+                    ),
             functions = listOf(
                 Fn(
                     "get_pool",

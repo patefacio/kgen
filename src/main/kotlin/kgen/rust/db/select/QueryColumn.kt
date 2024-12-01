@@ -4,10 +4,6 @@ import kgen.Id
 import kgen.db.DbColumn
 import kgen.db.DbType
 import kgen.doubleQuote
-import kgen.rust.I64
-import kgen.rust.RustString
-import kgen.rust.U8
-import kgen.rust.asType
 
 sealed class QueryColumn {
 
@@ -49,21 +45,30 @@ sealed class QueryColumn {
     fun readAccess(fromVar: String) = "${fromVar}.${id.snake}"
 
     fun asRustLiteral(value: String): String = when (this.type) {
-        is DbType.Byte -> value
-        is DbType.Double -> value
-        is DbType.Integer -> value
-        is DbType.SmallInteger -> value
-        is DbType.BigInteger -> value
+        is DbType.Byte, is DbType.Double, is DbType.Integer, is DbType.SmallInteger, is DbType.BigInteger -> value
         is DbType.Text -> "${doubleQuote(value)}.into()"
         is DbType.Date -> "chrono::NaiveDate::parse_from_str(${doubleQuote(value)}, \"%Y-%m-%d\").unwrap()"
         is DbType.DateTime, is DbType.Timestamp ->
             "chrono::NaiveDateTime::parse_from_str(${doubleQuote(value)}, \"%Y-%m-%dT%H:%M\").unwrap()"
+
         is DbType.IntegerAutoInc -> value
         is DbType.LongAutoInc -> value
         is DbType.UlongAutoInc -> value
         is DbType.Binary, is DbType.BinarySized -> value
         is DbType.Uuid -> "uuid::Uuid::parse_str(\"$value\").unwrap()"
         is DbType.Json, is DbType.VarChar -> "${doubleQuote(value)}.into()"
+
+
+        is DbType.NullableByte, is DbType.NullableDouble, is DbType.NullableInteger,
+        is DbType.NullableSmallInteger, is DbType.NullableBigInteger, is DbType.NullableBinary,
+        is DbType.NullableBinarySized -> "Some($value)"
+
+        is DbType.NullableText, is DbType.NullableJson, is DbType.NullableVarChar -> "Some(${doubleQuote(value)}.into())"
+        is DbType.NullableDate -> "Some(chrono::NaiveDate::parse_from_str(${doubleQuote(value)}, \"%Y-%m-%d\").unwrap())"
+        is DbType.NullableDateTime, is DbType.NullableTimestamp ->
+            "Some(chrono::NaiveDateTime::parse_from_str(${doubleQuote(value)}, \"%Y-%m-%dT%H:%M\").unwrap())"
+
+        is DbType.NullableUuid -> "Some(uuid::Uuid::parse_str(\"$value\").unwrap())"
         else -> throw (Exception("Unsupported rust type for $this"))
     }
 }
