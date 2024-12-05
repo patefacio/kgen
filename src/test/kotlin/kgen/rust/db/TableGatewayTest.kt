@@ -1,6 +1,6 @@
 package kgen.rust.db
 
-import kgen.db.asDbTable
+import kgen.db.intoDbTable
 import kgen.meta.MetaPaths
 import kgen.rust.*
 import kgen.rust.generator.CrateGenerator
@@ -138,14 +138,18 @@ fun main() {
      */
     KgenDatabase.database
 
-    val tables = listOf(TableKeyless, TableSample, TableSampleWithId)
+    val tables = mapOf(
+        TableKeyless to "Table with no primary key or auto id",
+        TableSample to "Table with primary key",
+        TableSampleWithId to "Table with auto-id"
+    )
 
     transaction {
         addLogger(StdOutSqlLogger)
-        tables.forEach { table -> SchemaUtils.drop(table) }
-        tables.forEach { table -> SchemaUtils.create(table) }
+        tables.keys.forEach { table -> SchemaUtils.drop(table) }
+        tables.keys.forEach { table -> SchemaUtils.create(table) }
 
-        val dbTables = tables.map { it.asDbTable }
+        val dbTables = tables.entries.map { (table, doc) -> table.intoDbTable(doc)  }
         val tableGateways = dbTables.map { TableGateway(it) }
 
         val libModule = Module(

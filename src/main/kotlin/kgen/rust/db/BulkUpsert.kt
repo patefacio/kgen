@@ -56,7 +56,7 @@ data class BulkUpsert(
         }
 
     val upsertStatement = rustQuote(
-        """insert into ${table.nameId}
+        """insert into $id
 ${tableGateway.nonAutoIncColumnSetLiteralValue}
 SELECT * FROM UNNEST
 ${tableGateway.unnestedColumnExpressionValue}
@@ -85,12 +85,13 @@ DO UPDATE SET
             """
 let mut chunk = 0;${autoIdDetails?.autoIdVecLet ?: ""}
 ${table.unnestColumnVectorDecls}
+let upsert_statement = ${tableGateway.formatStatement(upsertStatement)};
 for chunk_rows in rows.chunks(chunk_size) {
     for row in chunk_rows.into_iter() {
 ${table.bulkUpdateUnnestAssignments}
     }
     let chunk_result = client.$queryOrExecute(
-        $upsertStatement,
+        &upsert_statement,
         &[${table.nonAutoIncColumns.joinToString(", ") { "&${it.nameId}" }}]
     ).await;
     

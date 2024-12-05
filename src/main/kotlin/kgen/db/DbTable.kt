@@ -55,3 +55,5 @@ data class DbTable(
 }
 
 val Table.asDbTable get() = DbTable.fromTable(this)
+
+fun Table.intoDbTable(doc: String) = DbTable.fromTable(this, doc)

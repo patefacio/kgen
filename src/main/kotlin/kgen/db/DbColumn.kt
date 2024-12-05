@@ -21,7 +21,6 @@ data class DbColumn(
             val isNullable = column.columnType.nullable
             val varCharSize = varcharRegex.find(sqlType)?.groupValues?.get(1)?.length ?: 0
 
-            println("Checking ${column.name} -> $sqlType")
             return if (varCharSize > 0) {
                 DbType.VarChar(varCharSize)
             } else when (column.columnType.sqlType().uppercase()) {

@@ -22,7 +22,7 @@ data class SelectAllWhereFn(
         get() = rustQuote(
             """SELECT 
 $formattedColumnNames
-FROM ${table.nameId}
+FROM ${table.id}
 WHERE {where_clause}
         """.trimMargin()
         )
@@ -67,7 +67,7 @@ WHERE {where_clause}
             hasUnitTest = false,
             body = FnBody(
                 listOf(
-                    """let statement = format!($selectStatement);
+                    """let statement = ${tableGateway.formatStatement(selectStatement)};
 let mut results = Vec::<${returnType}>::with_capacity(capacity);
 let rows = match client.query(&statement, params).await {
     Ok(stmt) => stmt,
@@ -78,7 +78,7 @@ let rows = match client.query(&statement, params).await {
 
 for row in rows {
     $pushStatement
-    tracing::info!("{:?}", results.last().unwrap());
+    tracing::trace!("{:?}", results.last().unwrap());
 }
 results
                     """.trimMargin(),

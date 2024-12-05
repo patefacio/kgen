@@ -55,7 +55,7 @@ data class BasicInsert(
 
     /** The sql insert statement */
     val basicInsertStatement = rustQuote(
-        """insert into ${table.nameId}
+        """insert into $id 
 ${tableGateway.nonAutoIncColumnSetLiteralValue}
 VALUES
 {value_params}$returningId
@@ -85,7 +85,7 @@ ${
             }).join(",\n");
 
         
-        let insert_result = client.$queryOrExecute(&format!($basicInsertStatement), &params).await;
+        let insert_result = client.$queryOrExecute(&${tableGateway.formatStatement(basicInsertStatement)}, &params).await;
         
         match insert_result {
             Err(err) => {

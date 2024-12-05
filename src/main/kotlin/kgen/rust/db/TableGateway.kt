@@ -4,14 +4,19 @@ import kgen.Id
 import kgen.asId
 import kgen.db.DbTable
 import kgen.db.DbTableClassifier
+import kgen.doubleQuote
+import kgen.markdownQuoteComment
 import kgen.rust.*
 import kgen.rust.db.select.*
 
 /** Responsible for providing CRUD rust code generation roughly following the _Table Gateway Pattern_
- * @property table The table to generate crud for
+ * @property table The table to generate crud for.
+ * @property backdoorTable In a team dev environment can be convenient to hit alternate tables name
+ * so this allows Joe to do `TABLE_MY_TABLE=my_table_joe cargo run ...`.
  */
 data class TableGateway(
     val table: DbTable,
+    val backdoorTable: Boolean = false,
 ) {
     /** [kgen.Id] used to base table related names */
     val id = table.nameId.asId
@@ -43,6 +48,43 @@ data class TableGateway(
         gatewayTypes.rowDataId.snake, "Primary data fields",
         allQueryColumns.filter { !it.isAutoInc }
     )
+
+
+    /** If using back door the name of a static table name string that has checked env var
+     * for override.
+     */
+    val tableNameVarId: Id?
+
+    /** If using back door the static name */
+    val tableNameStatic: Static?
+
+    fun formatStatement(statement: String) =
+        if (backdoorTable) {
+            val patched = statement.replace(id.snake, "{}")
+            "format!($patched, *${tableNameVarId!!.shout})"
+        } else {
+            "format!($statement)"
+        }
+
+    init {
+        if (backdoorTable) {
+            tableNameVarId = "${id}_table_name".asId
+            tableNameStatic = Static(
+                tableNameVarId.snake, "Name of table accessed",
+                "LazyLock<String>".asType,
+                value = StaticValue(
+                    """std::sync::LazyLock::new(||
+                    |std::env::var("${tableNameVarId.shout}")
+                    |.unwrap_or(${doubleQuote(id.snake)}.into()))
+                    |""".trimMargin()
+                )
+            )
+        } else {
+            tableNameVarId = null
+            tableNameStatic = null
+        }
+    }
+
 
     val rowDataStruct = dataQueryColumns.asRustStruct
     val rowDataStructName = rowDataStruct.structName
@@ -93,7 +135,7 @@ data class TableGateway(
     val tableStruct = Struct(
         "table_${id.snake}",
         """Table Gateway Support for table `${id.snake}`.
-            |Rows
+            |${table.doc ?: ""}
         """.trimMargin(),
         consts = listOf(
             Const(
@@ -110,18 +152,18 @@ data class TableGateway(
                 selectAll.selectAllFn,
                 basicInsert.basicInsertFn,
                 bulkInsert.bulkInsertFn,
-                bulkUpsert?.bulkUpsertFn,
+                bulkUpsert.bulkUpsertFn,
             ) +
                     Fn(
                         "delete_all",
-                        "Delete all rows of `${id.snake}`",
+                        "Delete all rows of `$id`",
                         clientFnParam,
                         isAsync = true,
                         hasTokioTest = true,
                         inlineDecl = InlineDecl.Inline,
                         returnType = "Result<u64, tokio_postgres::Error>".asType,
                         returnDoc = "Number of rows deleted",
-                        body = FnBody("client.execute(\"DELETE FROM ${table.nameId}\", &[]).await"),
+                        body = FnBody("""client.execute(&${formatStatement(doubleQuote("DELETE FROM $id"))}, &[]).await"""),
                         hasUnitTest = false
                     ),
         ),
@@ -131,14 +173,18 @@ data class TableGateway(
 
     val asModule = Module(
         table.nameId,
-        """Table gateway pattern implemented for ${id.capCamel}""",
+        listOfNotNull(
+            """Table gateway pattern implemented for ${id.capCamel}""",
+            table.doc?.markdownQuoteComment
+        ).joinToString("\n\n"),
         uses = listOf(
-            "tokio_postgres::types::ToSql",
+            "tokio_postgres::types::ToSql", "std::sync::LazyLock"
         ).asUses + Use("tokio_postgres::Client"),
         structs = listOfNotNull(
             rowDataStruct, rowEntryStruct,
             keyStruct, tableStruct
         ),
+        statics = listOfNotNull(tableNameStatic)
     )
 
     val crudTestSupport = CrudTestSupport(this, tableStruct)

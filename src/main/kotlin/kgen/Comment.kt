@@ -2,6 +2,7 @@ package kgen
 
 const val doubleOpener = "// "
 const val tripleOpener = "/// "
+const val markdownQuoteOpener = "> "
 const val scriptOpener = "# "
 
 private val verticalTrimRightRe = """[\r|\n]+$""".toRegex()
@@ -19,11 +20,6 @@ fun commentTriple(text: String) = if (text.isEmpty()) {
 
 fun commentScript(text: String) = comment(text, scriptOpener)
 
-fun blockComment(text: String, indent: String = "  ", separator: String = "\n") = listOf(
-    "/*", comment(text, indent), "*/"
-).joinToString(separator)
-
-
 val String?.commentTriple
     get() = if (this != null) {
         commentTriple(this)
@@ -38,9 +34,23 @@ val String?.comment
         null
     }
 
+
+fun blockComment(text: String, indent: String = "  ", separator: String = "\n") = listOf(
+    "/*", comment(text, indent), "*/"
+).joinToString(separator)
+
 val String?.blockComment
     get() = if (this != null) {
         blockComment(this)
+    } else {
+        null
+    }
+
+fun markdownQuoteComment(text: String, indent: String = "  ", separator: String = "\n") =  comment(text, markdownQuoteOpener)
+
+val String?.markdownQuoteComment
+    get() = if (this != null) {
+        markdownQuoteComment(this)
     } else {
         null
     }
