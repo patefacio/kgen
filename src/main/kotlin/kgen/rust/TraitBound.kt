@@ -17,3 +17,12 @@ sealed class TraitBound(val default: String? = null) : AsRust {
         "$text = $default"
     }
 }
+
+/** Convert string to [TraitBound] */
+val String.asTraitBound get() = TraitBound.Unmodeled(this)
+
+/** Convert string to list of single [TraitBound] */
+val String.asTraitBoundList get() = listOf(this.asTraitBound)
+
+/** Convert list of strings to list of [TraitBound] */
+val List<String>.asTraitBoundList get() = this.map { it.asTraitBound}
