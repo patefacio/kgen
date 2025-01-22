@@ -46,6 +46,10 @@ data class Field(
             else -> nameId
         }
 
+    private val testConfig get() = if(testAccessOnly) attrCfgTest else null
+
+    private val accessorAttrs get() = listOfNotNull(attrInline, testConfig).asAttrList
+
     val accessors
         get() = listOfNotNull(
             when {
@@ -57,8 +61,7 @@ data class Field(
                         body = FnBody("self.${id.snake}"),
                         returnDoc = "The value.",
                         returnType = type,
-                        visibility = Visibility.Pub,
-                        attrs = attrInline.asAttrList
+                        attrs = accessorAttrs,
                     )
                 }
 
@@ -70,8 +73,7 @@ data class Field(
                         body = FnBody("& self.${id.snake}"),
                         returnDoc = "The value.",
                         returnType = "& ${type.asRust}".asType,
-                        visibility = Visibility.Pub,
-                        attrs = attrInline.asAttrList
+                        attrs = accessorAttrs,
                     )
                 }
 
@@ -83,8 +85,7 @@ data class Field(
                         body = FnBody("self.${id.snake}.clone()"),
                         returnDoc = "The value.",
                         returnType = "${type.asRust}".asType,
-                        visibility = Visibility.Pub,
-                        attrs = attrInline.asAttrList
+                        attrs = accessorAttrs,
                     )
                 }
 
@@ -100,8 +101,7 @@ data class Field(
                         body = FnBody("& mut self.${id.snake}"),
                         returnType = "&mut ${type.asRust}".asType,
                         returnDoc = "Mutable reference to data",
-                        visibility = Visibility.Pub,
-                        attrs = attrInline.asAttrList
+                        attrs = accessorAttrs,
                     )
                 }
 

@@ -15,7 +15,7 @@ data class DbTable(
     val nameId: String,
     val doc: String? = null,
     val columns: List<DbColumn>,
-    val primaryKeyColumns: List<DbColumn>,
+    val primaryKeyColumns: List<DbColumn> = emptyList(),
     val uniqueIndices: Map<String, List<DbColumn>> = emptyMap(),
     val tableName: String = nameId,
 ) {
