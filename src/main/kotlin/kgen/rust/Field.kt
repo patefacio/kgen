@@ -14,6 +14,9 @@ import kgen.*
  *   is auto-generating a ctor, this can be used to initialize it.
  * @property customCtorInit When creating ctors, if this is set the field is
  * not passed in but custom initialized
+ * @property testAccessOnly If set and if access not `pub` the accessors are only available
+ * to test
+ * @property escapeName If set the name is should be escaped (eg for a name that is also a rust keyword)
  */
 data class Field(
     val nameId: String,
@@ -23,10 +26,16 @@ data class Field(
     val attrs: AttrList = AttrList(),
     val excludeFromNew: Boolean = false,
     val defaultValue: String? = null,
-    val customCtorInit: Boolean = false
+    val customCtorInit: Boolean = false,
+    val testAccessOnly: Boolean = false,
+    val escapeName: Boolean = false,
 ) : Identifier(nameId), AsRust {
 
-    val decl get() = "${trailingText(access.asRust)}$nameId: ${type.type}"
+    /** The field namd as used in declaration, escaped if necessary */
+    private val declName get() = if(escapeName) "r#$escapeName" else nameId
+
+    /** The field declaration */
+    val decl get() = "${trailingText(access.asRust)}$declName: ${type.type}"
 
     private val tupleStructDecl get() = "${trailingText(access.asRust)}${type.type}"
 

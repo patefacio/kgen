@@ -175,6 +175,20 @@ impl MutateValue for Option<char> {
     }
 }
 
+impl MutateValue for bool {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        *self = !*self;
+    }
+}
+
+impl MutateValue for Option<bool> {
+    /// Change the value in some deterministic way
+    fn mutate_value(&mut self) {
+        self.as_mut().map(|v| *v = !*v);
+    }
+}
+
 impl MutateValue for NaiveDate {
     /// Change the value in some deterministic way
     fn mutate_value(&mut self) {

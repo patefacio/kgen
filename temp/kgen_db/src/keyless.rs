@@ -5,6 +5,7 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
+#[allow(unused)]
 use std::sync::LazyLock;
 use tokio_postgres::types::ToSql;
 use tokio_postgres::Client;
@@ -13,7 +14,7 @@ use tokio_postgres::Client;
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct KeylessRowData {
     /// Field for column `the_name`
     pub the_name: String,

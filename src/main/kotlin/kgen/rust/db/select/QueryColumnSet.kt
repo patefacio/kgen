@@ -6,6 +6,11 @@ import kgen.rust.*
 import kgen.rust.db.asRustField
 import kgen.rust.db.select.QueryColumn.Companion.fromDbColumn
 
+/** Models a set of columns might be returned by an SQL select.
+ *  @property nameId The snake case name of the column set
+ *  @property doc A description of the column set
+ *  @property queryColumns The columns in the set
+ */
 data class QueryColumnSet(
     val nameId: String,
     val doc: String = "Support for $nameId column query fields",
@@ -37,7 +42,11 @@ data class QueryColumnSet(
                         .asConstValue
                 )
             ),
-            attrs = commonDerives + derive("Default", "Eq", "PartialEq", "Hash")
+            attrs = commonDerives + if (queryColumns.any { it.rustType in listOf(F64, "Option<f64>".asType) }) {
+                derive("Default", "Eq", "PartialEq", "Hash")
+            } else {
+                derive("Default", "PartialEq")
+            }
         )
 
     companion object {

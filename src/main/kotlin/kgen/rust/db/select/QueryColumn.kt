@@ -5,6 +5,8 @@ import kgen.db.DbColumn
 import kgen.db.DbType
 import kgen.doubleQuote
 
+/** Models a _Query Column_
+ */
 sealed class QueryColumn {
 
     abstract val id: Id
@@ -55,6 +57,7 @@ sealed class QueryColumn {
         is DbType.LongAutoInc -> value
         is DbType.UlongAutoInc -> value
         is DbType.Binary, is DbType.BinarySized -> value
+        is DbType.Bool -> value
         is DbType.Uuid -> "uuid::Uuid::parse_str(\"$value\").unwrap()"
         is DbType.Json, is DbType.VarChar -> "${doubleQuote(value)}.into()"
 
@@ -62,6 +65,7 @@ sealed class QueryColumn {
         is DbType.NullableByte, is DbType.NullableDouble, is DbType.NullableInteger,
         is DbType.NullableSmallInteger, is DbType.NullableBigInteger, is DbType.NullableBinary,
         is DbType.NullableBinarySized -> "Some($value)"
+        is DbType.NullableBool -> "Some($value)"
 
         is DbType.NullableText, is DbType.NullableJson, is DbType.NullableVarChar -> "Some(${doubleQuote(value)}.into())"
         is DbType.NullableDate -> "Some(chrono::NaiveDate::parse_from_str(${doubleQuote(value)}, \"%Y-%m-%d\").unwrap())"

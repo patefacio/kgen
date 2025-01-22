@@ -18,6 +18,7 @@ use tokio_postgres::Client;
 ///
 ///   * **row_data** - Data to mutate
 pub fn mutate_row_data(row_data: &mut SampleWithIdRowData) {
+    row_data.the_boolean.mutate_value();
     row_data.the_large_int.mutate_value();
     row_data.the_big_int.mutate_value();
     row_data.the_date.mutate_value();
@@ -28,6 +29,7 @@ pub fn mutate_row_data(row_data: &mut SampleWithIdRowData) {
     row_data.the_json.mutate_value();
     row_data.the_jsonb.mutate_value();
     row_data.nullable_name.mutate_value();
+    row_data.nullable_boolean.mutate_value();
     row_data.nullable_small_int.mutate_value();
     row_data.nullable_large_int.mutate_value();
     row_data.nullable_big_int.mutate_value();
@@ -97,6 +99,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
     vec![
         SampleWithIdRowData {
             the_name: "a".into(),
+            the_boolean: false,
             the_small_int: -32768,
             the_large_int: -2147483648,
             the_big_int: -2147483648,
@@ -112,6 +115,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 1 }".into(),
             the_jsonb: "{ value: 1 }".into(),
             nullable_name: "a".into(),
+            nullable_boolean: Some(false),
             nullable_small_int: Some(-32768),
             nullable_large_int: Some(-2147483648),
             nullable_big_int: Some(-2147483648),
@@ -132,6 +136,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "b".into(),
+            the_boolean: true,
             the_small_int: -32767,
             the_large_int: -2147483647,
             the_big_int: -2147483647,
@@ -147,6 +152,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 2 }".into(),
             the_jsonb: "{ value: 2 }".into(),
             nullable_name: "b".into(),
+            nullable_boolean: Some(true),
             nullable_small_int: Some(-32767),
             nullable_large_int: Some(-2147483647),
             nullable_big_int: Some(-2147483647),
@@ -167,6 +173,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "c".into(),
+            the_boolean: false,
             the_small_int: -32766,
             the_large_int: -2147483646,
             the_big_int: -2147483646,
@@ -182,6 +189,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 3 }".into(),
             the_jsonb: "{ value: 3 }".into(),
             nullable_name: "c".into(),
+            nullable_boolean: Some(false),
             nullable_small_int: Some(-32766),
             nullable_large_int: Some(-2147483646),
             nullable_big_int: Some(-2147483646),
@@ -202,6 +210,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "d".into(),
+            the_boolean: true,
             the_small_int: -32765,
             the_large_int: -2147483645,
             the_big_int: -2147483645,
@@ -217,6 +226,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 4 }".into(),
             the_jsonb: "{ value: 4 }".into(),
             nullable_name: "d".into(),
+            nullable_boolean: Some(true),
             nullable_small_int: Some(-32765),
             nullable_large_int: Some(-2147483645),
             nullable_big_int: Some(-2147483645),
@@ -237,6 +247,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "e".into(),
+            the_boolean: false,
             the_small_int: -32764,
             the_large_int: -2147483644,
             the_big_int: -2147483644,
@@ -252,6 +263,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 5 }".into(),
             the_jsonb: "{ value: 5 }".into(),
             nullable_name: "e".into(),
+            nullable_boolean: Some(false),
             nullable_small_int: Some(-32764),
             nullable_large_int: Some(-2147483644),
             nullable_big_int: Some(-2147483644),
@@ -272,6 +284,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "f".into(),
+            the_boolean: true,
             the_small_int: -32763,
             the_large_int: -2147483643,
             the_big_int: -2147483643,
@@ -287,6 +300,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 6 }".into(),
             the_jsonb: "{ value: 6 }".into(),
             nullable_name: "f".into(),
+            nullable_boolean: Some(true),
             nullable_small_int: Some(-32763),
             nullable_large_int: Some(-2147483643),
             nullable_big_int: Some(-2147483643),
@@ -307,6 +321,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "g".into(),
+            the_boolean: false,
             the_small_int: -32762,
             the_large_int: -2147483642,
             the_big_int: -2147483642,
@@ -322,6 +337,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 7 }".into(),
             the_jsonb: "{ value: 7 }".into(),
             nullable_name: "g".into(),
+            nullable_boolean: Some(false),
             nullable_small_int: Some(-32762),
             nullable_large_int: Some(-2147483642),
             nullable_big_int: Some(-2147483642),
@@ -342,6 +358,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "h".into(),
+            the_boolean: true,
             the_small_int: -32761,
             the_large_int: -2147483641,
             the_big_int: -2147483641,
@@ -357,6 +374,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 8 }".into(),
             the_jsonb: "{ value: 8 }".into(),
             nullable_name: "h".into(),
+            nullable_boolean: Some(true),
             nullable_small_int: Some(-32761),
             nullable_large_int: Some(-2147483641),
             nullable_big_int: Some(-2147483641),
@@ -377,6 +395,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "i".into(),
+            the_boolean: false,
             the_small_int: -32760,
             the_large_int: -2147483640,
             the_big_int: -2147483640,
@@ -392,6 +411,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 9 }".into(),
             the_jsonb: "{ value: 9 }".into(),
             nullable_name: "i".into(),
+            nullable_boolean: Some(false),
             nullable_small_int: Some(-32760),
             nullable_large_int: Some(-2147483640),
             nullable_big_int: Some(-2147483640),
@@ -412,6 +432,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
         },
         SampleWithIdRowData {
             the_name: "j".into(),
+            the_boolean: true,
             the_small_int: -32759,
             the_large_int: -2147483639,
             the_big_int: -2147483639,
@@ -427,6 +448,7 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
             the_json: "{ value: 10 }".into(),
             the_jsonb: "{ value: 10 }".into(),
             nullable_name: "j".into(),
+            nullable_boolean: Some(true),
             nullable_small_int: Some(-32759),
             nullable_large_int: Some(-2147483639),
             nullable_big_int: Some(-2147483639),

@@ -3,8 +3,11 @@ package kgen.rust.db.select
 import kgen.rust.*
 import kgen.rust.db.TableGateway
 import kgen.rust.db.clientFnParam
+import kgen.rust.db.formattedColumnNames
 import kgen.rustQuote
+import kotlinx.css.Display
 
+/** Models a select statement with a where clause */
 data class SelectAllWhereFn(
     val tableGateway: TableGateway,
     val queryColumns: List<QueryColumn> = tableGateway.table.columns.map { it.asQueryColumn },
@@ -14,15 +17,11 @@ data class SelectAllWhereFn(
     val id = tableGateway.id
     val autoIncQueryColumn = tableGateway.autoIncQueryColumn
 
-    val formattedColumnNames = table.columns.chunked(6)
-        .map { chunk -> chunk.map { it.nameId }.joinToString(", ") }
-        .joinToString(",\n\t")
-
     val selectStatement
         get() = rustQuote(
             """SELECT 
-$formattedColumnNames
-FROM ${table.id}
+${table.formattedColumnNames}
+FROM ${table.tableName}
 WHERE {where_clause}
         """.trimMargin()
         )
@@ -49,7 +48,7 @@ WHERE {where_clause}
         "}"
     ).joinToString("\n")
 
-    val pushStatement = if(autoIncQueryColumn != null) {
+    val pushStatement = if (autoIncQueryColumn != null) {
         """results.push($returnType { $autoIncFieldAssignment, data: $fieldAssignments });"""
     } else {
         """results.push($fieldAssignments);"""

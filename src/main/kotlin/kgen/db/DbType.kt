@@ -38,6 +38,8 @@ sealed class DbType {
 
     data object Binary : DbType()
 
+    data object Bool : DbType()
+
     data class BinarySized(val length: Int) : DbType()
 
     data object Blob : DbType()
@@ -72,6 +74,8 @@ sealed class DbType {
 
     data object NullableUuid : DbType()
 
+    data object NullableBool : DbType()
+
     data object NullableBinary : DbType()
 
     data class NullableBinarySized(val length: Int) : DbType()
@@ -99,13 +103,14 @@ sealed class DbType {
             is DbType.LongAutoInc -> I64
             is DbType.UlongAutoInc -> U64
             is DbType.Binary, is DbType.BinarySized -> I64
+            is DbType.Bool -> RustBoolean
             is DbType.Uuid -> "uuid::Uuid".asType
             is DbType.VarChar -> RustString
             is DbType.Json, is DbType.JsonBinary -> "serde_json::Value".asType
 
 
             is DbType.NullableByte -> "Option<u8>".asType
-            is DbType.NullableDouble -> "Option<f64".asType
+            is DbType.NullableDouble -> "Option<f64>".asType
             is DbType.NullableInteger -> "Option<i32>".asType
             is DbType.NullableSmallInteger -> "Option<i16>".asType
             is DbType.NullableBigInteger -> "Option<i64>".asType
@@ -114,6 +119,7 @@ sealed class DbType {
             is DbType.NullableDateTime, is DbType.NullableTimestamp -> "Option<chrono::NaiveDateTime>".asType
             is DbType.NullableBinary, is DbType.NullableBinarySized -> "Option<i64>".asType
             is DbType.NullableUuid -> "Option<uuid::Uuid>".asType
+            is DbType.NullableBool -> "Option<bool>".asType
             is DbType.NullableVarChar -> "Option<String>".asType
             is DbType.NullableJson, is DbType.NullableJsonBinary -> "Option<serde_json::Value>".asType
             else -> throw (Exception("Unsupported rust type for $this"))
@@ -129,6 +135,7 @@ sealed class DbType {
         is DbType.Integer, is DbType.NullableInteger -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
         is DbType.SmallInteger, is DbType.NullableSmallInteger -> generateSequence(Short.MIN_VALUE) { (it + 1).toShort() }.iterator()
         is DbType.BigInteger, is DbType.NullableBigInteger -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
+        is DbType.Bool, is DbType.NullableBool -> generateSequence(false) { it.not() }.iterator()
         is DbType.Text, is DbType.NullableText -> generateSequence("a") { incrementString(it) }.iterator()
         is DbType.Date, is DbType.NullableDate -> generateSequence(LocalDate.of(2000, 1, 1)) {
             it.plusDays(1).plusMonths(1).plusDays(1)

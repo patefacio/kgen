@@ -17,6 +17,9 @@ data class BulkInsert(
     val autoIdDetails: AutoIdDetails?
 ) {
 
+    /** Table name */
+    val tableName get() = tableGateway.table.tableName
+
     /** Table id */
     val id get() = tableGateway.id
 
@@ -48,7 +51,7 @@ data class BulkInsert(
     }
 
     val insertStatement = rustQuote(
-        """insert into $id
+        """insert into $tableName
 ${tableGateway.nonAutoIncColumnSetLiteralValue}
 SELECT * FROM UNNEST
 ${tableGateway.unnestedColumnExpressionValue}$returningId

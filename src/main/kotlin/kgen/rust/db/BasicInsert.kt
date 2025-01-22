@@ -16,8 +16,8 @@ data class BasicInsert(
     val autoIdDetails: AutoIdDetails?,
 ) {
 
-    /** id associated with the table */
-    val id get() = tableGateway.id
+    /** Table name */
+    val tableName get() = tableGateway.table.tableName
 
     /** Underlying table */
     val table = tableGateway.table
@@ -55,7 +55,7 @@ data class BasicInsert(
 
     /** The sql insert statement */
     val basicInsertStatement = rustQuote(
-        """insert into $id 
+        """insert into $tableName 
 ${tableGateway.nonAutoIncColumnSetLiteralValue}
 VALUES
 {value_params}$returningId
@@ -103,7 +103,7 @@ ${
     val basicInsertFn get() =
         Fn(
             "basic_insert",
-            """Insert rows of `${id.snake}` by building parameterized statement.
+            """Insert rows of `$tableName` by building parameterized statement.
                 |For large insertions prefer [bulk_insert]
             """.trimMargin(),
             clientFnParam,

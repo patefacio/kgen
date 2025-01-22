@@ -45,6 +45,7 @@ class JsonColumnType<T : Any> : ColumnType<T>() {
 object TableSampleWithId : Table("sample_with_id") {
     val id = integer("auto_id").autoIncrement()
     val name = varchar("the_name", 255)
+    val boolean = bool("the_boolean")
     val smallInt = short("the_small_int")
     val largeInt = long("the_large_int")
     val bigInt = ulong("the_big_int")
@@ -57,6 +58,7 @@ object TableSampleWithId : Table("sample_with_id") {
     val jsonb = registerColumn<Any>("the_jsonb", JsonBColumnType())
 
     val nullableName = varchar("nullable_name", 255).nullable()
+    val nullableBoolean = bool("nullable_boolean").nullable()
     val nullableSmallInt = short("nullable_small_int").nullable()
     val nullableLargeInt = long("nullable_large_int").nullable()
     val nullableBigInt = ulong("nullable_big_int").nullable()

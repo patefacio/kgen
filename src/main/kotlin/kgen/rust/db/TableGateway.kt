@@ -178,8 +178,9 @@ data class TableGateway(
             table.doc?.markdownQuoteComment
         ).joinToString("\n\n"),
         uses = listOf(
-            "tokio_postgres::types::ToSql", "std::sync::LazyLock"
-        ).asUses + Use("tokio_postgres::Client"),
+            "tokio_postgres::types::ToSql",
+            "tokio_postgres::Client",
+        ).asUses + Use("std::sync::LazyLock", attrAllowUnused),
         structs = listOfNotNull(
             rowDataStruct, rowEntryStruct,
             keyStruct, tableStruct
@@ -254,6 +255,14 @@ data class TableGateway(
                         TraitImpl(
                             "Option<char>".asType, mutateValueTrait,
                             bodies = mapOf("mutate_value" to "self.as_mut().map(|c| *c = (*c as u8 + 1) as char);")
+                        ),
+                        TraitImpl(
+                            RustBoolean, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "*self = !*self;")
+                        ),
+                        TraitImpl(
+                            "Option<bool>".asType, mutateValueTrait,
+                            bodies = mapOf("mutate_value" to "self.as_mut().map(|v| *v = !*v);")
                         ),
                         TraitImpl(
                             "NaiveDate".asType, mutateValueTrait,
