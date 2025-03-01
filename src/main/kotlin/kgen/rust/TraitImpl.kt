@@ -15,7 +15,8 @@ import kgen.*
  * @property genericArgSet Generic arguments for the type.
  * @property selfBounds Bounds in the where clause associated with `Self`.
  * @property associatedTypeAssignments The impl's definition for associated types.
- * @property bodies Map of function name to function body - for small functions which
+ * @property bodies Map of function name to body text
+ * @property fnBodies Map of function name to function body - for small functions which
  *           are easily captured in the model (as opposed to the source protect block).
  * @property unitTestTraitFunctions If true all functions have unit tests.
  * @property functionUnitTests List of function names to include empty unit test,
@@ -33,7 +34,8 @@ data class TraitImpl(
     val genericArgSet: GenericArgSet = GenericArgSet(),
     val selfBounds: Bounds = Bounds(),
     val associatedTypeAssignments: List<String> = emptyList(),
-    val fnBodies: Map<String, String> = emptyMap(),
+    val bodies: Map<String, String> = emptyMap(),
+    val fnBodies: Map<String, FnBody> = emptyMap(),
     val unitTestTraitFunctions: Boolean = false,
     val functionUnitTests: List<Id> = emptyList(),
     val uses: Set<Use> = emptySet(),
@@ -149,10 +151,10 @@ data class TraitImpl(
             ),
             indent(
                 patchedFunctions.joinToString("\n\n") {
-                    if (fnBodies.contains(it.nameId)) {
-                        it.copy(body = FnBody(fnBodies.getValue(it.nameId))).asRust
-                    } else {
-                        it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
+                    when {
+                        fnBodies.contains(it.nameId) -> it.copy(body = fnBodies.getValue(it.nameId)).asRust
+                        bodies.contains(it.nameId) -> it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
+                        else -> it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
                     }
                 }),
             "}"
