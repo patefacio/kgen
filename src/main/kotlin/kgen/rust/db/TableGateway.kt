@@ -158,6 +158,7 @@ data class TableGateway(
                         "delete_all",
                         "Delete all rows of `$id`",
                         clientFnParam,
+                        genericParamSet = genericClientParamSet,
                         isAsync = true,
                         hasTokioTest = true,
                         inlineDecl = InlineDecl.Inline,
@@ -211,7 +212,7 @@ data class TableGateway(
             statics = listOf(
                 Static(
                     "test_db_pool", """The pg connection pool for tests""",
-                    "tokio::sync::OnceCell<Pool<PostgresConnectionManager<NoTls>>>".asType,
+                    "tokio::sync::OnceCell<Pool>".asType,
                     StaticValue("tokio::sync::OnceCell::const_new()"),
                     attrs = attrCfgTest.asAttrList
                 )
@@ -302,7 +303,7 @@ let namespace = Uuid::new_v5(&Uuid::NAMESPACE_DNS, b"kgen-test");
                     body = FnBody(
                         "TEST_DB_POOL.get_or_init(initialize_db_pool).await.clone()"
                     ),
-                    returnType = "Pool<PostgresConnectionManager<NoTls>>".asType,
+                    returnType = "Pool".asType,
                     returnDoc = "The pool",
                     inlineDecl = InlineDecl.Inline,
                     isAsync = true,
@@ -310,29 +311,29 @@ let namespace = Uuid::new_v5(&Uuid::NAMESPACE_DNS, b"kgen-test");
                 Fn(
                     "initialize_db_pool",
                     "Initialize the pool connection - called once by `get_or_init`",
-                    returnType = "Pool<PostgresConnectionManager<NoTls>>".asType,
+                    returnType = "Pool".asType,
                     returnDoc = "The client _singleton_",
                     body = FnBody(
                         """
-let manager = PostgresConnectionManager::new_from_stringlike(
-    "host=localhost user=kgen password=kgen dbname=kgen",
-    NoTls,
-).unwrap();
-
-let pool = Pool::builder()
-    .max_size(16) // Maximum connections in the pool
-    .build(manager)
-    .await
-    .unwrap();
-
-pool""".trimIndent()
+    let mut cfg = Config::new();
+    cfg.dbname = Some("kgen".to_string());
+    cfg.user = Some("kgen".to_string());
+    cfg.password = Some("kgen".to_string());
+    cfg.manager = Some(ManagerConfig {
+        recycling_method: RecyclingMethod::Fast,
+    });
+    cfg.create_pool(Some(Runtime::Tokio1), NoTls).unwrap()
+    """.trimIndent()
                     ),
                     isAsync = true
                 )
             ),
             uses = listOf(
-                "bb8::Pool",
-                "bb8_postgres::PostgresConnectionManager",
+                "deadpool_postgres::Config",
+                "deadpool_postgres::ManagerConfig",
+                "deadpool_postgres::Pool",
+                "deadpool_postgres::Runtime",
+                "deadpool_postgres::RecyclingMethod",
                 "chrono::Duration",
                 "chrono::NaiveDate",
                 "chrono::NaiveDateTime",

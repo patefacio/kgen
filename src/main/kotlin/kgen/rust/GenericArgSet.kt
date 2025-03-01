@@ -1,6 +1,8 @@
 package kgen.rust
 
-
+/** Models support for generic argument passing to rust items supporting
+ * generics - `Struct`, `Enum`, `fn`, `TypeAlias`,...
+ */
 data class GenericArgSet(
     val lifetimes: List<Lifetime> = emptyList(),
     val types: List<Type> = emptyList()

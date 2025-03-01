@@ -108,6 +108,7 @@ ${
             """.trimMargin(),
             clientFnParam,
             inputFnParam,
+            genericParamSet = genericClientParamSet,
             returnType = "Result<${autoIdDetails?.outputType ?: "u64"}, tokio_postgres::Error>".asType,
             returnDoc = autoIdDetails?.insertReturnDoc ?: "Success or tokio_postgres::Error",
             isAsync = true,

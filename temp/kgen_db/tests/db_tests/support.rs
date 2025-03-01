@@ -3,11 +3,14 @@
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
-use bb8::Pool;
-use bb8_postgres::PostgresConnectionManager;
 use chrono::Duration;
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
+use deadpool_postgres::Config;
+use deadpool_postgres::ManagerConfig;
+use deadpool_postgres::Pool;
+use deadpool_postgres::RecyclingMethod;
+use deadpool_postgres::Runtime;
 use serde_json::Value;
 use std::ops::Add;
 use tokio_postgres::NoTls;
@@ -18,8 +21,7 @@ use uuid::Uuid;
 ////////////////////////////////////////////////////////////////////////////////////
 /// The pg connection pool for tests
 #[cfg(test)]
-pub static TEST_DB_POOL: tokio::sync::OnceCell<Pool<PostgresConnectionManager<NoTls>>> =
-    tokio::sync::OnceCell::const_new();
+pub static TEST_DB_POOL: tokio::sync::OnceCell<Pool> = tokio::sync::OnceCell::const_new();
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- traits ---
@@ -37,27 +39,22 @@ pub trait MutateValue {
 ///
 ///   * _return_ - The pool
 #[inline]
-pub async fn get_pool() -> Pool<PostgresConnectionManager<NoTls>> {
+pub async fn get_pool() -> Pool {
     TEST_DB_POOL.get_or_init(initialize_db_pool).await.clone()
 }
 
 /// Initialize the pool connection - called once by `get_or_init`
 ///
 ///   * _return_ - The client _singleton_
-pub async fn initialize_db_pool() -> Pool<PostgresConnectionManager<NoTls>> {
-    let manager = PostgresConnectionManager::new_from_stringlike(
-        "host=localhost user=kgen password=kgen dbname=kgen",
-        NoTls,
-    )
-    .unwrap();
-
-    let pool = Pool::builder()
-        .max_size(16) // Maximum connections in the pool
-        .build(manager)
-        .await
-        .unwrap();
-
-    pool
+pub async fn initialize_db_pool() -> Pool {
+    let mut cfg = Config::new();
+    cfg.dbname = Some("kgen".to_string());
+    cfg.user = Some("kgen".to_string());
+    cfg.password = Some("kgen".to_string());
+    cfg.manager = Some(ManagerConfig {
+        recycling_method: RecyclingMethod::Fast,
+    });
+    cfg.create_pool(Some(Runtime::Tokio1), NoTls).unwrap()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////

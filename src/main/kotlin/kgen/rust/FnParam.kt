@@ -31,6 +31,8 @@ data class FnParam(
     override val asRust: String
         get() = if (nameId == "self") {
             when (type.asRust) {
+                "Box<Self>" -> "self: Box<Self>"
+                "Arc<Self>" -> "self: Arc<Self>"
                 "Self" -> if (isMutable) {
                     "mut self"
                 } else {

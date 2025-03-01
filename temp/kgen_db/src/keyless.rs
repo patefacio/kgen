@@ -1,12 +1,8 @@
 //! Table gateway pattern implemented for Keyless
-//!
-//! > Table with no primary key or auto id
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
-#[allow(unused)]
-use std::sync::LazyLock;
 use tokio_postgres::types::ToSql;
 use tokio_postgres::Client;
 
@@ -14,7 +10,7 @@ use tokio_postgres::Client;
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct KeylessRowData {
     /// Field for column `the_name`
     pub the_name: String,
@@ -63,7 +59,7 @@ pub struct KeylessRowData {
 }
 
 /// Table Gateway Support for table `keyless`.
-/// Table with no primary key or auto id
+/// Rows
 #[derive(Debug, Clone, Default)]
 pub struct TableKeyless {}
 
@@ -76,14 +72,15 @@ impl TableKeyless {
     ///   * **client** - The tokio postgresql client
     ///   * **where_clause** - The where clause (sans `where` keyword)
     ///   * **params** - Any clause parameters
-    ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
-    pub async fn select_all_where(
-        client: &Client,
+    pub async fn select_all_where<C>(
+        client: &C,
         where_clause: &str,
         params: &[&(dyn ToSql + Sync)],
-        capacity: usize,
-    ) -> Vec<KeylessRowData> {
+    ) -> Vec<KeylessRowData>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         let statement = format!(
             r#"SELECT 
     the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
@@ -93,13 +90,14 @@ impl TableKeyless {
     FROM keyless
     WHERE {where_clause}"#
         );
-        let mut results = Vec::<KeylessRowData>::with_capacity(capacity);
         let rows = match client.query(&statement, params).await {
             Ok(stmt) => stmt,
             Err(e) => {
                 panic!("Error preparing statement: {e}");
             }
         };
+
+        let mut results = Vec::<KeylessRowData>::with_capacity(rows.len());
 
         for row in rows {
             results.push(KeylessRowData {
@@ -126,7 +124,7 @@ impl TableKeyless {
                 nullable_json: row.get(20),
                 nullable_jsonb: row.get(21),
             });
-            tracing::trace!("{:?}", results.last().unwrap());
+            tracing::info!("{:?}", results.last().unwrap());
         }
         results
     }
@@ -134,11 +132,13 @@ impl TableKeyless {
     /// Select rows of `keyless`
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
     #[inline]
-    pub async fn select_all(client: &Client, capacity: usize) -> Vec<KeylessRowData> {
-        Self::select_all_where(&client, "1=1", &[], capacity).await
+    pub async fn select_all<C>(client: &C) -> Vec<KeylessRowData>
+    where
+        C: tokio_postgres::GenericClient,
+    {
+        Self::select_all_where(client, "1=1", &[]).await
     }
 
     /// Insert rows of `keyless` by building parameterized statement.
@@ -147,10 +147,13 @@ impl TableKeyless {
     ///   * **client** - The tokio postgresql client
     ///   * **rows** - Row data to insert
     ///   * _return_ - Success or tokio_postgres::Error
-    pub async fn basic_insert(
-        client: &Client,
+    pub async fn basic_insert<C>(
+        client: &C,
         rows: &[KeylessRowData],
-    ) -> Result<u64, tokio_postgres::Error> {
+    ) -> Result<u64, tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         use itertools::Itertools;
         let mut param_id = 0;
         let mut params: Vec<&(dyn ToSql + Sync)> =
@@ -192,7 +195,7 @@ impl TableKeyless {
             })
             .join(",\n");
 
-        let insert_result = client.execute(&format!(r#"insert into keyless 
+        let insert_result = client.execute(&format!(r#"insert into keyless
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -224,11 +227,14 @@ impl TableKeyless {
     ///   * **rows** - Row data to insert
     ///   * **chunk_size** - How to chunk the inserts
     ///   * _return_ - Success or tokio_postgres::Error
-    pub async fn bulk_insert(
-        client: &Client,
+    pub async fn bulk_insert<C>(
+        client: &C,
         rows: &[KeylessRowData],
         chunk_size: usize,
-    ) -> Result<(), tokio_postgres::Error> {
+    ) -> Result<(), tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
@@ -252,24 +258,6 @@ impl TableKeyless {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-
-        let insert_statement = format!(
-            r#"insert into keyless
-    (
-    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
-    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
-    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
-    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
-    )
-    SELECT * FROM UNNEST
-    (
-    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
-    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::json[], $11::json[], $12::varchar[],
-    	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
-    	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
-    )
-    "#
-        );
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
@@ -295,36 +283,24 @@ impl TableKeyless {
                 nullable_json.push(&row.nullable_json);
                 nullable_jsonb.push(&row.nullable_jsonb);
             }
-
-            let chunk_result = client
-                .execute(
-                    &insert_statement,
-                    &[
-                        &the_name,
-                        &the_small_int,
-                        &the_large_int,
-                        &the_big_int,
-                        &the_date,
-                        &the_general_int,
-                        &the_date_time,
-                        &the_uuid,
-                        &the_ulong,
-                        &the_json,
-                        &the_jsonb,
-                        &nullable_name,
-                        &nullable_small_int,
-                        &nullable_large_int,
-                        &nullable_big_int,
-                        &nullable_date,
-                        &nullable_general_int,
-                        &nullable_date_time,
-                        &nullable_uuid,
-                        &nullable_ulong,
-                        &nullable_json,
-                        &nullable_jsonb,
-                    ],
-                )
-                .await;
+            let chunk_result = client.execute(
+            r#"insert into keyless
+    (
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
+    )
+    SELECT * FROM UNNEST
+    (
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::json[], $11::json[], $12::varchar[],
+    	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
+    	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
+    )
+    "#,
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &the_json, &the_jsonb, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong, &nullable_json, &nullable_jsonb]
+        ).await;
 
             match &chunk_result {
                 Err(err) => {
@@ -372,11 +348,14 @@ impl TableKeyless {
     ///   * **rows** - Row data to insert
     ///   * **chunk_size** - How to chunk the inserts
     ///   * _return_ -
-    pub async fn bulk_upsert(
-        client: &Client,
+    pub async fn bulk_upsert<C>(
+        client: &C,
         rows: &[KeylessRowData],
         chunk_size: usize,
-    ) -> Result<(), tokio_postgres::Error> {
+    ) -> Result<(), tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
@@ -400,7 +379,32 @@ impl TableKeyless {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-        let upsert_statement = format!(
+        for chunk_rows in rows.chunks(chunk_size) {
+            for row in chunk_rows.into_iter() {
+                the_name.push(&row.the_name);
+                the_small_int.push(row.the_small_int);
+                the_large_int.push(row.the_large_int);
+                the_big_int.push(row.the_big_int);
+                the_date.push(row.the_date);
+                the_general_int.push(row.the_general_int);
+                the_date_time.push(row.the_date_time);
+                the_uuid.push(row.the_uuid);
+                the_ulong.push(row.the_ulong);
+                the_json.push(&row.the_json);
+                the_jsonb.push(&row.the_jsonb);
+                nullable_name.push(&row.nullable_name);
+                nullable_small_int.push(row.nullable_small_int);
+                nullable_large_int.push(row.nullable_large_int);
+                nullable_big_int.push(row.nullable_big_int);
+                nullable_date.push(row.nullable_date);
+                nullable_general_int.push(row.nullable_general_int);
+                nullable_date_time.push(row.nullable_date_time);
+                nullable_uuid.push(row.nullable_uuid);
+                nullable_ulong.push(row.nullable_ulong);
+                nullable_json.push(&row.nullable_json);
+                nullable_jsonb.push(&row.nullable_jsonb);
+            }
+            let chunk_result = client.execute(
             r#"insert into keyless
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
@@ -439,66 +443,13 @@ impl TableKeyless {
     	nullable_ulong = EXCLUDED.nullable_ulong,
     	nullable_json = EXCLUDED.nullable_json,
     	nullable_jsonb = EXCLUDED.nullable_jsonb
-    "#
-        );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
-                the_name.push(&row.the_name);
-                the_small_int.push(row.the_small_int);
-                the_large_int.push(row.the_large_int);
-                the_big_int.push(row.the_big_int);
-                the_date.push(row.the_date);
-                the_general_int.push(row.the_general_int);
-                the_date_time.push(row.the_date_time);
-                the_uuid.push(row.the_uuid);
-                the_ulong.push(row.the_ulong);
-                the_json.push(&row.the_json);
-                the_jsonb.push(&row.the_jsonb);
-                nullable_name.push(&row.nullable_name);
-                nullable_small_int.push(row.nullable_small_int);
-                nullable_large_int.push(row.nullable_large_int);
-                nullable_big_int.push(row.nullable_big_int);
-                nullable_date.push(row.nullable_date);
-                nullable_general_int.push(row.nullable_general_int);
-                nullable_date_time.push(row.nullable_date_time);
-                nullable_uuid.push(row.nullable_uuid);
-                nullable_ulong.push(row.nullable_ulong);
-                nullable_json.push(&row.nullable_json);
-                nullable_jsonb.push(&row.nullable_jsonb);
-            }
-            let chunk_result = client
-                .execute(
-                    &upsert_statement,
-                    &[
-                        &the_name,
-                        &the_small_int,
-                        &the_large_int,
-                        &the_big_int,
-                        &the_date,
-                        &the_general_int,
-                        &the_date_time,
-                        &the_uuid,
-                        &the_ulong,
-                        &the_json,
-                        &the_jsonb,
-                        &nullable_name,
-                        &nullable_small_int,
-                        &nullable_large_int,
-                        &nullable_big_int,
-                        &nullable_date,
-                        &nullable_general_int,
-                        &nullable_date_time,
-                        &nullable_uuid,
-                        &nullable_ulong,
-                        &nullable_json,
-                        &nullable_jsonb,
-                    ],
-                )
-                .await;
+    "#,
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &the_json, &the_jsonb, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong, &nullable_json, &nullable_jsonb]
+        ).await;
 
             match &chunk_result {
                 Err(err) => {
-                    tracing::error!("Failed bulk_insert `keyless` chunk({chunk}) -> {err}");
+                    tracing::error!("Failed bulk_upsert `keyless` chunk({chunk}) -> {err}");
                     chunk_result?;
                 }
                 Ok(chunk_result) => {
@@ -540,8 +491,11 @@ impl TableKeyless {
     ///   * **client** - The tokio postgresql client
     ///   * _return_ - Number of rows deleted
     #[inline]
-    pub async fn delete_all(client: &Client) -> Result<u64, tokio_postgres::Error> {
-        client.execute(&format!("DELETE FROM keyless"), &[]).await
+    pub async fn delete_all<C>(client: &C) -> Result<u64, tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
+        client.execute("DELETE FROM keyless", &[]).await
     }
 }
 

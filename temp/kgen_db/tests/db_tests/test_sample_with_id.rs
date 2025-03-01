@@ -9,6 +9,7 @@ use kgen_db::sample_with_id::*;
 use std::collections::BTreeSet;
 use std::ops::Deref;
 use tokio_postgres::Client;
+use tokio_postgres::GenericClient;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- functions ---
@@ -44,17 +45,17 @@ pub fn mutate_row_data(row_data: &mut SampleWithIdRowData) {
 
 /// Select all from the database and assert they compare to [values]
 ///
-///   * **pool_conn** - The pool connection
+///   * **client** - The pool connection
 ///   * **values** - Values to compare to selected
 ///   * **label** - Label for assert
 pub async fn select_and_compare_assert<T>(
-    pool_conn: &T,
+    client: &T,
     values: &Vec<SampleWithIdRowData>,
     label: &str,
 ) where
-    T: Deref<Target = Client>,
+    T: GenericClient,
 {
-    let selected_entries = TableSampleWithId::select_all(&pool_conn, 4).await;
+    let selected_entries = TableSampleWithId::select_all(client).await;
     let selected = entries_to_row_data(&selected_entries);
     assert_eq!(selected.len(), values.len());
     get_sample_rows_sorted(&selected)
@@ -476,16 +477,17 @@ pub fn get_sample_rows() -> Vec<SampleWithIdRowData> {
 #[tokio::test]
 pub async fn test_crud() {
     let pool = get_pool().await;
-    let conn = pool.get().await.unwrap();
+    let resource = pool.get().await.unwrap();
+    let client = resource.client();
     // First delete all, assuming it worked
-    let deleted = TableSampleWithId::delete_all(&conn).await.unwrap();
+    let deleted = TableSampleWithId::delete_all(client).await.unwrap();
     tracing::info!("Initialize phase deleted {deleted}");
 
     /*
       Validate that delete work by selecting back an empty set
     */
     {
-        assert_eq!(0, TableSampleWithId::select_all(&conn, 4).await.len());
+        assert_eq!(0, TableSampleWithId::select_all(client).await.len());
     }
     let mut samples = get_sample_rows();
 
@@ -493,7 +495,7 @@ pub async fn test_crud() {
       Test the basic insert functionality
     */
     {
-        let inserted = TableSampleWithId::basic_insert(&conn, samples.clone())
+        let inserted = TableSampleWithId::basic_insert(client, samples.clone())
             .await
             .unwrap();
 
@@ -504,13 +506,13 @@ pub async fn test_crud() {
         */
         {
             select_and_compare_assert(
-                &conn,
+                client,
                 &inserted.into_iter().map(|r| r.data).collect(),
                 "Basic Ins Cmp",
             )
             .await;
         }
-        let deleted = TableSampleWithId::delete_all(&conn).await.unwrap();
+        let deleted = TableSampleWithId::delete_all(client).await.unwrap();
         tracing::info!("Basic insert phase deleted {deleted}");
         assert_eq!(samples.len(), deleted as usize);
     }
@@ -519,7 +521,7 @@ pub async fn test_crud() {
       Test the bulk insert functionality
     */
     {
-        let inserted = TableSampleWithId::bulk_insert(&conn, samples.clone(), 4)
+        let inserted = TableSampleWithId::bulk_insert(client, samples.clone(), 4)
             .await
             .unwrap();
         tracing::debug!("Inserted with `bulk_insert` -> {inserted:?}");
@@ -527,7 +529,7 @@ pub async fn test_crud() {
           Select back out the inserted data and compare to samples
         */
         select_and_compare_assert(
-            &conn,
+            client,
             &inserted.into_iter().map(|r| r.data).collect(),
             "Blk Ins Cmp",
         )
@@ -540,11 +542,11 @@ pub async fn test_crud() {
     {
         samples.iter_mut().for_each(|data| mutate_row_data(data));
         tracing::debug!("Mutated Samples: {samples:?}");
-        let upserted = TableSampleWithId::bulk_upsert(&conn, samples.clone(), 4)
+        let upserted = TableSampleWithId::bulk_upsert(client, samples.clone(), 4)
             .await
             .unwrap();
         tracing::debug!("Inserted with `bulk_upsert` -> {upserted:?}");
-        select_and_compare_assert(&conn, &samples.iter().cloned().collect(), "Blk Upsert Cmp")
+        select_and_compare_assert(client, &samples.iter().cloned().collect(), "Blk Upsert Cmp")
             .await;
     }
 
@@ -552,10 +554,10 @@ pub async fn test_crud() {
       Deleted all entries
     */
     {
-        let deleted = TableSampleWithId::delete_all(&conn).await.unwrap();
+        let deleted = TableSampleWithId::delete_all(client).await.unwrap();
         tracing::info!("Deleted all {deleted} TableSampleWithId entries");
         assert_eq!(deleted as usize, samples.len());
-        let selected = TableSampleWithId::select_all(&conn, 4).await;
+        let selected = TableSampleWithId::select_all(client).await;
         assert_eq!(0, selected.len());
     }
 }

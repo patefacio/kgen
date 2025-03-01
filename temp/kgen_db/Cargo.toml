@@ -13,8 +13,7 @@ keywords = []
 
 [dependencies]
 # α <dependencies>
-bb8 = "0.8.6"
-bb8-postgres = "0.8.1"
+deadpool-postgres = "0.14.1"
 chrono = "0.4.38"
 itertools = "0.13.0"
 serde = "1.0.215"

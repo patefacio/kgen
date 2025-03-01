@@ -72,6 +72,7 @@ ${tableGateway.unnestedColumnExpressionValue}$returningId
             clientFnParam,
             inputFnParam,
             tableGateway.bulkInsertChunkSizeFnParam,
+            genericParamSet = genericClientParamSet,
             returnType = "Result<${autoIdDetails?.outputType ?: "()"}, tokio_postgres::Error>".asType,
             returnDoc = autoIdDetails?.insertReturnDoc ?: "Success or tokio_postgres::Error",
             body = FnBody(

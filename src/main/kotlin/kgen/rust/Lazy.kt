@@ -2,6 +2,14 @@ package kgen.rust
 
 import kgen.*
 
+/** A lazy initialized value.
+ * @property nameId Snake case name of the binding
+ * @property doc A comment for the binding
+ * @property type The rust type of the binding
+ * @property value An optional initialization value
+ * @property value Any rust attributes
+ * @property visibility The visibility of the binding
+ */
 data class Lazy(
     val nameId: String,
     val doc: String,

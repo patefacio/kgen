@@ -5,6 +5,40 @@ import kgen.rust.decl_macro.DeclMacro
 import kgen.utility.panicTest
 import kgen.utility.unitTest
 
+/**
+ * Represents a module with various attributes, content, and configurations.
+ *
+ * @property nameId Snake case name for the module.
+ * @property doc Documentation for the module. Defaults to a missing document warning.
+ * @property moduleType Type of the module, e.g., `FileModule`.
+ * @property moduleRootType Root type of the module. Defaults to `NonRoot`.
+ * @property visibility Visibility of the module (e.g., public or private). Defaults to `Pub`.
+ * @property enums List of enums defined in the module. Defaults to an empty list.
+ * @property traits List of traits implemented in the module. Defaults to an empty list.
+ * @property functions List of functions defined in the module. Defaults to an empty list.
+ * @property structs List of structs defined in the module. Defaults to an empty list.
+ * @property modules Nested modules contained within this module. Defaults to an empty list.
+ * @property uses Set of `use` statements in the module. Defaults to an empty set.
+ * @property typeAliases List of type aliases declared in the module. Defaults to an empty list.
+ * @property declMacros List of macros declared in the module. Defaults to an empty list.
+ * @property lazies List of lazy values in the module. Defaults to an empty list.
+ * @property consts List of constants defined in the module. Defaults to an empty list.
+ * @property statics List of static variables in the module. Defaults to an empty list.
+ * @property staticInits List of static initializations in the module. Defaults to an empty list.
+ * @property attrs List of attributes applied to the module. Defaults to an empty `AttrList`.
+ * @property macroUses List of macro invocations in the module. Defaults to an empty list.
+ * @property testMacroUses List of test-related macro invocations. Defaults to an empty list.
+ * @property traitImpls List of trait implementations in the module. Defaults to an empty list.
+ * @property typeImpls List of type implementations in the module. Defaults to an empty list.
+ * @property codeBlock Code block associated with the module. Defaults to an empty open delimited block.
+ * @property moduleBody The body of the module, if any. Defaults to `null`.
+ * @property publishPublicTypes Indicates whether public types are published. Defaults to `true`.
+ * @property classicModStructure Indicates whether the module uses the classic module structure. Defaults to `true`.
+ * @property includeTypeSizes Indicates whether type sizes are included. Defaults to `false`.
+ * @property isBinary Indicates if the module is a binary module to be placed in `bin`. Defaults to `false`.
+ * @property disabled Indicates if the module is disabled. Defaults to `false`.
+ * @property customModDecls Custom module declarations in the module. Defaults to an empty list.
+ */
 data class Module(
     val nameId: String,
     val doc: String? = missingDoc(nameId, "Module"),

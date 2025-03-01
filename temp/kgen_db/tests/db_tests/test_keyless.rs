@@ -9,6 +9,7 @@ use kgen_db::keyless::*;
 use std::collections::BTreeSet;
 use std::ops::Deref;
 use tokio_postgres::Client;
+use tokio_postgres::GenericClient;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- functions ---
@@ -44,14 +45,14 @@ pub fn mutate_row_data(row_data: &mut KeylessRowData) {
 
 /// Select all from the database and assert they compare to [values]
 ///
-///   * **pool_conn** - The pool connection
+///   * **client** - The pool connection
 ///   * **values** - Values to compare to selected
 ///   * **label** - Label for assert
-pub async fn select_and_compare_assert<T>(pool_conn: &T, values: &Vec<KeylessRowData>, label: &str)
+pub async fn select_and_compare_assert<T>(client: &T, values: &Vec<KeylessRowData>, label: &str)
 where
-    T: Deref<Target = Client>,
+    T: GenericClient,
 {
-    let selected = TableKeyless::select_all(&pool_conn, 4).await;
+    let selected = TableKeyless::select_all(client).await;
     assert_eq!(selected.len(), values.len());
     get_sample_rows_sorted(&selected)
         .iter()
@@ -443,16 +444,17 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
 #[tokio::test]
 pub async fn test_crud() {
     let pool = get_pool().await;
-    let conn = pool.get().await.unwrap();
+    let resource = pool.get().await.unwrap();
+    let client = resource.client();
     // First delete all, assuming it worked
-    let deleted = TableKeyless::delete_all(&conn).await.unwrap();
+    let deleted = TableKeyless::delete_all(client).await.unwrap();
     tracing::info!("Initialize phase deleted {deleted}");
 
     /*
       Validate that delete work by selecting back an empty set
     */
     {
-        assert_eq!(0, TableKeyless::select_all(&conn, 4).await.len());
+        assert_eq!(0, TableKeyless::select_all(client).await.len());
     }
     let samples = get_sample_rows();
 
@@ -460,7 +462,7 @@ pub async fn test_crud() {
       Test the basic insert functionality
     */
     {
-        let inserted = TableKeyless::basic_insert(&conn, &samples).await.unwrap();
+        let inserted = TableKeyless::basic_insert(client, &samples).await.unwrap();
 
         tracing::debug!("Inserted with `basic_insert` -> {inserted:?}");
 
@@ -469,13 +471,13 @@ pub async fn test_crud() {
         */
         {
             select_and_compare_assert(
-                &conn,
+                client,
                 &get_sample_rows().iter().cloned().collect(),
                 "Basic Ins Cmp",
             )
             .await;
         }
-        let deleted = TableKeyless::delete_all(&conn).await.unwrap();
+        let deleted = TableKeyless::delete_all(client).await.unwrap();
         tracing::info!("Basic insert phase deleted {deleted}");
         assert_eq!(samples.len(), deleted as usize);
     }
@@ -484,13 +486,15 @@ pub async fn test_crud() {
       Test the bulk insert functionality
     */
     {
-        let inserted = TableKeyless::bulk_insert(&conn, &samples, 4).await.unwrap();
+        let inserted = TableKeyless::bulk_insert(client, &samples, 4)
+            .await
+            .unwrap();
         tracing::debug!("Inserted with `bulk_insert` -> {inserted:?}");
         /*
           Select back out the inserted data and compare to samples
         */
         select_and_compare_assert(
-            &conn,
+            client,
             &get_sample_rows().iter().cloned().collect(),
             "Blk Ins Cmp",
         )
@@ -501,10 +505,10 @@ pub async fn test_crud() {
       Deleted all entries
     */
     {
-        let deleted = TableKeyless::delete_all(&conn).await.unwrap();
+        let deleted = TableKeyless::delete_all(client).await.unwrap();
         tracing::info!("Deleted all {deleted} TableKeyless entries");
         assert_eq!(deleted as usize, samples.len());
-        let selected = TableKeyless::select_all(&conn, 4).await;
+        let selected = TableKeyless::select_all(client).await;
         assert_eq!(0, selected.len());
     }
 }

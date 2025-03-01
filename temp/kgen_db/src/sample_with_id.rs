@@ -1,12 +1,8 @@
 //! Table gateway pattern implemented for SampleWithId
-//!
-//! > Table with auto-id
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- module uses ---
 ////////////////////////////////////////////////////////////////////////////////////
-#[allow(unused)]
-use std::sync::LazyLock;
 use tokio_postgres::types::ToSql;
 use tokio_postgres::Client;
 
@@ -14,12 +10,10 @@ use tokio_postgres::Client;
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct SampleWithIdRowData {
     /// Field for column `the_name`
     pub the_name: String,
-    /// Field for column `the_boolean`
-    pub the_boolean: bool,
     /// Field for column `the_small_int`
     pub the_small_int: i16,
     /// Field for column `the_large_int`
@@ -42,8 +36,6 @@ pub struct SampleWithIdRowData {
     pub the_jsonb: serde_json::Value,
     /// Field for column `nullable_name`
     pub nullable_name: String,
-    /// Field for column `nullable_boolean`
-    pub nullable_boolean: Option<bool>,
     /// Field for column `nullable_small_int`
     pub nullable_small_int: Option<i16>,
     /// Field for column `nullable_large_int`
@@ -76,14 +68,14 @@ pub struct SampleWithIdEntry {
 }
 
 /// Primary key fields for `SampleWithId`
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct SampleWithIdPkey {
     /// Field for column `auto_id`
     pub auto_id: i32,
 }
 
 /// Table Gateway Support for table `sample_with_id`.
-/// Table with auto-id
+/// Rows
 #[derive(Debug, Clone, Default)]
 pub struct TableSampleWithId {}
 
@@ -96,25 +88,24 @@ impl TableSampleWithId {
     ///   * **client** - The tokio postgresql client
     ///   * **where_clause** - The where clause (sans `where` keyword)
     ///   * **params** - Any clause parameters
-    ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
-    pub async fn select_all_where(
-        client: &Client,
+    pub async fn select_all_where<C>(
+        client: &C,
         where_clause: &str,
         params: &[&(dyn ToSql + Sync)],
-        capacity: usize,
-    ) -> Vec<SampleWithIdEntry> {
+    ) -> Vec<SampleWithIdEntry>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         let statement = format!(
             r#"SELECT 
-    auto_id, the_name, the_boolean, the_small_int, the_large_int, the_big_int,
-    	the_date, the_general_int, the_date_time, the_uuid, the_ulong, the_json,
-    	the_jsonb, nullable_name, nullable_boolean, nullable_small_int, nullable_large_int, nullable_big_int,
-    	nullable_date, nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong, nullable_json,
-    	nullable_jsonb
+    auto_id, the_name, the_small_int, the_large_int, the_big_int, the_date,
+    	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
+    	nullable_name, nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int,
+    	nullable_date_time, nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
     FROM sample_with_id
     WHERE {where_clause}"#
         );
-        let mut results = Vec::<SampleWithIdEntry>::with_capacity(capacity);
         let rows = match client.query(&statement, params).await {
             Ok(stmt) => stmt,
             Err(e) => {
@@ -122,37 +113,37 @@ impl TableSampleWithId {
             }
         };
 
+        let mut results = Vec::<SampleWithIdEntry>::with_capacity(rows.len());
+
         for row in rows {
             results.push(SampleWithIdEntry {
                 auto_id: row.get(0),
                 data: SampleWithIdRowData {
                     the_name: row.get(1),
-                    the_boolean: row.get(2),
-                    the_small_int: row.get(3),
-                    the_large_int: row.get(4),
-                    the_big_int: row.get(5),
-                    the_date: row.get(6),
-                    the_general_int: row.get(7),
-                    the_date_time: row.get(8),
-                    the_uuid: row.get(9),
-                    the_ulong: row.get(10),
-                    the_json: row.get(11),
-                    the_jsonb: row.get(12),
-                    nullable_name: row.get(13),
-                    nullable_boolean: row.get(14),
-                    nullable_small_int: row.get(15),
-                    nullable_large_int: row.get(16),
-                    nullable_big_int: row.get(17),
-                    nullable_date: row.get(18),
-                    nullable_general_int: row.get(19),
-                    nullable_date_time: row.get(20),
-                    nullable_uuid: row.get(21),
-                    nullable_ulong: row.get(22),
-                    nullable_json: row.get(23),
-                    nullable_jsonb: row.get(24),
+                    the_small_int: row.get(2),
+                    the_large_int: row.get(3),
+                    the_big_int: row.get(4),
+                    the_date: row.get(5),
+                    the_general_int: row.get(6),
+                    the_date_time: row.get(7),
+                    the_uuid: row.get(8),
+                    the_ulong: row.get(9),
+                    the_json: row.get(10),
+                    the_jsonb: row.get(11),
+                    nullable_name: row.get(12),
+                    nullable_small_int: row.get(13),
+                    nullable_large_int: row.get(14),
+                    nullable_big_int: row.get(15),
+                    nullable_date: row.get(16),
+                    nullable_general_int: row.get(17),
+                    nullable_date_time: row.get(18),
+                    nullable_uuid: row.get(19),
+                    nullable_ulong: row.get(20),
+                    nullable_json: row.get(21),
+                    nullable_jsonb: row.get(22),
                 },
             });
-            tracing::trace!("{:?}", results.last().unwrap());
+            tracing::info!("{:?}", results.last().unwrap());
         }
         results
     }
@@ -160,11 +151,13 @@ impl TableSampleWithId {
     /// Select rows of `sample_with_id`
     ///
     ///   * **client** - The tokio postgresql client
-    ///   * **capacity** - Capacity to the results
     ///   * _return_ - Selected rows
     #[inline]
-    pub async fn select_all(client: &Client, capacity: usize) -> Vec<SampleWithIdEntry> {
-        Self::select_all_where(&client, "1=1", &[], capacity).await
+    pub async fn select_all<C>(client: &C) -> Vec<SampleWithIdEntry>
+    where
+        C: tokio_postgres::GenericClient,
+    {
+        Self::select_all_where(client, "1=1", &[]).await
     }
 
     /// Insert rows of `sample_with_id` by building parameterized statement.
@@ -173,10 +166,13 @@ impl TableSampleWithId {
     ///   * **client** - The tokio postgresql client
     ///   * **rows** - Row data, consumed but returned with ids
     ///   * _return_ - Entries with corresponding _auto_id_
-    pub async fn basic_insert(
-        client: &Client,
+    pub async fn basic_insert<C>(
+        client: &C,
         rows: Vec<SampleWithIdRowData>,
-    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error> {
+    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         use itertools::Itertools;
         let mut param_id = 0;
         let mut params: Vec<&(dyn ToSql + Sync)> =
@@ -192,7 +188,6 @@ impl TableSampleWithId {
                     .join(", ");
 
                 params.push(&row.the_name);
-                params.push(&row.the_boolean);
                 params.push(&row.the_small_int);
                 params.push(&row.the_large_int);
                 params.push(&row.the_big_int);
@@ -204,7 +199,6 @@ impl TableSampleWithId {
                 params.push(&row.the_json);
                 params.push(&row.the_jsonb);
                 params.push(&row.nullable_name);
-                params.push(&row.nullable_boolean);
                 params.push(&row.nullable_small_int);
                 params.push(&row.nullable_large_int);
                 params.push(&row.nullable_big_int);
@@ -220,12 +214,12 @@ impl TableSampleWithId {
             })
             .join(",\n");
 
-        let insert_result = client.query(&format!(r#"insert into sample_with_id 
+        let insert_result = client.query(&format!(r#"insert into sample_with_id
     (
-    	the_name, the_boolean, the_small_int, the_large_int, the_big_int, the_date,
-    	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
-    	nullable_name, nullable_boolean, nullable_small_int, nullable_large_int, nullable_big_int, nullable_date,
-    	nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
     )
     VALUES
     {value_params}
@@ -260,16 +254,18 @@ impl TableSampleWithId {
     ///   * **rows** - Row data, consumed but returned with ids
     ///   * **chunk_size** - How to chunk the inserts
     ///   * _return_ - Entries with corresponding _auto_id_
-    pub async fn bulk_insert(
-        client: &Client,
+    pub async fn bulk_insert<C>(
+        client: &C,
         rows: Vec<SampleWithIdRowData>,
         chunk_size: usize,
-    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error> {
+    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         let mut chunk = 0;
         let mut auto_id = Vec::with_capacity(rows.len());
 
         let mut the_name = Vec::with_capacity(chunk_size);
-        let mut the_boolean = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
         let mut the_big_int = Vec::with_capacity(chunk_size);
@@ -281,7 +277,6 @@ impl TableSampleWithId {
         let mut the_json = Vec::with_capacity(chunk_size);
         let mut the_jsonb = Vec::with_capacity(chunk_size);
         let mut nullable_name = Vec::with_capacity(chunk_size);
-        let mut nullable_boolean = Vec::with_capacity(chunk_size);
         let mut nullable_small_int = Vec::with_capacity(chunk_size);
         let mut nullable_large_int = Vec::with_capacity(chunk_size);
         let mut nullable_big_int = Vec::with_capacity(chunk_size);
@@ -292,29 +287,9 @@ impl TableSampleWithId {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-
-        let insert_statement = format!(
-            r#"insert into sample_with_id
-    (
-    	the_name, the_boolean, the_small_int, the_large_int, the_big_int, the_date,
-    	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
-    	nullable_name, nullable_boolean, nullable_small_int, nullable_large_int, nullable_big_int, nullable_date,
-    	nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
-    )
-    SELECT * FROM UNNEST
-    (
-    	$1::varchar[], $2::boolean[], $3::smallint[], $4::bigint[], $5::bigint[], $6::date[],
-    	$7::int[], $8::timestamp[], $9::uuid[], $10::bigint[], $11::json[], $12::json[],
-    	$13::varchar[], $14::boolean[], $15::smallint[], $16::bigint[], $17::bigint[], $18::date[],
-    	$19::int[], $20::timestamp[], $21::uuid[], $22::bigint[], $23::json[], $24::json[]
-    )
-    returning auto_id
-    "#
-        );
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
-                the_boolean.push(row.the_boolean);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
                 the_big_int.push(row.the_big_int);
@@ -326,7 +301,6 @@ impl TableSampleWithId {
                 the_json.push(&row.the_json);
                 the_jsonb.push(&row.the_jsonb);
                 nullable_name.push(&row.nullable_name);
-                nullable_boolean.push(row.nullable_boolean);
                 nullable_small_int.push(row.nullable_small_int);
                 nullable_large_int.push(row.nullable_large_int);
                 nullable_big_int.push(row.nullable_big_int);
@@ -338,38 +312,25 @@ impl TableSampleWithId {
                 nullable_json.push(&row.nullable_json);
                 nullable_jsonb.push(&row.nullable_jsonb);
             }
-
-            let chunk_result = client
-                .query(
-                    &insert_statement,
-                    &[
-                        &the_name,
-                        &the_boolean,
-                        &the_small_int,
-                        &the_large_int,
-                        &the_big_int,
-                        &the_date,
-                        &the_general_int,
-                        &the_date_time,
-                        &the_uuid,
-                        &the_ulong,
-                        &the_json,
-                        &the_jsonb,
-                        &nullable_name,
-                        &nullable_boolean,
-                        &nullable_small_int,
-                        &nullable_large_int,
-                        &nullable_big_int,
-                        &nullable_date,
-                        &nullable_general_int,
-                        &nullable_date_time,
-                        &nullable_uuid,
-                        &nullable_ulong,
-                        &nullable_json,
-                        &nullable_jsonb,
-                    ],
-                )
-                .await;
+            let chunk_result = client.query(
+            r#"insert into sample_with_id
+    (
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
+    )
+    SELECT * FROM UNNEST
+    (
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::json[], $11::json[], $12::varchar[],
+    	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
+    	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
+    )
+    returning auto_id
+    "#,
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &the_json, &the_jsonb, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong, &nullable_json, &nullable_jsonb]
+        ).await;
 
             match &chunk_result {
                 Err(err) => {
@@ -388,7 +349,6 @@ impl TableSampleWithId {
             }
             chunk += 1;
             the_name.clear();
-            the_boolean.clear();
             the_small_int.clear();
             the_large_int.clear();
             the_big_int.clear();
@@ -400,7 +360,6 @@ impl TableSampleWithId {
             the_json.clear();
             the_jsonb.clear();
             nullable_name.clear();
-            nullable_boolean.clear();
             nullable_small_int.clear();
             nullable_large_int.clear();
             nullable_big_int.clear();
@@ -426,16 +385,18 @@ impl TableSampleWithId {
     ///   * **rows** - Row data, consumed but returned with ids
     ///   * **chunk_size** - How to chunk the inserts
     ///   * _return_ -
-    pub async fn bulk_upsert(
-        client: &Client,
+    pub async fn bulk_upsert<C>(
+        client: &C,
         rows: Vec<SampleWithIdRowData>,
         chunk_size: usize,
-    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error> {
+    ) -> Result<Vec<SampleWithIdEntry>, tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
         let mut chunk = 0;
         let mut auto_id = Vec::with_capacity(rows.len());
 
         let mut the_name = Vec::with_capacity(chunk_size);
-        let mut the_boolean = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
         let mut the_big_int = Vec::with_capacity(chunk_size);
@@ -447,7 +408,6 @@ impl TableSampleWithId {
         let mut the_json = Vec::with_capacity(chunk_size);
         let mut the_jsonb = Vec::with_capacity(chunk_size);
         let mut nullable_name = Vec::with_capacity(chunk_size);
-        let mut nullable_boolean = Vec::with_capacity(chunk_size);
         let mut nullable_small_int = Vec::with_capacity(chunk_size);
         let mut nullable_large_int = Vec::with_capacity(chunk_size);
         let mut nullable_big_int = Vec::with_capacity(chunk_size);
@@ -458,54 +418,9 @@ impl TableSampleWithId {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-        let upsert_statement = format!(
-            r#"insert into sample_with_id
-    (
-    	the_name, the_boolean, the_small_int, the_large_int, the_big_int, the_date,
-    	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
-    	nullable_name, nullable_boolean, nullable_small_int, nullable_large_int, nullable_big_int, nullable_date,
-    	nullable_general_int, nullable_date_time, nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
-    )
-    SELECT * FROM UNNEST
-    (
-    	$1::varchar[], $2::boolean[], $3::smallint[], $4::bigint[], $5::bigint[], $6::date[],
-    	$7::int[], $8::timestamp[], $9::uuid[], $10::bigint[], $11::json[], $12::json[],
-    	$13::varchar[], $14::boolean[], $15::smallint[], $16::bigint[], $17::bigint[], $18::date[],
-    	$19::int[], $20::timestamp[], $21::uuid[], $22::bigint[], $23::json[], $24::json[]
-    )
-    ON CONFLICT (the_name, the_small_int)
-    DO UPDATE SET
-        the_name = EXCLUDED.the_name,
-    	the_boolean = EXCLUDED.the_boolean,
-    	the_small_int = EXCLUDED.the_small_int,
-    	the_large_int = EXCLUDED.the_large_int,
-    	the_big_int = EXCLUDED.the_big_int,
-    	the_date = EXCLUDED.the_date,
-    	the_general_int = EXCLUDED.the_general_int,
-    	the_date_time = EXCLUDED.the_date_time,
-    	the_uuid = EXCLUDED.the_uuid,
-    	the_ulong = EXCLUDED.the_ulong,
-    	the_json = EXCLUDED.the_json,
-    	the_jsonb = EXCLUDED.the_jsonb,
-    	nullable_name = EXCLUDED.nullable_name,
-    	nullable_boolean = EXCLUDED.nullable_boolean,
-    	nullable_small_int = EXCLUDED.nullable_small_int,
-    	nullable_large_int = EXCLUDED.nullable_large_int,
-    	nullable_big_int = EXCLUDED.nullable_big_int,
-    	nullable_date = EXCLUDED.nullable_date,
-    	nullable_general_int = EXCLUDED.nullable_general_int,
-    	nullable_date_time = EXCLUDED.nullable_date_time,
-    	nullable_uuid = EXCLUDED.nullable_uuid,
-    	nullable_ulong = EXCLUDED.nullable_ulong,
-    	nullable_json = EXCLUDED.nullable_json,
-    	nullable_jsonb = EXCLUDED.nullable_jsonb
-    returning auto_id
-    "#
-        );
         for chunk_rows in rows.chunks(chunk_size) {
             for row in chunk_rows.into_iter() {
                 the_name.push(&row.the_name);
-                the_boolean.push(row.the_boolean);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
                 the_big_int.push(row.the_big_int);
@@ -517,7 +432,6 @@ impl TableSampleWithId {
                 the_json.push(&row.the_json);
                 the_jsonb.push(&row.the_jsonb);
                 nullable_name.push(&row.nullable_name);
-                nullable_boolean.push(row.nullable_boolean);
                 nullable_small_int.push(row.nullable_small_int);
                 nullable_large_int.push(row.nullable_large_int);
                 nullable_big_int.push(row.nullable_big_int);
@@ -529,41 +443,53 @@ impl TableSampleWithId {
                 nullable_json.push(&row.nullable_json);
                 nullable_jsonb.push(&row.nullable_jsonb);
             }
-            let chunk_result = client
-                .query(
-                    &upsert_statement,
-                    &[
-                        &the_name,
-                        &the_boolean,
-                        &the_small_int,
-                        &the_large_int,
-                        &the_big_int,
-                        &the_date,
-                        &the_general_int,
-                        &the_date_time,
-                        &the_uuid,
-                        &the_ulong,
-                        &the_json,
-                        &the_jsonb,
-                        &nullable_name,
-                        &nullable_boolean,
-                        &nullable_small_int,
-                        &nullable_large_int,
-                        &nullable_big_int,
-                        &nullable_date,
-                        &nullable_general_int,
-                        &nullable_date_time,
-                        &nullable_uuid,
-                        &nullable_ulong,
-                        &nullable_json,
-                        &nullable_jsonb,
-                    ],
-                )
-                .await;
+            let chunk_result = client.query(
+            r#"insert into sample_with_id
+    (
+    	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
+    	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
+    	nullable_small_int, nullable_large_int, nullable_big_int, nullable_date, nullable_general_int, nullable_date_time,
+    	nullable_uuid, nullable_ulong, nullable_json, nullable_jsonb
+    )
+    SELECT * FROM UNNEST
+    (
+    	$1::varchar[], $2::smallint[], $3::bigint[], $4::bigint[], $5::date[], $6::int[],
+    	$7::timestamp[], $8::uuid[], $9::bigint[], $10::json[], $11::json[], $12::varchar[],
+    	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
+    	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
+    )
+    ON CONFLICT (the_name, the_small_int)
+    DO UPDATE SET
+        the_name = EXCLUDED.the_name,
+    	the_small_int = EXCLUDED.the_small_int,
+    	the_large_int = EXCLUDED.the_large_int,
+    	the_big_int = EXCLUDED.the_big_int,
+    	the_date = EXCLUDED.the_date,
+    	the_general_int = EXCLUDED.the_general_int,
+    	the_date_time = EXCLUDED.the_date_time,
+    	the_uuid = EXCLUDED.the_uuid,
+    	the_ulong = EXCLUDED.the_ulong,
+    	the_json = EXCLUDED.the_json,
+    	the_jsonb = EXCLUDED.the_jsonb,
+    	nullable_name = EXCLUDED.nullable_name,
+    	nullable_small_int = EXCLUDED.nullable_small_int,
+    	nullable_large_int = EXCLUDED.nullable_large_int,
+    	nullable_big_int = EXCLUDED.nullable_big_int,
+    	nullable_date = EXCLUDED.nullable_date,
+    	nullable_general_int = EXCLUDED.nullable_general_int,
+    	nullable_date_time = EXCLUDED.nullable_date_time,
+    	nullable_uuid = EXCLUDED.nullable_uuid,
+    	nullable_ulong = EXCLUDED.nullable_ulong,
+    	nullable_json = EXCLUDED.nullable_json,
+    	nullable_jsonb = EXCLUDED.nullable_jsonb
+    returning auto_id
+    "#,
+            &[&the_name, &the_small_int, &the_large_int, &the_big_int, &the_date, &the_general_int, &the_date_time, &the_uuid, &the_ulong, &the_json, &the_jsonb, &nullable_name, &nullable_small_int, &nullable_large_int, &nullable_big_int, &nullable_date, &nullable_general_int, &nullable_date_time, &nullable_uuid, &nullable_ulong, &nullable_json, &nullable_jsonb]
+        ).await;
 
             match &chunk_result {
                 Err(err) => {
-                    tracing::error!("Failed bulk_insert `sample_with_id` chunk({chunk}) -> {err}");
+                    tracing::error!("Failed bulk_upsert `sample_with_id` chunk({chunk}) -> {err}");
                     chunk_result?;
                 }
                 Ok(chunk_result) => {
@@ -578,7 +504,6 @@ impl TableSampleWithId {
             }
             chunk += 1;
             the_name.clear();
-            the_boolean.clear();
             the_small_int.clear();
             the_large_int.clear();
             the_big_int.clear();
@@ -590,7 +515,6 @@ impl TableSampleWithId {
             the_json.clear();
             the_jsonb.clear();
             nullable_name.clear();
-            nullable_boolean.clear();
             nullable_small_int.clear();
             nullable_large_int.clear();
             nullable_big_int.clear();
@@ -614,21 +538,21 @@ impl TableSampleWithId {
     ///   * **client** - The tokio postgresql client
     ///   * _return_ - Number of rows deleted
     #[inline]
-    pub async fn delete_all(client: &Client) -> Result<u64, tokio_postgres::Error> {
-        client
-            .execute(&format!("DELETE FROM sample_with_id"), &[])
-            .await
+    pub async fn delete_all<C>(client: &C) -> Result<u64, tokio_postgres::Error>
+    where
+        C: tokio_postgres::GenericClient,
+    {
+        client.execute("DELETE FROM sample_with_id", &[]).await
     }
 }
 
 impl SampleWithIdRowData {
     /// Number of fields
-    pub const NUM_FIELDS: usize = 24;
+    pub const NUM_FIELDS: usize = 22;
 
     /// Names of fields
     pub const FIELD_NAMES: [&'static str; Self::NUM_FIELDS] = [
         "the_name",
-        "the_boolean",
         "the_small_int",
         "the_large_int",
         "the_big_int",
@@ -640,7 +564,6 @@ impl SampleWithIdRowData {
         "the_json",
         "the_jsonb",
         "nullable_name",
-        "nullable_boolean",
         "nullable_small_int",
         "nullable_large_int",
         "nullable_big_int",
@@ -664,7 +587,7 @@ impl SampleWithIdPkey {
 
 impl TableSampleWithId {
     /// The total number of key and value columns
-    pub const COLUMN_COUNT: usize = 25;
+    pub const COLUMN_COUNT: usize = 23;
 }
 
 // α <mod-def sample_with_id>

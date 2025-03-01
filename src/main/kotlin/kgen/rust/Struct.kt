@@ -10,6 +10,37 @@ import kgen.*
  *  alternative convenience - simply add a trait like `defaultTrait` and
  *  a stubbed impl will be included.
  */
+
+/**
+ * Represents a Rust structure, including its fields, attributes, visibility, and related implementations.
+ *
+ * This class provides utilities for generating the Rust representation of a structure, as well as
+ * helper methods for trait implementations, constructors, and accessors.
+ *
+ * @property nameId The unique identifier (name) for the structure.
+ * @property doc Documentation string associated with the structure. Defaults to a generated placeholder if not provided.
+ * @property fields A list of fields contained in the structure. Defaults to an empty list.
+ * @property visibility The visibility level of the structure (e.g., public or private). Defaults to `Pub`.
+ * @property uses A set of `use` statements required by the structure. Defaults to an empty set.
+ * @property genericParamSet Generic parameters associated with the structure. Defaults to an empty parameter set.
+ * @property attrs A list of attributes applied to the structure. Defaults to an empty `AttrList`.
+ * @property asTupleStruct Indicates if the structure is represented as a tuple struct. Defaults to `false`.
+ * @property typeImpl A type implementation associated with the structure, if any. Defaults to `null`.
+ * @property traitImpls A list of explicit trait implementations for the structure. Defaults to an empty list.
+ * @property implementedTraits A list of traits that this structure implements. Defaults to an empty list.
+ * Often structs are modeled and then in the module a trait is implemented for the struct with
+ * `TraitImpl(someTrait, "SomeStruct".type, ...)`. This is an alternative convenience - simply add a
+ * trait like `defaultTrait` and a stubbed impl will be included.
+ * @property staticInits A list of static initializers defined within the structure. Defaults to an empty list.
+ * @property lazies A list of lazily initialized properties associated with the structure. Defaults to an empty list.
+ * @property includeNew Indicates whether a default constructor (`new`) should be generated. Defaults to `false`.
+ * @property includeCustomNew Indicates whether a custom `new` constructor should be generated. Defaults to `false`.
+ * @property inlineNew Indicates whether the `new` constructor should be inlined. Defaults to `false`.
+ * @property additionalNewParams A list of additional parameters for the `new` constructor. Defaults to an empty list.
+ * @property deriveBuilder Indicates whether a builder pattern should be derived for the structure. Defaults to `false`.
+ * @property ctors A list of additional constructors defined for the structure. Defaults to an empty list.
+ * @property consts A list of constants defined within the structure. Defaults to an empty list.
+ */
 data class Struct(
     val nameId: String,
     override val doc: String = missingDoc(nameId, "Struct"),

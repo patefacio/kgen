@@ -82,6 +82,7 @@ DO UPDATE SET
         clientFnParam,
         inputFnParam,
         tableGateway.bulkInsertChunkSizeFnParam,
+        genericParamSet = genericClientParamSet,
         returnType = "Result<${autoIdDetails?.outputType ?: "()"}, tokio_postgres::Error>".asType,
         returnDoc = "",
         body = FnBody(
@@ -100,7 +101,7 @@ ${table.bulkUpdateUnnestAssignments}
     
     match &chunk_result {
         Err(err) => {
-            tracing::error!("Failed bulk_insert `${table.nameId}` chunk({chunk}) -> {err}");
+            tracing::error!("Failed bulk_upsert `${table.nameId}` chunk({chunk}) -> {err}");
             chunk_result?;
         }
         Ok(chunk_result) => {
