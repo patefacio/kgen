@@ -34,7 +34,8 @@ data class Ctor(
     val excludeInitializer: Boolean = false,
     val hasUnitTest: Boolean = false,
     val useLetAssignments: Boolean = false,
-    val isAsync: Boolean = false
+    val isAsync: Boolean = false,
+    val visibility: Visibility = Visibility.Pub,
 ) {
 
     private fun includedFields(fields: List<Field>) = when {
@@ -115,7 +116,8 @@ data class Ctor(
                 null
             },
             hasUnitTest = hasUnitTest,
-            isAsync = isAsync
+            isAsync = isAsync,
+            visibility = visibility,
         )
     }
 }

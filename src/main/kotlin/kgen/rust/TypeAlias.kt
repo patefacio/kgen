@@ -22,7 +22,8 @@ data class TypeAlias(
     val aliased: Type,
     val visibility: Visibility = Visibility.None,
     val genericParamSet: GenericParamSet = GenericParamSet(),
-    val doc: String? = null
+    val doc: String? = null,
+    val attrs: AttrList = AttrList(),
 ) : Identifier(nameId), AsRust {
 
     /**
@@ -40,6 +41,13 @@ data class TypeAlias(
             ""
         }
 
+    private val attrText
+        get() = if (attrs.attrs.isNotEmpty()) {
+            attrs.asOuterAttr
+        } else {
+            ""
+        }
+
     /**
      * Generates the Rust representation of the type alias.
      *
@@ -50,5 +58,5 @@ data class TypeAlias(
      * ```
      */
     override val asRust: String
-        get() = "$docComment${trailingText(visibility.asRust)}type $asRustName${leadingText(genericParamSet.asRust)} = ${aliased.asRust};"
+        get() = "$docComment$attrText${trailingText(visibility.asRust)}type $asRustName${leadingText(genericParamSet.asRust)} = ${aliased.asRust};"
 }
