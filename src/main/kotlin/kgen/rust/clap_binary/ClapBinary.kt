@@ -5,6 +5,35 @@ import kgen.missingDoc
 import kgen.rust.*
 import kgen.rust.Enum
 
+/**
+ * Represents a CLI binary built using the `Clap` Rust library.
+ *
+ * This class generates the necessary Rust components for building a command-line interface (CLI) binary,
+ * including handling arguments, subcommands, structured logging, and more. It provides flexible configuration
+ * options for setting up the binary's functionality.
+ *
+ * @property nameId The unique identifier (name) of the binary.
+ * @property brief A brief description of the binary, shown in CLI help. Defaults to a placeholder description.
+ * @property doc Optional long-form documentation for the binary, shown in CLI help under `long_about`.
+ * @property clapArgs A list of arguments for the CLI. Defaults to an empty list.
+ * @property subcommands A list of subcommands supported by the CLI. Defaults to an empty list.
+ * @property submodules A list of Rust modules associated with the binary. Defaults to an empty list.
+ * @property hasLogLevel Indicates whether the binary supports log level selection (e.g., debug, info). Defaults to `true`.
+ * @property mainRunBody The body of the main function (`main_run`), where the core logic of the binary is implemented.
+ *        Defaults to `null` for no custom logic.
+ * @property structs A list of additional Rust structs used by the binary. Defaults to an empty list.
+ * @property enums A list of additional Rust enums used by the binary. Defaults to an empty list.
+ * @property functions A list of additional functions defined within the binary. Defaults to an empty list.
+ * @property staticInits A list of static initializations used by the binary. Defaults to an empty list.
+ * @property lazies A list of lazily initialized values in the binary. Defaults to an empty list.
+ * @property uses A set of Rust `use` statements required by the binary. Defaults to an empty set.
+ * @property inSeparateDirectory Indicates whether the binary is located in a separate directory. Defaults to `false`.
+ * @property useTokioMain Indicates whether the `#[tokio::main]` attribute is used for asynchronous operations. Defaults to `false`.
+ * @property asyncMain Indicates whether the main function is asynchronous. Defaults to `false`.
+ * @property tracingAttributes Configuration attributes for the tracing subscriber. Defaults to `null` for no tracing configuration.
+ * @property tracingInitializer A lambda function to initialize the tracing subscriber using the provided `TracingAttributes`.
+ *        Defaults to a function that uses the `tracingSubscriber` from the given `TracingAttributes`.
+ */
 data class ClapBinary(
     val nameId: String,
     val brief: String = missingDoc(nameId, "Binary About"),
@@ -23,13 +52,18 @@ data class ClapBinary(
     val inSeparateDirectory: Boolean = false,
     val useTokioMain: Boolean = false,
     val asyncMain: Boolean = false,
-    val tracingWithThreadNames: Boolean = false,
-    val tracingWithFile: Boolean = false,
-    val tracingWithLineNumber: Boolean = false
+    val tracingAttributes: TracingAttributes? = null,
+    val tracingInitializer: (TracingAttributes) -> String = { tracingAttributes -> tracingAttributes.tracingSubscriber }
 ) : Identifier(nameId) {
 
+    /**
+     * Determines if the main function is asynchronous, based on the configuration of `useTokioMain` or `asyncMain`.
+     */
     private val mainIsAsync get() = useTokioMain || asyncMain
 
+    /**
+     * Returns the log level argument for the CLI, if log level support is enabled.
+     */
     private val logLevelArg
         get() = if (hasLogLevel) {
             standardLogLevelArg
@@ -37,29 +71,16 @@ data class ClapBinary(
             null
         }
 
-    private val initializeLogger
-        get() = if (hasLogLevel) {
-            """
-tracing::subscriber::set_global_default(
-    tracing_subscriber::fmt()
-        .with_file($tracingWithFile)
-        .with_thread_names($tracingWithThreadNames)
-        .with_line_number($tracingWithLineNumber)            
-        .with_max_level(match cli.log_level {
-            LogLevel::Error => tracing::Level::ERROR,
-            LogLevel::Warn => tracing::Level::WARN,
-            LogLevel::Info => tracing::Level::INFO,
-            LogLevel::Debug => tracing::Level::DEBUG,
-            LogLevel::Trace => tracing::Level::TRACE,
-        })   
-        .finish(),
-)
-.expect("Need to log");                 
-        """.trimIndent()
-        } else {
-            "tracing_subscriber::fmt::init();"
-        }
-
+    /**
+     * Generates the `Module` that represents the binary, including its functions, enums, and structs.
+     *
+     * This module includes:
+     * - The `main` function as the entry point to the CLI.
+     * - The `main_run` function that handles the core logic.
+     * - Support for command-line arguments and subcommands.
+     * - Additional enums (e.g., log levels) and structs (e.g., CLI argument struct).
+     * - Support for tracing initialization if configured.
+     */
     val module
         get() = Module(
             nameId,
@@ -83,7 +104,7 @@ tracing::subscriber::set_global_default(
                         """
 let cli = Cli::parse();
 
-$initializeLogger
+${tracingInitializer(tracingAttributes ?: TracingAttributes())}
 
 main_run(cli)${
                             if (mainIsAsync) {
@@ -175,6 +196,4 @@ Ok(())
             ).asUses,
             isBinary = true
         )
-
 }
-

@@ -28,10 +28,10 @@ data class CrudTestSupport(
         "super::support::get_pool",
         "super::support::MutateValue",
         "std::collections::BTreeSet",
-        "std::ops::Deref",
-        "tokio_postgres::Client",
         "tokio_postgres::GenericClient",
-    ).asUses
+    ).asUses + listOf(
+        "std::ops::Deref",
+    ).asAllowUnusedUses
 
     /** Number of **literal** samples to generate for testing purposes */
     val sampleCount = 10

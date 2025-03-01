@@ -7,8 +7,8 @@ use super::support::get_pool;
 use super::support::MutateValue;
 use kgen_db::sample::*;
 use std::collections::BTreeSet;
+#[allow(unused_imports)]
 use std::ops::Deref;
-use tokio_postgres::Client;
 use tokio_postgres::GenericClient;
 
 ////////////////////////////////////////////////////////////////////////////////////

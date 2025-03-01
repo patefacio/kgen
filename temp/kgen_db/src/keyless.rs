@@ -8,7 +8,6 @@
 #[allow(unused)]
 use std::sync::LazyLock;
 use tokio_postgres::types::ToSql;
-use tokio_postgres::Client;
 
 ////////////////////////////////////////////////////////////////////////////////////
 // --- statics ---

@@ -180,7 +180,6 @@ data class TableGateway(
         ).joinToString("\n\n"),
         uses = listOf(
             "tokio_postgres::types::ToSql",
-            "tokio_postgres::Client",
         ).asUses + Use("std::sync::LazyLock", attrAllowUnused),
         structs = listOfNotNull(
             rowDataStruct, rowEntryStruct,
