@@ -125,6 +125,7 @@ data class Trait(
     override val asRust: String
         get() = listOf(
             commentTriple(doc),
+            attrs.asOuterAttr,
             withWhereClause(
                 "${trailingText(visibility.asRust)}trait ${id.capCamel}${genericParamSet.asRust}$superTraitDecl",
                 genericParamSet
