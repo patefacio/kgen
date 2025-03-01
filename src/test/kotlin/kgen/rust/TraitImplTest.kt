@@ -17,7 +17,7 @@ internal class TraitImplTest {
             I32,
             trait,
             "Foo",
-            bodies = mapOf("do_foo" to "println!(\"foo\")")
+            fnBodies = mapOf("do_foo" to "println!(\"foo\")")
         )
 
         assertEquals(

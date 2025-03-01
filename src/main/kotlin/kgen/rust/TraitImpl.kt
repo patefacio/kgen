@@ -33,7 +33,7 @@ data class TraitImpl(
     val genericArgSet: GenericArgSet = GenericArgSet(),
     val selfBounds: Bounds = Bounds(),
     val associatedTypeAssignments: List<String> = emptyList(),
-    val bodies: Map<String, String> = emptyMap(),
+    val fnBodies: Map<String, String> = emptyMap(),
     val unitTestTraitFunctions: Boolean = false,
     val functionUnitTests: List<Id> = emptyList(),
     val uses: Set<Use> = emptySet(),
@@ -149,8 +149,8 @@ data class TraitImpl(
             ),
             indent(
                 patchedFunctions.joinToString("\n\n") {
-                    if (bodies.contains(it.nameId)) {
-                        it.copy(body = FnBody(bodies.getValue(it.nameId))).asRust
+                    if (fnBodies.contains(it.nameId)) {
+                        it.copy(body = FnBody(fnBodies.getValue(it.nameId))).asRust
                     } else {
                         it.asRust("fn ${trait.asRustName}::${it.nameId} for ${type.asRust}")
                     }
