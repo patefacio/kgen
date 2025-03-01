@@ -46,7 +46,8 @@ val String?.blockComment
         null
     }
 
-fun markdownQuoteComment(text: String, indent: String = "  ", separator: String = "\n") =  comment(text, markdownQuoteOpener)
+fun markdownQuoteComment(text: String, indent: String = "  ", separator: String = "\n") =
+    comment(text, markdownQuoteOpener)
 
 val String?.markdownQuoteComment
     get() = if (this != null) {

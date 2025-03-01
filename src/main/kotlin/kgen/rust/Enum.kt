@@ -26,7 +26,7 @@ data class Enum(
     val typeImpl: TypeImpl? = null,
     val traitImpls: List<TraitImpl> = emptyList(),
     val implementedTraits: List<Trait> = emptyList()
-    ) : Identifier(nameId), Type, AsRust {
+) : Identifier(nameId), Type, AsRust {
 
     constructor(
         nameId: String,

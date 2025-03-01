@@ -74,4 +74,4 @@ val String.asTraitBound get() = TraitBound.Unmodeled(this)
 val String.asTraitBoundList get() = listOf(this.asTraitBound)
 
 /** Convert list of strings to list of [TraitBound] */
-val List<String>.asTraitBoundList get() = this.map { it.asTraitBound}
+val List<String>.asTraitBoundList get() = this.map { it.asTraitBound }

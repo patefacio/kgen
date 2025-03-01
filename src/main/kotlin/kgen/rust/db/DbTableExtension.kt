@@ -1,6 +1,5 @@
 package kgen.rust.db
 
-import kgen.asId
 import kgen.db.DbTable
 
 /** Literal list of column names suitable for `insert` and `select` statements */

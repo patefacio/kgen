@@ -1,11 +1,9 @@
 package kgen.rust.generator
 
 import kgen.MergeFileStatus
-import kgen.kgenLogger
 import kgen.rust.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import kotlin.io.path.Path
 import kotlin.io.path.createTempDirectory
 import kotlin.io.path.name

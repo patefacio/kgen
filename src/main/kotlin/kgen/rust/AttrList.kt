@@ -10,7 +10,7 @@ data class AttrList(val attrs: List<Attr> = emptyList()) : AsAttr {
     operator fun plus(moreAttrs: AttrList) = AttrList((attrs + moreAttrs.attrs).toSet().toList())
 
     /** Add single [Attr] to [attrs] */
-    operator fun plus(attr: Attr) = if(attr !in attrs) {
+    operator fun plus(attr: Attr) = if (attr !in attrs) {
         AttrList(attrs + listOf(attr))
     } else {
         attrs.asAttrList

@@ -73,7 +73,7 @@ object TableSampleWithId : Table("sample_with_id") {
     override val primaryKey = PrimaryKey(id)
 
     init {
-       uniqueIndex(name, smallInt)
+        uniqueIndex(name, smallInt)
     }
 }
 
@@ -151,8 +151,14 @@ fun main() {
         tables.keys.forEach { table -> SchemaUtils.drop(table) }
         tables.keys.forEach { table -> SchemaUtils.create(table) }
 
-        val dbTables = tables.entries.map { (table, doc) -> table.intoDbTable(doc)  }
-        val tableGateways = dbTables.map { TableGateway(it) }
+        val dbTables = tables.entries.map { (table, doc) -> table.intoDbTable(doc) }
+        val tableGateways = dbTables.map {
+            if (it.nameId == "keyless") {
+                TableGateway(it, backdoorTable = true)
+            } else {
+                TableGateway(it)
+            }
+        }
 
         val libModule = Module(
             "lib",

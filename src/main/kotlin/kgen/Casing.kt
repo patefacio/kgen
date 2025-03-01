@@ -7,16 +7,18 @@ private val charCaseTransitionRe = """([^\p{Lu}])(\p{Lu})""".toRegex()
 fun words(text: String): List<String> =
     when {
         text.contains(wordDividerRe) -> text.lowercase().split(wordDividerRe)
-        charCaseTransitionRe.containsMatchIn(text) -> words(charCaseTransitionRe
-            .replace(text) {
-                "${it.groupValues[1]}_${it.groupValues[2].lowercase()}"
-            })
+        charCaseTransitionRe.containsMatchIn(text) -> words(
+            charCaseTransitionRe
+                .replace(text) {
+                    "${it.groupValues[1]}_${it.groupValues[2].lowercase()}"
+                })
+
         else -> listOf(text.lowercase())
     }
 
 
 val List<String>.asSnake get() = this.joinToString("_")
-fun asSnake(name: String) = words(name.replace(" ","-")).asSnake
+fun asSnake(name: String) = words(name.replace(" ", "-")).asSnake
 
 val String.asSnake get() = asSnake(this)
 

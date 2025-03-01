@@ -95,17 +95,19 @@ data class Trait(
     /**
      * Generates a list of functions scoped to the trait, marking them with trait-specific visibility.
      */
-    private val traitScopedFunctions get() = functions.map {
-        it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}").copy(visibility = Visibility.None)
-    }
+    private val traitScopedFunctions
+        get() = functions.map {
+            it.copy(blockName = "trait fn ${id.capCamel}::${it.blockName}").copy(visibility = Visibility.None)
+        }
 
     /**
      * Generates the content of the Rust trait, including associated types and functions.
      */
-    private val traitContent get() = indent(
-        (associatedTypes.map { it.asRust } +
-                traitScopedFunctions.map { it.asTraitFn }).joinNonEmpty("\n\n")
-    )!!
+    private val traitContent
+        get() = indent(
+            (associatedTypes.map { it.asRust } +
+                    traitScopedFunctions.map { it.asTraitFn }).joinNonEmpty("\n\n")
+        )!!
 
     /**
      * Generates the Rust declaration for the trait's supertraits, if any.

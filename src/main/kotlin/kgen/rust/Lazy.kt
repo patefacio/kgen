@@ -22,9 +22,14 @@ data class Lazy(
     val asRustName = id.shout
     override val asRust: String
         get() {
-            val rustValue = when(value) {
-                null -> "{\n${emptyCloseDelimitedBlock("lazy init for $nameId", 
-                    emptyContents = "todo!(\"Write $nameId initializer\")")}\n}"
+            val rustValue = when (value) {
+                null -> "{\n${
+                    emptyCloseDelimitedBlock(
+                        "lazy init for $nameId",
+                        emptyContents = "todo!(\"Write $nameId initializer\")"
+                    )
+                }\n}"
+
                 else -> value
             }
             return listOf(

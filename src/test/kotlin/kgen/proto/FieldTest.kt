@@ -1,9 +1,8 @@
 package kgen.proto
 
-import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import kgen.proto.FieldType.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class FieldTest {
 
@@ -25,7 +24,7 @@ int32 foo_bar = 1""",
 map<int64, string> id_to_name = 1""",
             Field(
                 "id_to_name",
-                FieldType.MapOf(ProtoInt64, ProtoString),
+                MapOf(ProtoInt64, ProtoString),
                 "The id to its name.", 1
             ).asProto
         )

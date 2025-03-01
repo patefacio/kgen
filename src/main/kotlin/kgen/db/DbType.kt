@@ -48,7 +48,7 @@ sealed class DbType {
 
     data object Json : DbType()
 
-    data class VarChar(val length: Int) : DbType();
+    data class VarChar(val length: Int) : DbType()
 
     // Nullables
 
@@ -86,73 +86,73 @@ sealed class DbType {
 
     data object NullableJson : DbType()
 
-    data class NullableVarChar(val length: Int) : DbType();
+    data class NullableVarChar(val length: Int) : DbType()
 
 
     val asRustType
         get() = when (this) {
             is DbType.Byte -> U8
-            is DbType.Double -> F64
-            is DbType.Integer -> I32
-            is DbType.SmallInteger -> I16
-            is DbType.BigInteger -> I64
-            is DbType.Text -> RustString
-            is DbType.Date -> "chrono::NaiveDate".asType
-            is DbType.DateTime, is DbType.Timestamp -> "chrono::NaiveDateTime".asType
-            is DbType.IntegerAutoInc -> I32
-            is DbType.LongAutoInc -> I64
-            is DbType.UlongAutoInc -> U64
-            is DbType.Binary, is DbType.BinarySized -> I64
-            is DbType.Bool -> RustBoolean
-            is DbType.Uuid -> "uuid::Uuid".asType
-            is DbType.VarChar -> RustString
-            is DbType.Json, is DbType.JsonBinary -> "serde_json::Value".asType
+            is Double -> F64
+            is Integer -> I32
+            is SmallInteger -> I16
+            is BigInteger -> I64
+            is Text -> RustString
+            is Date -> "chrono::NaiveDate".asType
+            is DateTime, is Timestamp -> "chrono::NaiveDateTime".asType
+            is IntegerAutoInc -> I32
+            is LongAutoInc -> I64
+            is UlongAutoInc -> U64
+            is Binary, is BinarySized -> I64
+            is Bool -> RustBoolean
+            is Uuid -> "uuid::Uuid".asType
+            is VarChar -> RustString
+            is Json, is JsonBinary -> "serde_json::Value".asType
 
 
-            is DbType.NullableByte -> "Option<u8>".asType
-            is DbType.NullableDouble -> "Option<f64>".asType
-            is DbType.NullableInteger -> "Option<i32>".asType
-            is DbType.NullableSmallInteger -> "Option<i16>".asType
-            is DbType.NullableBigInteger -> "Option<i64>".asType
-            is DbType.NullableText -> "Option<String>".asType
-            is DbType.NullableDate -> "Option<chrono::NaiveDate>".asType
-            is DbType.NullableDateTime, is DbType.NullableTimestamp -> "Option<chrono::NaiveDateTime>".asType
-            is DbType.NullableBinary, is DbType.NullableBinarySized -> "Option<i64>".asType
-            is DbType.NullableUuid -> "Option<uuid::Uuid>".asType
-            is DbType.NullableBool -> "Option<bool>".asType
-            is DbType.NullableVarChar -> "Option<String>".asType
-            is DbType.NullableJson, is DbType.NullableJsonBinary -> "Option<serde_json::Value>".asType
+            is NullableByte -> "Option<u8>".asType
+            is NullableDouble -> "Option<f64>".asType
+            is NullableInteger -> "Option<i32>".asType
+            is NullableSmallInteger -> "Option<i16>".asType
+            is NullableBigInteger -> "Option<i64>".asType
+            is NullableText -> "Option<String>".asType
+            is NullableDate -> "Option<chrono::NaiveDate>".asType
+            is NullableDateTime, is NullableTimestamp -> "Option<chrono::NaiveDateTime>".asType
+            is NullableBinary, is NullableBinarySized -> "Option<i64>".asType
+            is NullableUuid -> "Option<uuid::Uuid>".asType
+            is NullableBool -> "Option<bool>".asType
+            is NullableVarChar -> "Option<String>".asType
+            is NullableJson, is NullableJsonBinary -> "Option<serde_json::Value>".asType
             else -> throw (Exception("Unsupported rust type for $this"))
         }
 
 
     fun getSampleIterator() = when (this) {
-        is DbType.Byte, is DbType.NullableByte -> generateSequence(KotlinByte.MIN_VALUE) {
+        is DbType.Byte, is NullableByte -> generateSequence(KotlinByte.MIN_VALUE) {
             it.plus(1).toByte()
         }.iterator()
 
-        is DbType.Double, is DbType.NullableDouble -> generateSequence(0.0) { it.plus(1.0) }.iterator()
-        is DbType.Integer, is DbType.NullableInteger -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
-        is DbType.SmallInteger, is DbType.NullableSmallInteger -> generateSequence(Short.MIN_VALUE) { (it + 1).toShort() }.iterator()
-        is DbType.BigInteger, is DbType.NullableBigInteger -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
-        is DbType.Bool, is DbType.NullableBool -> generateSequence(false) { it.not() }.iterator()
-        is DbType.Text, is DbType.NullableText -> generateSequence("a") { incrementString(it) }.iterator()
-        is DbType.Date, is DbType.NullableDate -> generateSequence(LocalDate.of(2000, 1, 1)) {
+        is Double, is NullableDouble -> generateSequence(0.0) { it.plus(1.0) }.iterator()
+        is Integer, is NullableInteger -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
+        is SmallInteger, is NullableSmallInteger -> generateSequence(Short.MIN_VALUE) { (it + 1).toShort() }.iterator()
+        is BigInteger, is NullableBigInteger -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
+        is Bool, is NullableBool -> generateSequence(false) { it.not() }.iterator()
+        is Text, is NullableText -> generateSequence("a") { incrementString(it) }.iterator()
+        is Date, is NullableDate -> generateSequence(LocalDate.of(2000, 1, 1)) {
             it.plusDays(1).plusMonths(1).plusDays(1)
         }.iterator()
 
-        is DbType.DateTime, is DbType.NullableDateTime -> generateSequence(LocalDateTime.of(2000, 1, 1, 1, 1)) {
+        is DateTime, is NullableDateTime -> generateSequence(LocalDateTime.of(2000, 1, 1, 1, 1)) {
             it.plusDays(1).plusMonths(1).plusDays(1)
         }.iterator()
 
-        is DbType.IntegerAutoInc -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
-        is DbType.LongAutoInc -> generateSequence(Long.MIN_VALUE) { it.plus(1) }.iterator()
-        is DbType.UlongAutoInc -> generateSequence(ULong.MIN_VALUE) { it.plus(1.toULong()) }.iterator()
+        is IntegerAutoInc -> generateSequence(Int.MIN_VALUE) { it.plus(1) }.iterator()
+        is LongAutoInc -> generateSequence(Long.MIN_VALUE) { it.plus(1) }.iterator()
+        is UlongAutoInc -> generateSequence(ULong.MIN_VALUE) { it.plus(1.toULong()) }.iterator()
         //is DbType.Binary -> generateSequence(Long.MIN_VALUE) { it.plus(1) }.iterator()
-        is DbType.Blob, is DbType.NullableBlob -> generateBlobSequence().iterator()
-        is DbType.Uuid, is DbType.NullableUuid -> generateDeterministicUuidSequence().iterator()
-        is DbType.Json, is DbType.NullableJson -> generateDeterministicJsonSequence().iterator()
-        is DbType.VarChar, is DbType.NullableVarChar -> generateSequence("a") { incrementString(it) }.iterator()
+        is Blob, is NullableBlob -> generateBlobSequence().iterator()
+        is Uuid, is NullableUuid -> generateDeterministicUuidSequence().iterator()
+        is Json, is NullableJson -> generateDeterministicJsonSequence().iterator()
+        is VarChar, is NullableVarChar -> generateSequence("a") { incrementString(it) }.iterator()
         else -> throw (Exception("Unsupported rust type for $this"))
     }
 }

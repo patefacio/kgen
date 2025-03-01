@@ -125,7 +125,8 @@ Ok(())
                     Enum(
                         "command", "The supported commands.",
                         subcommands.map { clapCommand ->
-                            Variant.Struct(clapCommand.nameId, clapCommand.doc,
+                            Variant.Struct(
+                                clapCommand.nameId, clapCommand.doc,
                                 clapCommand.clapArgs.map { it.field }
                             )
                         },

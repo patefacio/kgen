@@ -4,6 +4,7 @@ package kgen.rust
 enum class Derive {
     /** Support for [equality comparisons](https://doc.rust-lang.org/std/cmp/trait.Eq.html) */
     Eq,
+
     /** Support for [equality comparisons](https://doc.rust-lang.org/std/cmp/trait.PartialEq.html)
      *  among values that have a [partial equivalence relation](https://en.wikipedia.org/wiki/Partial_equivalence_relation).
      *  Useful for structs with floats that have modeled NaN which is not as straightforward

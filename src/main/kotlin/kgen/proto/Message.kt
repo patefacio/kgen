@@ -1,6 +1,9 @@
 package kgen.proto
 
-import kgen.*
+import kgen.Identifier
+import kgen.blockComment
+import kgen.indent
+import kgen.missingDoc
 import kgen.rust.Trait
 
 /** A modeled message.
@@ -34,7 +37,7 @@ data class Message(
         get() = when {
             fields.all { !it.isNumbered } -> {
                 var number = 1
-                fields.map {messageField ->
+                fields.map { messageField ->
                     val updatedField = messageField.copyFromNumber(number)
                     number += messageField.numFields
                     updatedField

@@ -143,9 +143,9 @@ data class CrateGenerator(
         val shouldAnnounce = announceUpdates && !srcPathExists
         val targetSrcPath: Path = getTargetPath(srcPathExists)
         val targetBinPath = targetSrcPath.resolve("bin").toAbsolutePath()
-        val targetBenchPath = targetSrcPath.resolve("../benches").toAbsolutePath()
+        targetSrcPath.resolve("../benches").toAbsolutePath()
         val targetIntegrationTestsPath = targetSrcPath.resolve("../tests").toAbsolutePath()
-        val targetExamplePath = targetSrcPath.resolve("../examples").toAbsolutePath()
+        targetSrcPath.resolve("../examples").toAbsolutePath()
         val targetSrcPathString = targetSrcPath.pathString
 
         val integrationTestsResults = crate.integrationTestModules.map { module ->

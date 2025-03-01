@@ -2,8 +2,8 @@ package kgen.utility
 
 import kgen.Block
 import kgen.alphaOmegaDelimiter
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.*
 
 internal class TextListTest {
 

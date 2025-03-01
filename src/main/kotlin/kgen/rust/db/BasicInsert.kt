@@ -76,10 +76,10 @@ VALUES
                 }).join(", ");
                 
 ${
-    tableGateway.dataQueryColumns.queryColumns.joinToString("\n") { 
-        "params.push(&row.${it.id});"
-    }
-}                
+        tableGateway.dataQueryColumns.queryColumns.joinToString("\n") {
+            "params.push(&row.${it.id});"
+        }
+    }                
                 
                 format!("({row_params})")
             }).join(",\n");
@@ -100,21 +100,22 @@ ${
         """.trimIndent()
 
 
-    val basicInsertFn get() =
-        Fn(
-            "basic_insert",
-            """Insert rows of `$tableName` by building parameterized statement.
+    val basicInsertFn
+        get() =
+            Fn(
+                "basic_insert",
+                """Insert rows of `$tableName` by building parameterized statement.
                 |For large insertions prefer [bulk_insert]
             """.trimMargin(),
-            clientFnParam,
-            inputFnParam,
-            genericParamSet = genericClientParamSet,
-            returnType = "Result<${autoIdDetails?.outputType ?: "u64"}, tokio_postgres::Error>".asType,
-            returnDoc = autoIdDetails?.insertReturnDoc ?: "Success or tokio_postgres::Error",
-            isAsync = true,
-            hasUnitTest = false,
-            body = FnBody(insertBody),
-            testFnAttrs = attrSerializeTest.asAttrList
-        )
+                clientFnParam,
+                inputFnParam,
+                genericParamSet = genericClientParamSet,
+                returnType = "Result<${autoIdDetails?.outputType ?: "u64"}, tokio_postgres::Error>".asType,
+                returnDoc = autoIdDetails?.insertReturnDoc ?: "Success or tokio_postgres::Error",
+                isAsync = true,
+                hasUnitTest = false,
+                body = FnBody(insertBody),
+                testFnAttrs = attrSerializeTest.asAttrList
+            )
 
 }

@@ -1,15 +1,15 @@
 package kgen.rust
 
 import kgen.noWhitespace
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class CommonTraitsTest {
 
     @Test
-    fun commonTraits()
-    {
-        assertEquals("""
+    fun commonTraits() {
+        assertEquals(
+            """
 impl Default for f64 {
   
   /// A trait for giving a type a useful default value.
@@ -21,7 +21,8 @@ impl Default for f64 {
     // ω <fn Default::default for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, defaultTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, defaultTrait).asRust.noWhitespace
+        )
 
         assertEquals(
             """
@@ -41,10 +42,11 @@ impl Debug for f64 {
   }
 }
             """.trimIndent().noWhitespace,
-           TraitImpl(F64, debugTrait).asRust.noWhitespace
+            TraitImpl(F64, debugTrait).asRust.noWhitespace
         )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl PartialEq for f64 {
   
   /// Returns true if `other` equals `self`.
@@ -60,9 +62,11 @@ impl PartialEq for f64 {
     // ω <fn PartialEq::eq for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, partialEqTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, partialEqTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl AddAssign for f64 {
   
   /// Add `Rhs` to `self`
@@ -77,9 +81,11 @@ impl AddAssign for f64 {
     // ω <fn AddAssign::add_assign for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, addAssignTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, addAssignTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Hash for f64 {
   
   /// Feeds this value into the given `Hasher`
@@ -96,10 +102,12 @@ impl Hash for f64 {
     // ω <fn Hash::hash for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, hashTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, hashTrait).asRust.noWhitespace
+        )
 
 
-        assertEquals("""
+        assertEquals(
+            """
 impl MulAssign for f64 {
   
   /// Multiply `self` by `Rhs`
@@ -114,9 +122,11 @@ impl MulAssign for f64 {
     // ω <fn MulAssign::mul_assign for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, mulAssignTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, mulAssignTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Mul for f64 {
   
   /// Return new `self` multiplied by `Rhs`.
@@ -132,9 +142,11 @@ impl Mul for f64 {
     // ω <fn Mul::mul for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, mulTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, mulTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Neg for f64 {
   
   /// Return negated `self`.
@@ -148,9 +160,11 @@ impl Neg for f64 {
     // ω <fn Neg::neg for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, negTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, negTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Not for f64 {
   
   /// The unary logical negation operator !.
@@ -164,9 +178,11 @@ impl Not for f64 {
     // ω <fn Not::not for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, notTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, notTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Iterator for f64 {
   
   /// The next item in the sequence.
@@ -180,9 +196,11 @@ impl Iterator for f64 {
     // ω <fn Iterator::next for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, iteratorTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, iteratorTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl IntoIterator for f64 {
   
   /// Consume object and providing to new iterator over its contents.
@@ -196,9 +214,11 @@ impl IntoIterator for f64 {
     // ω <fn IntoIterator::into_iter for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, intoIteratorTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, intoIteratorTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Display for f64 {
   
   /// Format the instance.
@@ -214,9 +234,11 @@ impl Display for f64 {
     // ω <fn Display::fmt for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, displayTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, displayTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Clone for f64 {
   
   /// Clone the instance
@@ -243,23 +265,29 @@ impl Clone for f64 {
     // ω <fn Clone::clone_from for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, cloneTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, cloneTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Send for f64 {
   
   
 }
-        """.noWhitespace, TraitImpl(F64, sendTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, sendTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Sync for f64 {
   
   
 }
-        """.noWhitespace, TraitImpl(F64, syncTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, syncTrait).asRust.noWhitespace
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
 impl Drop for f64 {
   
   /// Custom code within the destructor
@@ -271,7 +299,8 @@ impl Drop for f64 {
     // ω <fn Drop::drop for f64>
   }
 }
-        """.noWhitespace, TraitImpl(F64, dropTrait).asRust.noWhitespace)
+        """.noWhitespace, TraitImpl(F64, dropTrait).asRust.noWhitespace
+        )
 
     }
 }

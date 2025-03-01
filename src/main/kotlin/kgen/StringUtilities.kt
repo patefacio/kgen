@@ -54,6 +54,7 @@ fun emptyIfOnlyWhitespace(text: String) =
     text.replace(whiteSpaceRe, "")
 
 private val unboundedWhiteSpace = """\s+""".toRegex()
+
 /** Removes whitespace from string */
 val String.noWhitespace get() = this.replace(unboundedWhiteSpace, "")
 
@@ -93,5 +94,5 @@ fun wrapIndentExceptFirst(text: String, lineWidth: Int = 76, indent: String = " 
 
 fun wrapParamDoc(paramPrefixLength: Int, doc: String): String {
     val indent = " ".repeat(paramPrefixLength)
-    return wrapIndentExceptFirst(doc, 80-paramPrefixLength, indent)
+    return wrapIndentExceptFirst(doc, 80 - paramPrefixLength, indent)
 }

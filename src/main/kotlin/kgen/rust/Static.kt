@@ -27,7 +27,7 @@ data class Static(
     val visibility: Visibility = Visibility.Pub
 ) : Identifier(nameId), AsRust {
 
-    val asRustName  get() = id.shout
+    val asRustName get() = id.shout
 
     /** The [Const] as a rust string */
     override val asRust: String

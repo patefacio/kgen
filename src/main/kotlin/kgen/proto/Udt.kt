@@ -1,4 +1,3 @@
 package kgen.proto
 
-interface Udt {
-}
+interface Udt

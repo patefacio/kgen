@@ -1,6 +1,9 @@
 package kgen.proto
 
-import kgen.*
+import kgen.Identifier
+import kgen.blockComment
+import kgen.joinNonEmpty
+import kgen.missingDoc
 
 data class Field(
     val nameId: String,
@@ -13,7 +16,7 @@ data class Field(
 ) : Identifier(nameId), AsProto, MessageField {
 
     init {
-        if(requiredJustification != null && optionalJustification != null) {
+        if (requiredJustification != null && optionalJustification != null) {
             throw Exception("Cannot be both `optional` and `required` due to $requiredJustification!")
         }
     }

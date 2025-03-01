@@ -3,8 +3,8 @@ package kgen.rust.db.select
 import kgen.rust.*
 import kgen.rust.db.TableGateway
 import kgen.rust.db.clientFnParam
-import kgen.rust.db.genericClientParamSet
 import kgen.rust.db.formattedColumnNames
+import kgen.rust.db.genericClientParamSet
 import kgen.rustQuote
 
 /**

@@ -91,7 +91,7 @@ data class Markdown(
 
     val asMarkdown get() = listOfNotNull(markdownTitle, markdownSubtitle, body).joinToString("\n\n")
 
-    fun checkWriteFile(path: Path) = kgen.checkWriteFile(path.pathString, asMarkdown)
+    fun checkWriteFile(path: Path) = checkWriteFile(path.pathString, asMarkdown)
 }
 
 

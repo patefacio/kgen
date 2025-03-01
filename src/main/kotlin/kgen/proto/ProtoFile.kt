@@ -90,6 +90,6 @@ fun qualifiedUdtNames(rootName: String, protoFiles: List<ProtoFile>) = protoFile
 
 val List<ProtoFile>.unusedMessages
     get(): List<Message> {
-        val allMessages = this.allMessages
+        this.allMessages
         return emptyList() // TODO: Implement
     }

@@ -8,7 +8,7 @@ val fullNameMessage = Message(
     Field("second_name", ProtoString, "Second name", 2)
 )
 
-val colorEnum = kgen.proto.Enum(
+val colorEnum = Enum(
     "color_choice",
     "Choose among available colors",
     EnumField("red", "The color red", 0),

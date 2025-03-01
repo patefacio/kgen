@@ -38,6 +38,7 @@ data class FnParam(
                 } else {
                     "self"
                 }
+
                 "& Self" -> "&self"
                 "& mut Self" -> "& mut self"
                 "&'a Self" -> "& 'a self"

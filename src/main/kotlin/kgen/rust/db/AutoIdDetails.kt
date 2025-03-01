@@ -24,13 +24,15 @@ $autoId.into_iter()
     /** _auto id_ let binding to get the id's returned from the insert */
     val autoIdVecLet = "\nlet mut $autoId = Vec::with_capacity(rows.len());\n"
 
-    val pushAutoId get() = """
+    val pushAutoId
+        get() = """
 chunk_result.into_iter().for_each(|result| {
     $autoId.push(result.get(0));
 });      
     """.trimIndent()
 
-    val collectAutoId get() = """
+    val collectAutoId
+        get() = """
 insert_result
     .into_iter()
     .zip(rows)

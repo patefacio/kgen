@@ -1,8 +1,8 @@
 package kgen.proto
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import kgen.proto.FieldType.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class FieldTypeTest {
 
@@ -21,7 +21,6 @@ internal class FieldTypeTest {
         assertEquals("sfixed32", ProtoSFixed32.asProto)
         assertEquals("sfixed64", ProtoSFixed64.asProto)
         assertEquals("bool", ProtoBoolean.asProto)
-
 
 
     }

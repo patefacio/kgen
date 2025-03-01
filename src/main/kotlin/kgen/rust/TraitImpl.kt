@@ -90,21 +90,21 @@ data class TraitImpl(
                 .functions
                 .filter { it.body == null }
                 .map { function ->
-                function.copy(
-                    visibility = Visibility.None,
-                    params = function.params.map { fnParam ->
-                        val paramType = replacements.entries.fold(fnParam.type) { paramType, replacement ->
-                            UnmodeledType(paramType.asRust.replace(replacement.key, replacement.value))
+                    function.copy(
+                        visibility = Visibility.None,
+                        params = function.params.map { fnParam ->
+                            val paramType = replacements.entries.fold(fnParam.type) { paramType, replacement ->
+                                UnmodeledType(paramType.asRust.replace(replacement.key, replacement.value))
+                            }
+                            fnParam.copy(type = paramType)
+                        },
+                        returnType = function.returnType?.asRust?.let { rt ->
+                            UnmodeledType(replacements.entries.fold(rt) { acc, replacement ->
+                                acc.replace(replacement.key, replacement.value)
+                            })
                         }
-                        fnParam.copy(type = paramType)
-                    },
-                    returnType = function.returnType?.asRust?.let {rt ->
-                        UnmodeledType(replacements.entries.fold(rt) { acc, replacement ->
-                           acc.replace(replacement.key, replacement.value)
-                        })
-                    }
-                )
-            }
+                    )
+                }
         }
 
     val testModule

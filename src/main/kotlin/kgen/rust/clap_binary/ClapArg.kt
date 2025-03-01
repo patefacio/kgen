@@ -1,8 +1,6 @@
 package kgen.rust.clap_binary
 
 import kgen.Identifier
-import kgen.charQuote
-import kgen.doubleQuote
 import kgen.rust.*
 
 data class ClapArg(

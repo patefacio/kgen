@@ -1,8 +1,7 @@
 package kgen
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 
 internal class CommentKtTest {
 
@@ -17,23 +16,28 @@ internal class CommentKtTest {
 
     @Test
     fun comment() {
-        assertEquals("""
+        assertEquals(
+            """
             // this is
             // 
             // 
             // a test
         """.trimIndent(),
-        comment(text))
+            comment(text)
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
             /// this is
             /// 
             /// 
             /// a test
         """.trimIndent(),
-            commentTriple(text))
+            commentTriple(text)
+        )
 
-        assertEquals("""
+        assertEquals(
+            """
             # this is
             # 
             # 

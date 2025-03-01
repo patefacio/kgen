@@ -1,16 +1,16 @@
 package kgen.proto
 
+import kgen.proto.FieldType.ProtoInt32
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
-import kgen.proto.FieldType.*
 
 internal class OneOfTest {
 
     @Test
     fun getAsProto() {
 
-        assertEquals("""
+        assertEquals(
+            """
             /*
               `primary_color` supports _one_of_:
               - Red

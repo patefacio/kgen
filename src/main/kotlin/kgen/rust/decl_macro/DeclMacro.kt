@@ -29,7 +29,7 @@ data class DeclMacro(
             "macro_rules! ${this.id.snakeCaseName} {",
             rules.joinToString(";\n") { it.asRust(nameId) },
             "}",
-            if(includeUse) {
+            if (includeUse) {
                 Use(nameId, Visibility.PubCrate, allowUnusedImports = true).asRust
             } else {
                 null

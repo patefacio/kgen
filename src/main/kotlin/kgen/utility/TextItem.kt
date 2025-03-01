@@ -14,15 +14,16 @@ val Block.asTextItem get() = TextItem.ProtectBlock(this)
 
 typealias TextList = List<TextItem>
 
-val TextList.protectBlockMap get() = this
-    .filterIsInstance<TextItem.ProtectBlock>().associateBy { protectBlock -> protectBlock.block.name }
+val TextList.protectBlockMap
+    get() = this
+        .filterIsInstance<TextItem.ProtectBlock>().associateBy { protectBlock -> protectBlock.block.name }
 
 fun TextList.mergePriorInto(
     prior: String,
     blockDelimiter: BlockDelimiter = alphaOmegaDelimiter
 ): String {
     val priorBlocks = blockDelimiter.pullBlocks(prior)
-    val mergedBlocks = protectBlockMap.mapValues {(blockName, protectBlock) ->
+    val mergedBlocks = protectBlockMap.mapValues { (blockName, protectBlock) ->
         protectBlock.block.copy(body = priorBlocks[blockName]?.body)
     }
     return this.joinToString("\n") { textItem ->

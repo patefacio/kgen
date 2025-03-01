@@ -22,7 +22,7 @@ data class DbTable(
     val id get() = nameId.asId
     val valueColumns get() = columns.filter { it !in primaryKeyColumns && !it.isAutoIncrement }
     val autoIncColumn get() = columns.firstOrNull { it.isAutoIncrement }
-    val nonAutoIncColumns get() = columns.filter { it != autoIncColumn}
+    val nonAutoIncColumns get() = columns.filter { it != autoIncColumn }
     val hasAutoInc: Boolean get() = autoIncColumn != null
     val hasPrimaryKey get() = primaryKeyColumns.isNotEmpty()
 

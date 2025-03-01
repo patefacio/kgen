@@ -27,9 +27,10 @@ data class Let(
             ""
         }
 
-    override val asRust: String get() = listOfNotNull(
-        doc.comment,
-        "let $nameId$typeName = $rhs;"
-    ).joinToString("\n")
+    override val asRust: String
+        get() = listOfNotNull(
+            doc.comment,
+            "let $nameId$typeName = $rhs;"
+        ).joinToString("\n")
 
 }

@@ -1,9 +1,6 @@
 package kgen.utility
 
 import kgen.Identifiable
-import kgen.Markdown
-import kgen.asMarkdownBlockQuote
-import kgen.asMarkdownTable
 import kgen.proto.*
 
 /** Creates a report for a `Message` in a set of protobufs that details

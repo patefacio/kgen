@@ -6,8 +6,9 @@ import kgen.emptyOpenDelimitedBlock
 import kgen.indent
 import kgen.rust.*
 import kgen.rust.Enum
-import kgen.rust.Visibility
-import kotlinx.css.*
+import kotlinx.css.CssBuilder
+import kotlinx.css.LinearDimension
+import kotlinx.css.maxWidth
 
 /** Create a leptos component
  *

@@ -2,9 +2,8 @@ package kgen
 
 import kgen.rust.UnmodeledType
 import kgen.rust.asType
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-
-import org.junit.jupiter.api.Assertions.*
 import kotlin.test.assertFailsWith
 
 internal class IdKtTest {

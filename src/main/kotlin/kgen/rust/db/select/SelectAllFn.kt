@@ -46,17 +46,18 @@ data class SelectAllFn(
      * }
      * ```
      */
-    val selectAllFn get() = Fn(
-        "select_all",
-        "Select rows of `${this.selectAllFnImpl.id.snake}`",
-        clientFnParam,
-        genericParamSet = genericClientParamSet,
-        isAsync = true,
-        hasUnitTest = false,
-        body = FnBody("""Self::select_all_where(client, "1=1", &[]).await"""),
-        returnType = "Vec<$returnType>".asType,
-        returnDoc = "Selected rows",
-        inlineDecl = InlineDecl.Inline,
-        testFnAttrs = attrSerializeTest.asAttrList
-    )
+    val selectAllFn
+        get() = Fn(
+            "select_all",
+            "Select rows of `${this.selectAllFnImpl.id.snake}`",
+            clientFnParam,
+            genericParamSet = genericClientParamSet,
+            isAsync = true,
+            hasUnitTest = false,
+            body = FnBody("""Self::select_all_where(client, "1=1", &[]).await"""),
+            returnType = "Vec<$returnType>".asType,
+            returnDoc = "Selected rows",
+            inlineDecl = InlineDecl.Inline,
+            testFnAttrs = attrSerializeTest.asAttrList
+        )
 }

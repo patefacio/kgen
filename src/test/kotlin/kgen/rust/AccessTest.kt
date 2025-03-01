@@ -1,14 +1,14 @@
 package kgen.rust
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import kgen.rust.Access.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
 internal class AccessTest {
 
     @Test
     fun discriminateAccess() {
-        fun acceptAccess(access: Access) = when(access) {
+        fun acceptAccess(access: Access) = when (access) {
             ReadOnly -> "RO"
             ReadWrite -> "RW"
             ReadOnlyCloned -> "ROC"

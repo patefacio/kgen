@@ -35,10 +35,10 @@ data class TypeAlias(
      */
     private val docComment
         get() = if (doc != null) {
-        "${commentTriple(doc)}\n"
-    } else {
-        ""
-    }
+            "${commentTriple(doc)}\n"
+        } else {
+            ""
+        }
 
     /**
      * Generates the Rust representation of the type alias.
