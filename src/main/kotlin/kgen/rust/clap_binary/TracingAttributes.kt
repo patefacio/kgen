@@ -81,7 +81,7 @@ tracing::subscriber::set_global_default(
             },
             """.finish()
                 |)
-                |.expect("Need to log")
+                |.expect("Need to log");
             """.trimMargin(),
         ).joinToString("\n")
 }

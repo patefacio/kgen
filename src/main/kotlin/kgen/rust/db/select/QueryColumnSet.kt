@@ -77,9 +77,9 @@ data class QueryColumnSet(
                 )
             ),
             attrs = commonDerives + if (queryColumns.any { it.rustType in listOf(F64, "Option<f64>".asType) }) {
-                derive("Default", "Eq", "PartialEq", "Hash")
-            } else {
                 derive("Default", "PartialEq")
+            } else {
+                derive("Default", "Eq", "PartialEq", "Hash")
             }
         )
 

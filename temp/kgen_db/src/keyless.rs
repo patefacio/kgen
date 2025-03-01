@@ -20,7 +20,7 @@ pub static KEYLESS_TABLE_NAME: LazyLock<String> =
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct KeylessRowData {
     /// Field for column `the_name`
     pub the_name: String,

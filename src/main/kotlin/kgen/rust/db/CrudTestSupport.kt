@@ -170,8 +170,7 @@ get_sample_rows_sorted(&selected).iter().zip(get_sample_rows_sorted(values).iter
             attrs = listOf(attrTracingTest, attrSerializeTest).asAttrList,
             body = listOf(
                 """
-let pool = get_pool().await;
-let resource = pool.get().await.unwrap();
+let resource = get_pool().await.get().await.unwrap();
 let client = resource.client();
 // First delete all, assuming it worked
 let deleted = ${tableStructName}::delete_all(client).await.unwrap();

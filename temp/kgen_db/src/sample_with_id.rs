@@ -13,7 +13,7 @@ use tokio_postgres::types::ToSql;
 // --- structs ---
 ////////////////////////////////////////////////////////////////////////////////////
 /// Primary data fields
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct SampleWithIdRowData {
     /// Field for column `the_name`
     pub the_name: String,
@@ -75,7 +75,7 @@ pub struct SampleWithIdEntry {
 }
 
 /// Primary key fields for `SampleWithId`
-#[derive(Debug, Clone, Default, PartialEq)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Hash)]
 pub struct SampleWithIdPkey {
     /// Field for column `auto_id`
     pub auto_id: i32,

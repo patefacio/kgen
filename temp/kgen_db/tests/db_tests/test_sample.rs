@@ -441,8 +441,7 @@ pub fn get_sample_rows() -> Vec<SampleRowData> {
 #[serial_test::serial]
 #[tokio::test]
 pub async fn test_crud() {
-    let pool = get_pool().await;
-    let resource = pool.get().await.unwrap();
+    let resource = get_pool().await.get().await.unwrap();
     let client = resource.client();
     // First delete all, assuming it worked
     let deleted = TableSample::delete_all(client).await.unwrap();
