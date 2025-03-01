@@ -32,7 +32,7 @@ data class Field(
 ) : Identifier(nameId), AsRust {
 
     /** The field namd as used in declaration, escaped if necessary */
-    private val declName get() = if (escapeName) "r#$escapeName" else nameId
+    private val declName get() = if (escapeName) "r#$nameId" else nameId
 
     /** The field declaration */
     val decl get() = "${trailingText(access.asRust)}$declName: ${type.type}"
