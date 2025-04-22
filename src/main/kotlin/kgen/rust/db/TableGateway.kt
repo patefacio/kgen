@@ -63,7 +63,7 @@ data class TableGateway(
             val patched = statement.replace(id.snake, "{}")
             "format!($patched, *${tableNameVarId!!.shout})"
         } else {
-            "format!($statement)"
+            statement
         }
 
     init {
