@@ -87,11 +87,11 @@ DO UPDATE SET
         returnDoc = "",
         body = FnBody(
             """
-let mut chunk = 0;${autoIdDetails?.autoIdVecLet ?: ""}
+${autoIdDetails?.autoIdVecLet ?: ""}
 ${table.unnestColumnVectorDecls}
 let upsert_statement = ${tableGateway.formatStatement(upsertStatement)};
-for chunk_rows in rows.chunks(chunk_size) {
-    for row in chunk_rows.into_iter() {
+for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+    for row in chunk_rows.iter() {
 ${table.bulkUpdateUnnestAssignments}
     }
     let chunk_result = client.$queryOrExecute(
@@ -109,7 +109,6 @@ ${table.bulkUpdateUnnestAssignments}
             ${autoIdDetails?.pushAutoId ?: ""} 
         }
     }
-    chunk += 1;
     ${table.bulkUnnestClearStatements}
 }
 Ok(${autoIdDetails?.collectResult ?: "()"})""".trimIndent()
