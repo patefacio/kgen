@@ -77,12 +77,12 @@ ${tableGateway.unnestedColumnExpressionValue}$returningId
             returnDoc = autoIdDetails?.insertReturnDoc ?: "Success or tokio_postgres::Error",
             body = FnBody(
                 """
-let mut chunk = 0;${autoIdDetails?.autoIdVecLet ?: ""}
+${autoIdDetails?.autoIdVecLet ?: ""}
 ${table.unnestColumnVectorDecls}
 
 let insert_statement = ${tableGateway.formatStatement(insertStatement)};
-for chunk_rows in rows.chunks(chunk_size) {
-    for row in chunk_rows.into_iter() {
+for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+    for row in chunk_rows.iter() {
 ${table.bulkUpdateUnnestAssignments}
     }
     
@@ -101,7 +101,6 @@ ${table.bulkUpdateUnnestAssignments}
             ${autoIdDetails?.pushAutoId ?: ""} 
         }
     }
-    chunk += 1;
     ${table.bulkUnnestClearStatements}
 }
 
