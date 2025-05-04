@@ -19,17 +19,19 @@ sealed class Access : AsRust {
     data object None : Access()
 
     /** This accessibility as a rust declaration.
-     *
      */
-    override val asRust
+     val visibility
         get() = when (this) {
-            None, ReadOnly, ReadOnlyCloned, ReadOnlyRef, ReadWrite, ReadWriteRef, Inaccessible -> ""
-            Pub -> "pub"
-            PubCrate -> "pub(crate)"
-            PubSelf -> "pub(self)"
-            PubSuper -> "pub(super)"
-            is PubIn -> "pub(in $inPackage)"
+            None, ReadOnly, ReadOnlyCloned, ReadOnlyRef, ReadWrite, ReadWriteRef, Inaccessible -> Visibility.None
+            Pub -> Visibility.Pub
+            PubCrate -> Visibility.PubCrate
+            PubSelf -> Visibility.PubSelf
+            PubSuper -> Visibility.PubSuper
+            is PubIn -> Visibility.PubIn(this.inPackage)
         }
+
+    override val asRust
+        get() = this.visibility.asRust
 
     /** True if access requires read */
     val requiresReader

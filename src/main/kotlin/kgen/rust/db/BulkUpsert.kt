@@ -69,6 +69,12 @@ DO UPDATE SET
 """
     )
 
+    val rustUpsertStatement = RustSqlStatement(
+        "bulk_upsert_statement",
+        upsertStatement,
+        tableGateway.backdoorTableId
+    )
+
     /** Input param type for _bulk insert_ - consumed vector if table has _auto id_, else slice */
     val inputFnParam = autoIdDetails?.inputFnParam ?: FnParam(
         "rows",
@@ -89,13 +95,13 @@ DO UPDATE SET
             """
 ${autoIdDetails?.autoIdVecLet ?: ""}
 ${table.unnestColumnVectorDecls}
-let upsert_statement = ${tableGateway.formatStatement(upsertStatement)};
+${rustUpsertStatement.letStatement}
 for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
     for row in chunk_rows.iter() {
 ${table.bulkUpdateUnnestAssignments}
     }
     let chunk_result = client.$queryOrExecute(
-        &upsert_statement,
+        ${rustUpsertStatement.asStr},
         &[${table.nonAutoIncColumns.joinToString(", ") { "&${it.nameId}" }}]
     ).await;
     

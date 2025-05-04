@@ -104,7 +104,7 @@ impl TableSampleWithId {
     where
         C: tokio_postgres::GenericClient,
     {
-        let statement = format!(
+        let select_where_statement = format!(
             r#"SELECT 
     auto_id, the_name, the_boolean, the_small_int, the_large_int, the_big_int,
     	the_date, the_general_int, the_date_time, the_uuid, the_ulong, the_json,
@@ -114,7 +114,7 @@ impl TableSampleWithId {
     FROM sample_with_id
     WHERE {where_clause}"#
         );
-        let rows = match client.query(&statement, params).await {
+        let rows = match client.query(&select_where_statement, params).await {
             Ok(stmt) => stmt,
             Err(e) => {
                 panic!("Error preparing statement: {e}");
@@ -192,7 +192,7 @@ impl TableSampleWithId {
             .map(|row| {
                 let row_params = SampleWithIdRowData::FIELD_NAMES
                     .map(|_| {
-                        param_id = param_id + 1;
+                        param_id += 1;
                         format!("${param_id}")
                     })
                     .join(", ");
@@ -226,7 +226,8 @@ impl TableSampleWithId {
             })
             .join(",\n");
 
-        let insert_result = client.query(&format!(r#"insert into sample_with_id 
+        let insert_statement = format!(
+            r#"insert into sample_with_id 
     (
     	the_name, the_boolean, the_small_int, the_large_int, the_big_int, the_date,
     	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
@@ -236,7 +237,9 @@ impl TableSampleWithId {
     VALUES
     {value_params}
     returning auto_id
-    "#), &params).await;
+    "#
+        );
+        let insert_result = client.query(&insert_statement, &params).await;
 
         match insert_result {
             Err(err) => {
@@ -274,7 +277,6 @@ impl TableSampleWithId {
     where
         C: tokio_postgres::GenericClient,
     {
-        let mut chunk = 0;
         let mut auto_id = Vec::with_capacity(rows.len());
 
         let mut the_name = Vec::with_capacity(chunk_size);
@@ -302,8 +304,7 @@ impl TableSampleWithId {
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
 
-        let insert_statement = format!(
-            r#"insert into sample_with_id
+        let bulk_insert_statement = r#"insert into sample_with_id
     (
     	the_name, the_boolean, the_small_int, the_large_int, the_big_int, the_date,
     	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
@@ -318,10 +319,9 @@ impl TableSampleWithId {
     	$19::int[], $20::timestamp[], $21::uuid[], $22::bigint[], $23::json[], $24::json[]
     )
     returning auto_id
-    "#
-        );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
+    "#;
+        for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+            for row in chunk_rows.iter() {
                 the_name.push(&row.the_name);
                 the_boolean.push(row.the_boolean);
                 the_small_int.push(row.the_small_int);
@@ -350,7 +350,7 @@ impl TableSampleWithId {
 
             let chunk_result = client
                 .query(
-                    &insert_statement,
+                    bulk_insert_statement,
                     &[
                         &the_name,
                         &the_boolean,
@@ -390,12 +390,11 @@ impl TableSampleWithId {
                         "Finished bulk insert of size({}) in `sample_with_id`",
                         chunk_result.len()
                     );
-                    chunk_result.into_iter().for_each(|result| {
+                    chunk_result.iter().for_each(|result| {
                         auto_id.push(result.get(0));
                     });
                 }
             }
-            chunk += 1;
             the_name.clear();
             the_boolean.clear();
             the_small_int.clear();
@@ -443,7 +442,6 @@ impl TableSampleWithId {
     where
         C: tokio_postgres::GenericClient,
     {
-        let mut chunk = 0;
         let mut auto_id = Vec::with_capacity(rows.len());
 
         let mut the_name = Vec::with_capacity(chunk_size);
@@ -470,8 +468,7 @@ impl TableSampleWithId {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-        let upsert_statement = format!(
-            r#"insert into sample_with_id
+        let bulk_upsert_statement = r#"insert into sample_with_id
     (
     	the_name, the_boolean, the_small_int, the_large_int, the_big_int, the_date,
     	the_general_int, the_date_time, the_uuid, the_ulong, the_json, the_jsonb,
@@ -512,10 +509,9 @@ impl TableSampleWithId {
     	nullable_json = EXCLUDED.nullable_json,
     	nullable_jsonb = EXCLUDED.nullable_jsonb
     returning auto_id
-    "#
-        );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
+    "#;
+        for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+            for row in chunk_rows.iter() {
                 the_name.push(&row.the_name);
                 the_boolean.push(row.the_boolean);
                 the_small_int.push(row.the_small_int);
@@ -543,7 +539,7 @@ impl TableSampleWithId {
             }
             let chunk_result = client
                 .query(
-                    &upsert_statement,
+                    bulk_upsert_statement,
                     &[
                         &the_name,
                         &the_boolean,
@@ -583,12 +579,11 @@ impl TableSampleWithId {
                         "Finished bulk upsert of size({}) in `sample_with_id`",
                         chunk_result.len()
                     );
-                    chunk_result.into_iter().for_each(|result| {
+                    chunk_result.iter().for_each(|result| {
                         auto_id.push(result.get(0));
                     });
                 }
             }
-            chunk += 1;
             the_name.clear();
             the_boolean.clear();
             the_small_int.clear();
@@ -630,9 +625,8 @@ impl TableSampleWithId {
     where
         C: tokio_postgres::GenericClient,
     {
-        client
-            .execute(&format!("DELETE FROM sample_with_id"), &[])
-            .await
+        let delete_statement = "DELETE FROM sample_with_id";
+        client.execute(delete_statement, &[]).await
     }
 }
 

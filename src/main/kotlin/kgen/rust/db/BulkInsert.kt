@@ -27,7 +27,7 @@ data class BulkInsert(
     val table get() = tableGateway.table
 
     /** Run insert as a _query_ or as statement _execution_.
-     * If `auto id` style the id's need to be returned, so use execute. If
+     * If `auto id` style the id's need to be returned, so use `execute`. If
      * simply a basic insert, use query and get return number inserted.
      */
     val queryOrExecute: String
@@ -58,6 +58,12 @@ ${tableGateway.unnestedColumnExpressionValue}$returningId
 """
     )
 
+    val rustInsertStatement = RustSqlStatement(
+        "bulk_insert_statement",
+        insertStatement,
+        tableGateway.backdoorTableId
+    )
+
     /** Input param type for _bulk insert_ - consumed vector if table has _auto id_, else slice */
     val inputFnParam = autoIdDetails?.inputFnParam ?: FnParam(
         "rows",
@@ -80,14 +86,14 @@ ${tableGateway.unnestedColumnExpressionValue}$returningId
 ${autoIdDetails?.autoIdVecLet ?: ""}
 ${table.unnestColumnVectorDecls}
 
-let insert_statement = ${tableGateway.formatStatement(insertStatement)};
+${rustInsertStatement.letStatement}
 for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
     for row in chunk_rows.iter() {
 ${table.bulkUpdateUnnestAssignments}
     }
     
     let chunk_result = client.$queryOrExecute(
-        &insert_statement,
+        ${rustInsertStatement.asStr},
         &[${table.nonAutoIncColumns.joinToString(", ") { "&${it.nameId}" }}]
     ).await;
     

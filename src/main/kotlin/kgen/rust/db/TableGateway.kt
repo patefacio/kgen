@@ -21,6 +21,13 @@ data class TableGateway(
     /** [kgen.Id] used to base table related names */
     val id = table.nameId.asId
 
+    /** The table id if backdoorTable is set */
+    val backdoorTableId get() = if(backdoorTable) {
+        id
+    } else {
+        null
+    }
+
     /** Classifier determining the types needed for supporting CRUD ops for the table */
     val classifier = table.classifier
 
@@ -55,16 +62,8 @@ data class TableGateway(
      */
     val tableNameVarId: Id?
 
-    /** If using back door the static name */
+    /** If using backdoor the static name */
     val tableNameStatic: Static?
-
-    fun formatStatement(statement: String) =
-        if (backdoorTable) {
-            val patched = statement.replace(id.snake, "{}")
-            "format!($patched, *${tableNameVarId!!.shout})"
-        } else {
-            statement
-        }
 
     init {
         if (backdoorTable) {
@@ -120,6 +119,7 @@ data class TableGateway(
     val basicInsert = BasicInsert(this, autoIdDetails)
     val bulkInsert = BulkInsert(this, autoIdDetails)
     val bulkUpsert = BulkUpsert(this, autoIdDetails)
+    val deleteStatement = DeleteStatement(this)
     val keyColumnSet = if (table.hasPrimaryKey) {
         QueryColumnSet(
             "${id.snake}_pkey",
@@ -153,20 +153,8 @@ data class TableGateway(
                 basicInsert.basicInsertFn,
                 bulkInsert.bulkInsertFn,
                 bulkUpsert.bulkUpsertFn,
-            ) +
-                    Fn(
-                        "delete_all",
-                        "Delete all rows of `$id`",
-                        clientFnParam,
-                        genericParamSet = genericClientParamSet,
-                        isAsync = true,
-                        hasTokioTest = true,
-                        inlineDecl = InlineDecl.Inline,
-                        returnType = "Result<u64, tokio_postgres::Error>".asType,
-                        returnDoc = "Number of rows deleted",
-                        body = FnBody("""client.execute(&${formatStatement(doubleQuote("DELETE FROM $id"))}, &[]).await"""),
-                        hasUnitTest = false
-                    ),
+                deleteStatement.deleteAllFn
+            )
         ),
         attrs = commonDerives + derive("Default")
     )

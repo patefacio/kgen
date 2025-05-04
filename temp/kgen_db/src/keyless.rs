@@ -91,7 +91,7 @@ impl TableKeyless {
     where
         C: tokio_postgres::GenericClient,
     {
-        let statement = format!(
+        let select_where_statement = format!(
             r#"SELECT 
     the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -101,7 +101,7 @@ impl TableKeyless {
     WHERE {where_clause}"#,
             *KEYLESS_TABLE_NAME
         );
-        let rows = match client.query(&statement, params).await {
+        let rows = match client.query(&select_where_statement, params).await {
             Ok(stmt) => stmt,
             Err(e) => {
                 panic!("Error preparing statement: {e}");
@@ -174,7 +174,7 @@ impl TableKeyless {
             .map(|row| {
                 let row_params = KeylessRowData::FIELD_NAMES
                     .map(|_| {
-                        param_id = param_id + 1;
+                        param_id += 1;
                         format!("${param_id}")
                     })
                     .join(", ");
@@ -206,7 +206,8 @@ impl TableKeyless {
             })
             .join(",\n");
 
-        let insert_result = client.execute(&format!(r#"insert into {} 
+        let insert_statement = format!(
+            r#"insert into {} 
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -215,7 +216,10 @@ impl TableKeyless {
     )
     VALUES
     {value_params}
-    "#, *KEYLESS_TABLE_NAME), &params).await;
+    "#,
+            *KEYLESS_TABLE_NAME
+        );
+        let insert_result = client.execute(&insert_statement, &params).await;
 
         match insert_result {
             Err(err) => {
@@ -246,7 +250,6 @@ impl TableKeyless {
     where
         C: tokio_postgres::GenericClient,
     {
-        let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
@@ -270,7 +273,7 @@ impl TableKeyless {
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
 
-        let insert_statement = format!(
+        let bulk_insert_statement = format!(
             r#"insert into {}
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
@@ -288,8 +291,8 @@ impl TableKeyless {
     "#,
             *KEYLESS_TABLE_NAME
         );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
+        for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+            for row in chunk_rows.iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
@@ -316,7 +319,7 @@ impl TableKeyless {
 
             let chunk_result = client
                 .execute(
-                    &insert_statement,
+                    &bulk_insert_statement,
                     &[
                         &the_name,
                         &the_small_int,
@@ -356,7 +359,6 @@ impl TableKeyless {
                     );
                 }
             }
-            chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
@@ -398,7 +400,6 @@ impl TableKeyless {
     where
         C: tokio_postgres::GenericClient,
     {
-        let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
@@ -421,7 +422,7 @@ impl TableKeyless {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-        let upsert_statement = format!(
+        let bulk_upsert_statement = format!(
             r#"insert into {}
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
@@ -463,8 +464,8 @@ impl TableKeyless {
     "#,
             *KEYLESS_TABLE_NAME
         );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
+        for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+            for row in chunk_rows.iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
@@ -490,7 +491,7 @@ impl TableKeyless {
             }
             let chunk_result = client
                 .execute(
-                    &upsert_statement,
+                    &bulk_upsert_statement,
                     &[
                         &the_name,
                         &the_small_int,
@@ -530,7 +531,6 @@ impl TableKeyless {
                     );
                 }
             }
-            chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
@@ -566,9 +566,8 @@ impl TableKeyless {
     where
         C: tokio_postgres::GenericClient,
     {
-        client
-            .execute(&format!("DELETE FROM {}", *KEYLESS_TABLE_NAME), &[])
-            .await
+        let delete_statement = format!("DELETE FROM {}", *KEYLESS_TABLE_NAME);
+        client.execute(&delete_statement, &[]).await
     }
 }
 

@@ -62,6 +62,13 @@ VALUES
 """
     )
 
+    val rustBasicInsert = RustSqlStatement(
+        "insert_statement",
+        basicInsertStatement,
+        tableGateway.backdoorTableId,
+        formatRequired = true
+    )
+
     /** The body of the insert function */
     val insertBody = """
         use itertools::Itertools;
@@ -71,7 +78,7 @@ VALUES
             .iter()
             .map(|row| {
                 let row_params = ${tableGateway.rowDataStructName}::FIELD_NAMES.map(|_| {
-                    param_id = param_id + 1;
+                    param_id += 1;
                     format!("${'$'}{param_id}")
                 }).join(", ");
                 
@@ -84,8 +91,8 @@ ${
                 format!("({row_params})")
             }).join(",\n");
 
-        
-        let insert_result = client.$queryOrExecute(&${tableGateway.formatStatement(basicInsertStatement)}, &params).await;
+        ${rustBasicInsert.letStatement}
+        let insert_result = client.$queryOrExecute(${rustBasicInsert.asStr}, &params).await;
         
         match insert_result {
             Err(err) => {

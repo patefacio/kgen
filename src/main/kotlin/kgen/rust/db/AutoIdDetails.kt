@@ -26,7 +26,7 @@ $autoId.into_iter()
 
     val pushAutoId
         get() = """
-chunk_result.into_iter().for_each(|result| {
+chunk_result.iter().for_each(|result| {
     $autoId.push(result.get(0));
 });      
     """.trimIndent()

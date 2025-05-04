@@ -93,7 +93,7 @@ impl TableSample {
     where
         C: tokio_postgres::GenericClient,
     {
-        let statement = format!(
+        let select_where_statement = format!(
             r#"SELECT 
     the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -102,7 +102,7 @@ impl TableSample {
     FROM sample
     WHERE {where_clause}"#
         );
-        let rows = match client.query(&statement, params).await {
+        let rows = match client.query(&select_where_statement, params).await {
             Ok(stmt) => stmt,
             Err(e) => {
                 panic!("Error preparing statement: {e}");
@@ -175,7 +175,7 @@ impl TableSample {
             .map(|row| {
                 let row_params = SampleRowData::FIELD_NAMES
                     .map(|_| {
-                        param_id = param_id + 1;
+                        param_id += 1;
                         format!("${param_id}")
                     })
                     .join(", ");
@@ -207,7 +207,8 @@ impl TableSample {
             })
             .join(",\n");
 
-        let insert_result = client.execute(&format!(r#"insert into sample 
+        let insert_statement = format!(
+            r#"insert into sample 
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -216,7 +217,9 @@ impl TableSample {
     )
     VALUES
     {value_params}
-    "#), &params).await;
+    "#
+        );
+        let insert_result = client.execute(&insert_statement, &params).await;
 
         match insert_result {
             Err(err) => {
@@ -247,7 +250,6 @@ impl TableSample {
     where
         C: tokio_postgres::GenericClient,
     {
-        let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
@@ -271,8 +273,7 @@ impl TableSample {
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
 
-        let insert_statement = format!(
-            r#"insert into sample
+        let bulk_insert_statement = r#"insert into sample
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -286,10 +287,9 @@ impl TableSample {
     	$13::smallint[], $14::bigint[], $15::bigint[], $16::date[], $17::int[], $18::timestamp[],
     	$19::uuid[], $20::bigint[], $21::json[], $22::json[]
     )
-    "#
-        );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
+    "#;
+        for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+            for row in chunk_rows.iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
@@ -316,7 +316,7 @@ impl TableSample {
 
             let chunk_result = client
                 .execute(
-                    &insert_statement,
+                    bulk_insert_statement,
                     &[
                         &the_name,
                         &the_small_int,
@@ -353,7 +353,6 @@ impl TableSample {
                     tracing::debug!("Finished bulk insert of size({}) in `sample`", chunk_result);
                 }
             }
-            chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
@@ -395,7 +394,6 @@ impl TableSample {
     where
         C: tokio_postgres::GenericClient,
     {
-        let mut chunk = 0;
         let mut the_name = Vec::with_capacity(chunk_size);
         let mut the_small_int = Vec::with_capacity(chunk_size);
         let mut the_large_int = Vec::with_capacity(chunk_size);
@@ -418,8 +416,7 @@ impl TableSample {
         let mut nullable_ulong = Vec::with_capacity(chunk_size);
         let mut nullable_json = Vec::with_capacity(chunk_size);
         let mut nullable_jsonb = Vec::with_capacity(chunk_size);
-        let upsert_statement = format!(
-            r#"insert into sample
+        let bulk_upsert_statement = r#"insert into sample
     (
     	the_name, the_small_int, the_large_int, the_big_int, the_date, the_general_int,
     	the_date_time, the_uuid, the_ulong, the_json, the_jsonb, nullable_name,
@@ -455,10 +452,9 @@ impl TableSample {
     	nullable_ulong = EXCLUDED.nullable_ulong,
     	nullable_json = EXCLUDED.nullable_json,
     	nullable_jsonb = EXCLUDED.nullable_jsonb
-    "#
-        );
-        for chunk_rows in rows.chunks(chunk_size) {
-            for row in chunk_rows.into_iter() {
+    "#;
+        for (chunk, chunk_rows) in rows.chunks(chunk_size).enumerate() {
+            for row in chunk_rows.iter() {
                 the_name.push(&row.the_name);
                 the_small_int.push(row.the_small_int);
                 the_large_int.push(row.the_large_int);
@@ -484,7 +480,7 @@ impl TableSample {
             }
             let chunk_result = client
                 .execute(
-                    &upsert_statement,
+                    bulk_upsert_statement,
                     &[
                         &the_name,
                         &the_small_int,
@@ -521,7 +517,6 @@ impl TableSample {
                     tracing::debug!("Finished bulk upsert of size({}) in `sample`", chunk_result);
                 }
             }
-            chunk += 1;
             the_name.clear();
             the_small_int.clear();
             the_large_int.clear();
@@ -557,7 +552,8 @@ impl TableSample {
     where
         C: tokio_postgres::GenericClient,
     {
-        client.execute(&format!("DELETE FROM sample"), &[]).await
+        let delete_statement = "DELETE FROM sample";
+        client.execute(delete_statement, &[]).await
     }
 }
 

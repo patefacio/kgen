@@ -1,6 +1,7 @@
 package kgen.rust.db.select
 
 import kgen.rust.*
+import kgen.rust.db.RustSqlStatement
 import kgen.rust.db.TableGateway
 import kgen.rust.db.clientFnParam
 import kgen.rust.db.formattedColumnNames
@@ -48,6 +49,13 @@ FROM ${table.tableName}
 WHERE {where_clause}
             """.trimMargin()
         )
+
+    val rustSqlStatement = RustSqlStatement(
+        "select_where_statement",
+        selectStatement,
+        tableGateway.backdoorTableId,
+        true
+    )
 
     /**
      * The return type for the query results, typically a struct representing a row in the table.
@@ -112,8 +120,9 @@ WHERE {where_clause}
             hasUnitTest = false,
             body = FnBody(
                 listOf(
-                    """let statement = ${tableGateway.formatStatement(selectStatement)};
-let rows = match client.query(&statement, params).await {
+                    """
+${rustSqlStatement.letStatement}                        
+let rows = match client.query(${rustSqlStatement.asStr}, params).await {
     Ok(stmt) => stmt,
     Err(e) => {
         panic!("Error preparing statement: {e}");
