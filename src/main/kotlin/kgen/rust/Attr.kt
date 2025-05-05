@@ -27,6 +27,17 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
 
         override val asOuterAttr: String
             get() = "#[${id.snakeCaseName}]"
+
+        // Override equals and hashCode
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Word) return false
+            return id.snakeCaseName == other.id.snakeCaseName
+        }
+
+        override fun hashCode(): Int {
+            return id.snakeCaseName.hashCode()
+        }
     }
 
     class Value(nameId: String, val value: String) : Attr(id(nameId)) {
@@ -34,6 +45,17 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
             get() = "#![${id.snakeCaseName}=\"$value\"]"
         override val asOuterAttr: String
             get() = "#[${id.snakeCaseName}=\"$value\"]"
+
+        // Override equals and hashCode
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Value) return false
+            return id.snakeCaseName == other.id.snakeCaseName && value == other.value
+        }
+
+        override fun hashCode(): Int {
+            return 31 * id.snakeCaseName.hashCode() + value.hashCode()
+        }
     }
 
     class Words(nameId: String, val words: List<String>) : Attr(id(nameId)) {
@@ -43,6 +65,17 @@ sealed class Attr(id: Id) : Identifier(id), AsAttr {
             get() = "#![${id.snakeCaseName}(${words.joinToString(", ")})]"
         override val asOuterAttr: String
             get() = "#[${id.snakeCaseName}(${words.joinToString(", ")})]"
+
+        // Override equals and hashCode
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other !is Words) return false
+            return id.snakeCaseName == other.id.snakeCaseName && words == other.words
+        }
+
+        override fun hashCode(): Int {
+            return 31 * id.snakeCaseName.hashCode() + words.hashCode()
+        }
     }
 
     class Dict(nameId: String, val dict: Map<Id, Any?>) : Attr(id(nameId)) {
