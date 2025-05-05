@@ -172,7 +172,6 @@ data class Fn(
             fnDoc,
             allAttrs.attrs.filter { attr ->
                 // Filter out inline which is not appropriate in trait fn decls
-                println("attr: $attr")
                 when (attr) {
                     is Attr.Word -> attr.id.snake != "inline"
                     is Attr.Value -> attr.id.snake != "inline"
