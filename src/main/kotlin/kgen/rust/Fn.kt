@@ -142,7 +142,7 @@ data class Fn(
         }
 
     private val visibilityDecl
-        get() = if (!isTest) {
+        get() = if (!isTest && !isTokioTest) {
             visibility.asRust
         } else {
             ""

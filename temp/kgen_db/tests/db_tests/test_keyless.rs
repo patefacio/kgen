@@ -442,7 +442,7 @@ pub fn get_sample_rows() -> Vec<KeylessRowData> {
 #[tracing_test::traced_test]
 #[serial_test::serial]
 #[tokio::test]
-pub async fn test_crud() {
+async fn test_crud() {
     let resource = get_pool().await.get().await.unwrap();
     let client = resource.client();
     // First delete all, assuming it worked
