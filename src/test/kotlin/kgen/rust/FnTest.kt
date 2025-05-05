@@ -74,4 +74,29 @@ where
             ).signature
         )
     }
+
+    @Test
+    fun cullInlineFromTrait() {
+        assertEquals("""
+/// Foo
+pub fn foo();
+        """.trimIndent(), Fn("foo", "Foo", inlineDecl = InlineDecl.Inline).asTraitFn)
+
+        assertEquals("""
+/// Foo
+pub fn foo();
+        """.trimIndent(), Fn("foo", "Foo", inlineDecl = InlineDecl.InlineNever).asTraitFn)
+
+
+        assertEquals("""
+/// Foo
+pub fn foo();
+        """.trimIndent(), Fn("foo", "Foo", inlineDecl = InlineDecl.InlineAlways).asTraitFn)
+
+        assertEquals("""
+/// Foo
+#[cfg(test)]
+pub fn foo();
+        """.trimIndent(), Fn("foo", "Foo", attrs = attrCfgTest.asAttrList).asTraitFn)
+    }
 }

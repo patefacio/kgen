@@ -170,7 +170,15 @@ data class Fn(
     val asTraitFn
         get() = listOfNotNull(
             fnDoc,
-            allAttrs.attrs.filter { it != attrInline || body != null }.asOuterAttr,
+            allAttrs.attrs.filter { attr ->
+                // Filter out inline which is not appropriate in trait fn decls
+                println("attr: $attr")
+                when (attr) {
+                    is Attr.Word -> attr.id.snake != "inline"
+                    is Attr.Value -> attr.id.snake != "inline"
+                    else -> true
+                } || body != null
+            }.asOuterAttr,
             signature +
                     if (body != null) {
                         bracketText(indent(body.asRust)!!)
