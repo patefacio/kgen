@@ -38,6 +38,7 @@ import kgen.utility.unitTest
  * @property isBinary Indicates if the module is a binary module to be placed in `bin`. Defaults to `false`.
  * @property disabled Indicates if the module is disabled. Defaults to `false`.
  * @property customModDecls Custom module declarations in the module. Defaults to an empty list.
+ * @property includeCustomUses If true includes protect block for user/IDE managed use statements
  */
 data class Module(
     val nameId: String,
@@ -69,7 +70,8 @@ data class Module(
     val includeTypeSizes: Boolean = false,
     val isBinary: Boolean = false,
     val disabled: Boolean = false,
-    val customModDecls: List<ModDecl> = emptyList()
+    val customModDecls: List<ModDecl> = emptyList(),
+    val includeCustomUses: Boolean = false,
 ) : Identifier(nameId), AsRust {
 
     val rustFileName = "${nameId}.rs"
@@ -289,7 +291,9 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
             emptySet()
         }
 
-    private val usingsSection =
+    private val usingsSection = if (includeCustomUses) {
+        emptyOpenDelimitedBlock("custom uses")
+    } else {
         listOfNotNull(
             announceSection(
                 "pub module uses",
@@ -298,6 +302,7 @@ result.extend(${submodule.nameId}::get_type_sizes().into_iter().map(|(k,v)| (for
                 "module uses",
                 allUses.filter { it.visibility != Visibility.Pub }.joinToString("\n") { it.asRust }),
         ).joinNonEmpty()
+    }
 
     override
     val asRust: String

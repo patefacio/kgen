@@ -273,6 +273,9 @@ val attrTokioMain = Attr.Text("tokio::main")
 /** For making a tokio test */
 val attrTokioTestFn = Attr.Text("tokio::test")
 
+/** For better logging wtih test */
+val attrTestLogTestFn = Attr.Text("test_log::test")
+
 /** For enabling tracing in tests using `tracing_test` */
 val attrTracingTest = Attr.Text("tracing_test::traced_test")
 

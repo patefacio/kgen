@@ -167,7 +167,7 @@ get_sample_rows_sorted(&selected).iter().zip(get_sample_rows_sorted(values).iter
             "test_crud",
             "Test by delete, bulk insert, select, bulk upsert, then delete for ${table.nameId}",
             isTokioTest = true,
-            attrs = listOf(attrTracingTest, attrSerializeTest).asAttrList,
+            attrs = listOf(attrTestLogTestFn, attrSerializeTest).asAttrList,
             body = listOf(
                 """
 let resource = get_pool().await.get().await.unwrap();

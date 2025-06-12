@@ -18,8 +18,8 @@ private fun ensureIsTest(testFnAttrs: AttrList) =
     when {
         testFnAttrs.attrs.contains(attrTestFn) -> testFnAttrs.attrs
         testFnAttrs.attrs.contains(attrTokioTestFn) -> testFnAttrs.attrs
-        else -> testFnAttrs.attrs.plus(attrTestFn)
-    }.plus(attrTracingTest).toSortedSet(compareBy { it.asOuterAttr }).toList().asAttrList
+        else -> testFnAttrs.attrs.plus(attrTestLogTestFn)
+    }.toSortedSet(compareBy { it.asOuterAttr }).toList().asAttrList
 
 fun unitTest(nameId: String, testFnAttrs: AttrList) = Fn(
     nameId,

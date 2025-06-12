@@ -208,16 +208,12 @@ data class Fn(
     }
 
     val testFunctionAttrs = testFnAttrs + listOfNotNull(
-        attrTracingTest, if (hasTokioTest == true) {
+        attrTestLogTestFn,
+        if (hasTokioTest == true) {
             attrTokioTestFn
         } else {
             null
         },
-        if (hasUnitTest == true) {
-            attrTestFn
-        } else {
-            null
-        }
     ).asAttrList
 
     fun asRust(codeBlockName: String) = listOfNotNull(
